@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: kijinkai
+  datasource:
+    url: jdbc:mysql://localhost:3307/shop_local?zeroDateTimeBehavior=convertToNull&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    username: kijinkai_local_user
+    password: 251001
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+  batch:
+    jdbc:
+      initialize-schema: never
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username:
+    password:
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+jwt:
+  secret: efbaaf49b466d260597ec1885631ba50528c9b7755d722e2a5d665a4ca962aa4bbb8d1bc9addd95a2ef924c83cf6f7cb779e8fbd3e3e6846a16920d2;
+logging:
+  level:
+    root: INFO
+    com.zinikai.shop: DEBUG
