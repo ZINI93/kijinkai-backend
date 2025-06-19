@@ -8,21 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class OrderValidator {
 
-//    public void validateCreate(OrderRequestDto dto) {
-//        if (dto.getOrderItemUuids() == null || dto.getOrderItemUuids().isEmpty()) {
-//            throw new OrderItemInvalidException("INVALID_ORDER_ITEMS");
-//        }
-//
-//        if (dto.getDeliveryFee() == null || dto.getDeliveryFee().compareTo(BigDecimal.ZERO) < 0) {
-//            throw new DeliveryInvalidException("INVALID_DELIVERY_FEE");
-//        }
-//    }
-//
-//    public void validateAdminApproval(Order order) {
-//        if (order.getOrderstate() != OrderState.PENDING) {
-//            throw new OrderItemInvalidException("ORDER_ALREADY_PROCESSED");
-//        }
-//    }
+
 
     public void validateOrderForAdminRejection(Order order) {
         if (order.getOrderStatus() != OrderStatus.DRAFT) {
@@ -30,8 +16,14 @@ public class OrderValidator {
         }
     }
 
-    public void requireAwaitingPaymentStatus(Order order){
+    public void requireAwaitingOrderStatus(Order order){
         if (order.getOrderStatus() != OrderStatus.AWAITING_PAYMENT){
+            throw new OrderStatusException("Order must be in AWAITING_PAYMENT status to proceed.");
+        }
+    }
+
+    public void requireDraftOrderStatus(Order order){
+        if (order.getOrderStatus() != OrderStatus.DRAFT){
             throw new OrderStatusException("Order must be in AWAITING_PAYMENT status to proceed.");
         }
     }

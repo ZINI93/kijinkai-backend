@@ -4,7 +4,6 @@ package com.kijinkai.domain.orderitem.service;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.customer.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.repository.CustomerRepository;
-import com.kijinkai.domain.order.dto.OrderUpdateDto;
 import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.order.exception.OrderNotFoundException;
 import com.kijinkai.domain.orderitem.dto.OrderItemRequestDto;
@@ -19,18 +18,12 @@ import com.kijinkai.domain.orderitem.validator.OrderItemValidator;
 import com.kijinkai.domain.platform.entity.Platform;
 import com.kijinkai.domain.platform.exception.PlatformNotFoundException;
 import com.kijinkai.domain.platform.repository.PlatformRepository;
-import com.kijinkai.domain.user.exception.UserNotFoundException;
 import com.kijinkai.domain.user.repository.UserRepository;
 import com.kijinkai.domain.exchange.repository.ExchangeRateRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -78,7 +71,7 @@ public class OrderItemServiceImpl implements OrderItemService {
 
     @Override
     public OrderItem updateOrderItemWithValidate(String orderUuid,  OrderItemUpdateDto updateDto) {
-        OrderItem orderItem = orderItemRepository.findByOrderUuid(orderUuid)
+        OrderItem orderItem = orderItemRepository.findByOrderItemUuid(orderUuid)
                 .orElseThrow(() -> new OrderNotFoundException(""));
 
         updateOrderItem(orderItem,updateDto);

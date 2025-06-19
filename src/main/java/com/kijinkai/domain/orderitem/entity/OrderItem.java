@@ -2,12 +2,14 @@ package com.kijinkai.domain.orderitem.entity;
 
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.order.entity.Order;
+import com.kijinkai.domain.orderitem.exception.OrderItemValidateException;
 import com.kijinkai.domain.platform.entity.Platform;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -86,5 +88,22 @@ public class OrderItem {
         this.memo = memo;
         this.priceOriginal = priceOriginal;
         this.currencyConverted = currencyConverted;
+    }
+
+    public void updateEstimatedPrice(BigDecimal priceOriginal) {
+        this.priceOriginal = priceOriginal;
+    }
+
+    public void validateOrderAndOrderItem(Order order) {
+
+        if (!Objects.equals(this.getOrder().getOrderId(), order.getOrderId())) {
+            throw new IllegalArgumentException("OrderItem " + this.getOrderItemUuid() + " does not belong to Order " + this.order.getOrderUuid());
+        }
+    }
+
+    public void updateEstimatedPrice() {
+        if (this.priceOriginal.compareTo(BigDecimal.ZERO) < 0) {
+            throw new OrderItemValidateException("Estimated price cannot be negative for order item: " + this.orderItemUuid);
+        }
     }
 }

@@ -17,17 +17,18 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 @Service
 public class UserServiceImpl implements UserService {
 
-    private final UserMapper mapper;
     private final UserRepository userRepository;
+
     private final PasswordEncoder passwordEncoder;
+
+    private final UserMapper mapper;
     private final UserFactory factory;
 
     @Override
-    @Transactional
     public UserResponseDto createUserWithValidate(UserRequestDto requestDto) {
         log.info("Creating user for user email:{}", requestDto.getEmail());
 
@@ -46,9 +47,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
     public UserResponseDto updateUserWithValidate(String userUuid, UserUpdateDto updateDto) {
-        User user = findUserByUserUuidInUser(userUuid);
+        User user = findUserByUserUuid(userUuid);
         log.info("Updating user for user email:{}", user.getEmail());
 
         updateUser(user, updateDto);
@@ -57,20 +57,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
     public void deleteUser(String userUuid) {
         log.info("Deleting user fro userUuid:{}", userUuid);
-        User user = findUserByUserUuidInUser(userUuid);
+        User user = findUserByUserUuid(userUuid);
         userRepository.delete(user);
     }
 
-    @Override
+    @Override @Transactional(readOnly = true)
     public UserResponseDto getUserInfo(String userUuid) {
-        User user = findUserByUserUuidInUser(userUuid);
+        User user = findUserByUserUuid(userUuid);
         return mapper.toResponse(user);
     }
 
-    private User findUserByUserUuidInUser(String userUuid) {
+    private User findUserByUserUuid(String userUuid) {
         return userRepository.findByUserUuid(userUuid)
                 .orElseThrow(() -> new UserNotFoundException("User uuid: user Not found"));
     }

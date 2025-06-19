@@ -1,5 +1,6 @@
 package com.kijinkai.domain.orderitem.dto;
 
+import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.orderitem.entity.Currency;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,6 +12,8 @@ import java.math.BigDecimal;
 @Builder
 public class OrderItemUpdateDto {
 
+    private String orderItemUuid;
+    private Order order;
     private String platformUuid;
     private String productLink;
     private int quantity;

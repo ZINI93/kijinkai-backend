@@ -1,17 +1,25 @@
 package com.kijinkai.domain.delivery.entity;
 
 
+import com.kijinkai.domain.BaseEntity;
 import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.order.entity.Order;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "deliveries")
 @Entity
-public class Delivery {
+public class Delivery extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "delivery_id", nullable = false, updatable = false, unique = true)
@@ -21,45 +29,103 @@ public class Delivery {
     private String deliveryUuid;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false, updatable = false)
+    private Order order;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false, updatable = false)
     private Customer customer;
 
-    @Column(name = "receiver_name")
-    private String receiverName;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "delivery_status", nullable = false)
+    private DeliveryStatus deliveryStatus;
 
-    @Column(name = "post_code", nullable = false)
-    private String postalCode;
+    // --- 배송 주소 스냅샷 (Snapshot) ---
+    @Column(name = "recipient_name", nullable = false)
+    private String recipientName;
 
-    @Column(name = "address1", nullable = false)
-    private String address1;
+    @Column(name = "recipient_phone_number", nullable = false)
+    private String recipientPhoneNumber;
 
-    @Column(name = "address2", nullable = false)
-    private String address2;
+    @Column(nullable = false)
+    private String country;
 
-    @Column(name = "memo")
-    private String memo;
+    @Column(nullable = false)
+    private String zipcode;
 
-    @Column(name = "is_default", nullable = false)
-    private Boolean isDefault;
+    @Column(nullable = false)
+    private String state;
+
+    @Column(nullable = false)
+    private String city;
+
+    @Column(nullable = false)
+    private String street;
+
+    // ------------------------------------
+
+    @Column(nullable = false, length = 50) // 택배사 이름
+    private Carrier carrier;
+
+    @Column(name = "tracking_number", unique = true, nullable = false, length = 100) // 송장 번호
+    private String trackingNumber;
+
+    @Column(name = "delivery_fee", nullable = false, precision = 10, scale = 2)
+    private BigDecimal deliveryFee;
+
+    @Column(name = "estimated_delivery_at")
+    private LocalDateTime estimatedDeliveryAt; // 예상 배송 완료 일시
+
+    @Column(name = "shipped_at")
+    private LocalDateTime shippedAt; // 실제 발송 일시
+
+    @Column(name = "delivered_at")
+    private LocalDateTime deliveredAt; // 실제 배송 완료 일시
+
+    @Column(name = "delivery_request", length = 500)
+    private String deliveryRequest; // 배송 요청 사항
+
+    @Column(name = "cancel_reason", length = 255)
+    private String cancelReason; // 배송 취소/실패 사유 (nullable)
 
 
     @Builder
-    public Delivery(String deliveryUuid, Customer customer, String receiverName, String postalCode, String address1, String address2, String memo, Boolean isDefault) {
-        this.deliveryUuid = UUID.randomUUID().toString();
+    public Delivery(String deliveryUuid, Order order, Customer customer, DeliveryStatus deliveryStatus, String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, Carrier carrier, String trackingNumber, BigDecimal deliveryFee, LocalDateTime estimatedDeliveryAt, LocalDateTime shippedAt, LocalDateTime deliveredAt, String deliveryRequest, String cancelReason) {
+        this.deliveryUuid = deliveryUuid != null ? deliveryRequest : UUID.randomUUID().toString();
+        this.order = order;
         this.customer = customer;
-        this.receiverName = receiverName;
-        this.postalCode = postalCode;
-        this.address1 = address1;
-        this.address2 = address2;
-        this.memo = memo;
-        this.isDefault = Boolean.TRUE;
+        this.deliveryStatus = deliveryStatus != null ? deliveryStatus : DeliveryStatus.PENDING;
+        this.recipientName = recipientName;
+        this.recipientPhoneNumber = recipientPhoneNumber;
+        this.country = country;
+        this.zipcode = zipcode;
+        this.state = state;
+        this.city = city;
+        this.street = street;
+        this.carrier = carrier != null ? carrier : Carrier.YAMATO;
+        this.trackingNumber = trackingNumber;
+        this.deliveryFee = deliveryFee;
+        this.estimatedDeliveryAt = estimatedDeliveryAt;
+        this.shippedAt = shippedAt;
+        this.deliveredAt = deliveredAt;
+        this.deliveryRequest = deliveryRequest;
+        this.cancelReason = cancelReason;
     }
 
-    public void updateDelivery(String receiverName, String postalCode, String address1, String address2, String memo) {
-        this.receiverName = receiverName;
-        this.postalCode = postalCode;
-        this.address1 = address1;
-        this.address2 = address2;
-        this.memo = memo;
+    public void updateDelivery(String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, Carrier carrier, String trackingNumber, BigDecimal deliveryFee) {
+        this.recipientName = recipientName;
+        this.recipientPhoneNumber = recipientPhoneNumber;
+        this.country = country;
+        this.zipcode = zipcode;
+        this.state = state;
+        this.city = city;
+        this.street = street;
+        this.carrier = carrier;
+        this.trackingNumber = trackingNumber;
+        this.deliveryFee = deliveryFee;
+    }
+
+    public void updateDeliveryStatus(DeliveryStatus deliveryStatus) {
+        this.deliveryStatus = deliveryStatus;
     }
 }
