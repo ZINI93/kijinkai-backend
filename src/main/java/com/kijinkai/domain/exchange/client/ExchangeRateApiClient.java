@@ -1,18 +1,16 @@
 package com.kijinkai.domain.exchange.client;
 
-import com.kijinkai.domain.exchange.dto.ExchangeApiResponse;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import com.kijinkai.domain.exchange.exception.ExchangeRateApiException;
 
-@Component
-@RequiredArgsConstructor
-public class ExchangeRateApiClient {
+import java.math.BigDecimal;
 
-    private final RestTemplate restTemplate;
-
-    public ExchangeApiResponse getExchangeRates(String baseCurrency) {
-        String url = "https://api.exchangerate-api.com/v4/latest/" + baseCurrency;
-        return restTemplate.getForObject(url, ExchangeApiResponse.class);
-    }
+public interface ExchangeRateApiClient {
+    /**
+     * 외부 환율 API로부터 특정 통화 쌍의 현재 환율을 조회합니다.
+     * @param fromCurrency 기준 통화
+     * @param toCurrency 대상 통화
+     * @return 조회된 환율 값
+     * @throws ExchangeRateApiException API 호출 실패 시
+     */
+    BigDecimal getExchangeRate(String fromCurrency, String toCurrency) throws ExchangeRateApiException;
 }

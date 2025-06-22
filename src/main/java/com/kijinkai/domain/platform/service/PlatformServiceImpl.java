@@ -15,8 +15,12 @@ import com.kijinkai.domain.user.repository.UserRepository;
 import com.kijinkai.domain.user.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -27,58 +31,100 @@ public class PlatformServiceImpl implements PlatformService{
     private final UserRepository userRepository;
     private final UserValidator userValidator;
     private final PlatformRepository platformRepository;
-    private final PlatformMapper mapper;
+    private final PlatformMapper platformMapper;
     private final PlatformFactory factory;
+
+    /**
+     * 관리자의 Platform 생성 프로세스
+     * @param userUuid
+     * @param requestDto
+     * @return 플렛폼 생성 응답 DTO
+     */
 
     @Override @Transactional
     public PlatformResponseDto createPlatformWithValidate(String userUuid, PlatformRequestDto requestDto) {
 
-        User user = userRepository.findByUserUuid(userUuid)
-                .orElseThrow(() -> new UserNotFoundException("UserUuid: User Not found"));
-
-        validateUserRole(user);
+        User user = findUserByUserUuidWithRequireAdminRole(userUuid);
 
         Platform platform = factory.createPlatform(user, requestDto);
         Platform savedPlatform = platformRepository.save(platform);
 
-        return mapper.toResponse(savedPlatform);
+        return platformMapper.toResponse(savedPlatform);
     }
 
-    private void updatePlatform(Platform platform, PlatformUpdateDto updateDto){
-        platform.updatePlatform(updateDto.getBaseUrl());
-    }
-
+    /**
+     * 관리자의 Platform 수정 프로세스
+     * @param userUuid
+     * @param platformUuid
+     * @param updateDto
+     * @return 플랫폼 수정 응답 DTO
+     */
     @Override @Transactional
     public PlatformResponseDto updatePlatformWithValidate(String userUuid, String platformUuid, PlatformUpdateDto updateDto) {
 
-        Platform platform = findPlatformByUserUuidAndPlatfomUuidByPlatform(userUuid, platformUuid);
-        validateUserRole(platform.getUser());
-        updatePlatform(platform,updateDto);
-        return mapper.toResponse(platform);
+        findUserByUserUuidWithRequireAdminRole(userUuid);
+
+        Platform platform = findPlatformPlatformUuid(platformUuid);
+
+        platform.updatePlatformBaseUrl(updateDto);
+        return platformMapper.toResponse(platform);
     }
+
+    /**
+     * Platform 삭제
+     * @param userUuid
+     * @param platformUuid
+     */
 
     @Override
     public void deletePlatform(String userUuid, String platformUuid) {
-        Platform platform = findPlatformByUserUuidAndPlatfomUuidByPlatform(userUuid, platformUuid);
-        validateUserRole(platform.getUser());
+        findUserByUserUuidWithRequireAdminRole(userUuid);
+        Platform platform = findPlatformPlatformUuid(platformUuid);
+
         platformRepository.delete(platform);
     }
 
+    /**
+     * Platform 전체 조회
+     * @param platform
+     * @param pageable
+     * @return 전체조회 DTO
+     */
+
+    @Override
+    public Page<PlatformResponseDto> getPlatforms(Pageable pageable) {
+        Page<Platform> platforms = platformRepository.findAllByPlatform(pageable);
+
+        return platforms.map(platformMapper::toResponse);
+    }
+
+    /**
+     * Platform 정보 확인 프로세스
+     * @param userUuid
+     * @param platformUuid
+     * @return Platform 정보 응답 DTO
+     */
+
     @Override
     public PlatformResponseDto getPlatformInfo(String userUuid, String platformUuid) {
-        Platform platform = findPlatformByUserUuidAndPlatfomUuidByPlatform(userUuid, platformUuid);
-        validateUserRole(platform.getUser());
+        findUserByUserUuidWithRequireAdminRole(userUuid);
+        Platform platform = findPlatformPlatformUuid(platformUuid);
 
-        return mapper.toResponse(platform);
+        return platformMapper.toResponse(platform);
     }
 
-    private Platform findPlatformByUserUuidAndPlatfomUuidByPlatform(String userUuid, String platformUuid) {
-        return platformRepository.findByUserUserUuidAndPlatformUuid(userUuid, platformUuid)
-                .orElseThrow(() -> new PlatformNotFoundException("UserUuidAndPlatformUUid: Platform not found"));
-    }
 
-    private void validateUserRole(User user) {
+    private User findUserByUserUuidWithRequireAdminRole(String userUuid) {
+        User user = userRepository.findByUserUuid(UUID.fromString(userUuid))
+                .orElseThrow(() -> new UserNotFoundException(String.format("User not found for user uuid %s", userUuid)));
         userValidator.requireAdminRole(user);
+
+        return user;
+    }
+
+    private Platform findPlatformPlatformUuid(String platformUuid) {
+        return platformRepository.findByPlatformUuid(UUID.fromString(platformUuid))
+                .orElseThrow(() -> new PlatformNotFoundException(String.format("Platform not found for platform uuid %s", platformUuid)));
     }
 
 }

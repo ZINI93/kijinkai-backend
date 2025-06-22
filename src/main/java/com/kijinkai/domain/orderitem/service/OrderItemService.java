@@ -14,7 +14,8 @@ import java.util.List;
 
 public interface OrderItemService {
 
-    OrderItem createOrderItemProcess(Customer customer, Order order, OrderItemRequestDto requestDto);
-    OrderItem updateOrderItemWithValidate(String orderUuid, OrderItemUpdateDto updateDto);
+    OrderItem createOrderItem(Customer customer, Order order, OrderItemRequestDto requestDto);
+    OrderItem updateOrderItemWithValidate(String userUuid,String orderUuid, OrderItemUpdateDto updateDto);
+    OrderItem updateOrderItemByAdmin(String userUuid,String orderUuid, OrderItemUpdateDto updateDto);
     OrderItemResponseDto getOrderItemInfo(String userUuid, String orderItemUuid);
 }

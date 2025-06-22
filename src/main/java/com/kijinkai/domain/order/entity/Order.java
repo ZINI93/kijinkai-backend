@@ -27,7 +27,7 @@ public class Order extends BaseEntity {
     private Long orderId;
 
     @Column(name = "order_uuid", nullable = false, updatable = false , unique = true)
-    private String orderUuid;
+    private UUID orderUuid;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
@@ -58,16 +58,15 @@ public class Order extends BaseEntity {
 
     private PaymentType paymentType;
 
-
     @Builder
-    public Order(String orderUuid, Customer customer, BigDecimal totalPriceOriginal, BigDecimal totalPriceConverted, BigDecimal finalPriceOriginal, Currency convertedCurrency, OrderStatus orderStatus, String memo, String rejectedReason, PaymentStatus paymentStatus, PaymentType paymentType) {
-        this.orderUuid = orderUuid != null ? orderUuid:UUID.randomUUID().toString();
+    public Order(UUID orderUuid, Customer customer, BigDecimal totalPriceOriginal, BigDecimal totalPriceConverted, BigDecimal finalPriceOriginal, Currency convertedCurrency, OrderStatus orderStatus, String memo, String rejectedReason, PaymentStatus paymentStatus, PaymentType paymentType) {
+        this.orderUuid = orderUuid != null ? orderUuid:UUID.randomUUID();
         this.customer = customer;
         this.totalPriceOriginal = totalPriceOriginal;
         this.totalPriceConverted = totalPriceConverted;
         this.finalPriceOriginal = finalPriceOriginal;
         this.convertedCurrency = convertedCurrency;
-        this.orderStatus = orderStatus != null ? orderStatus: OrderStatus.DRAFT;
+        this.orderStatus = orderStatus;
         this.memo = memo;
         this.rejectedReason = rejectedReason;
         this.paymentType = paymentType != null ? paymentType : PaymentType.CREDIT;
@@ -80,6 +79,10 @@ public class Order extends BaseEntity {
 
     public void updateOrderState(OrderStatus orderStatus) {
         this.orderStatus = orderStatus;
+    }
+
+    public void prepareDeliveryOrder(){
+        this.orderStatus = OrderStatus.PREPARE_DELIVERY;
     }
 
     public void updateOrder(OrderStatus orderStatus, String memo) {

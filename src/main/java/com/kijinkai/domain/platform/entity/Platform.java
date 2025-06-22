@@ -2,6 +2,7 @@ package com.kijinkai.domain.platform.entity;
 
 
 import com.kijinkai.domain.TimeBaseEntity;
+import com.kijinkai.domain.platform.dto.PlatformUpdateDto;
 import com.kijinkai.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -19,7 +20,7 @@ public class Platform extends TimeBaseEntity {
     private Long platFromId;
 
     @Column(name = "platform_uuid")
-    private String platformUuid;
+    private UUID platformUuid;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, updatable = false)
@@ -30,14 +31,14 @@ public class Platform extends TimeBaseEntity {
 
 
     @Builder
-    public Platform(String platformUuid, User user, String baseUrl) {
-        this.platformUuid = UUID.randomUUID().toString();
+    public Platform(UUID platformUuid, User user, String baseUrl) {
+        this.platformUuid = platformUuid != null ? platformUuid : UUID.randomUUID();
         this.user = user;
         this.baseUrl = baseUrl;
     }
 
 
-    public void updatePlatform(String baseUrl) {
-        this.baseUrl = baseUrl;
+    public void updatePlatformBaseUrl(PlatformUpdateDto updateDto) {
+        this.baseUrl = updateDto.getBaseUrl();
     }
 }

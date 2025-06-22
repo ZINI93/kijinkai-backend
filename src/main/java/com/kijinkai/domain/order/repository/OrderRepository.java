@@ -6,11 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    Optional<Order> findByCustomerCustomerUuidAndOrderUuid(String customerUuid, String orderUuid);
-    Optional<Order> findByCustomerCustomerIdAndOrderUuid(Long customerId, String orderUuid);
-    Optional<Order> findByOrderUuid(String orderUuid);
+    Optional<Order> findByCustomerCustomerUuidAndOrderUuid(UUID customerUuid, UUID orderUuid);
+    Optional<Order> findByCustomerCustomerIdAndOrderUuid(Long customerId, UUID orderUuid);
+    Optional<Order> findByOrderUuid(UUID orderUuid);
 }

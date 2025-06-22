@@ -5,11 +5,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 
 @Repository
 public interface AddressRepository extends JpaRepository<Address, Long> {
 
     Optional<Address> findByCustomerCustomerUuidAndAddressUuid(String customerUuid, String addressUuid);
-    Optional<Address> findByCustomerCustomerUuid(String customerUuid);
+    Optional<Address> findByCustomerCustomerUuid(UUID customerUuid);
 }

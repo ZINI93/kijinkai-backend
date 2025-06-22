@@ -6,6 +6,7 @@ import com.kijinkai.domain.orderitem.entity.Currency;
 import com.kijinkai.domain.payment.dto.PaymentRequestDto;
 import com.kijinkai.domain.payment.entity.Payment;
 import com.kijinkai.domain.payment.entity.PaymentStatus;
+import com.kijinkai.domain.payment.entity.PaymentType;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,7 @@ import java.util.UUID;
 @Component
 public class PaymentFactory {
 
-    public Payment createPayment(Customer customer, Wallet wallet, PaymentRequestDto requestDto){
+    public Payment createPayment(Customer customer, Wallet wallet, BigDecimal amountOriginal, BigDecimal amountConverter,PaymentRequestDto requestDto){
 
         return Payment.builder()
                 .paymentUuid(UUID.randomUUID().toString())
@@ -23,10 +24,11 @@ public class PaymentFactory {
                 .wallet(wallet)
                 .paymentStatus(PaymentStatus.PENDING)
                 .paymentMethod(requestDto.getPaymentMethod())
-                .currencyOriginal(Currency.JPY)
-                .amountConverter(BigDecimal.ZERO)
+                .currencyOriginal(Currency.KRW)
+                .amountOriginal(amountOriginal)
+                .amountConverter(amountConverter)
                 .currencyConverter(requestDto.getCurrencyConverter())
-                .paymentType(null)
+                .paymentType(PaymentType.DEBIT)
                 .description(null)
                 .externalTransactionId(null)
                 .build();

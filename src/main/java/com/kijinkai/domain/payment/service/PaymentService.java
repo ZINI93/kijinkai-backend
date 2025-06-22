@@ -9,8 +9,8 @@ public interface PaymentService {
 
 
     PaymentResponseDto createPaymentWithValidate(String userUuid, PaymentRequestDto updateDto);
-    PaymentResponseDto completedPayment(String userUuid, String paymentUuid);
-    PaymentResponseDto refundedPayment(String userUuid, String paymentUuid);
+    PaymentResponseDto completePayment(String userUuid, String paymentUuid);
+    PaymentResponseDto refundPayment(String userUuid, String paymentUuid);
     PaymentResponseDto cancelPayment(String userUuid, String paymentUuid);
     PaymentResponseDto getPaymentInfo(String userUuid, String paymentUuid);
 

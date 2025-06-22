@@ -9,6 +9,7 @@ import com.kijinkai.domain.payment.entity.PaymentType;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 import static com.kijinkai.domain.orderitem.entity.Currency.JPY;
 
@@ -18,6 +19,7 @@ public class OrderFactory {
 
     public Order createOrder(Customer customer, String memo) {
         return Order.builder()
+                .orderUuid(UUID.randomUUID())
                 .customer(customer)
                 .totalPriceOriginal(BigDecimal.ZERO)
                 .totalPriceConverted(BigDecimal.ZERO)

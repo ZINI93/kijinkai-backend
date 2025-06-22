@@ -7,11 +7,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.swing.text.html.Option;
 import java.util.Optional;
+import java.util.UUID;
 
 
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
     Optional<Customer> findByUserUserUuidAndCustomerUuid(String userUuid, String customerUuid);
-    Optional<Customer> findByUserUserUuid(String userUuid);
+    Optional<Customer> findByUserUserUuid(UUID userUuid);
 }

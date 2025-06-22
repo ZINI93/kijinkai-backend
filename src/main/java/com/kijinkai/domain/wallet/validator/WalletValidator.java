@@ -19,8 +19,8 @@ public class WalletValidator {
         }
     }
 
-    public void requireSufficientBalance(Wallet wallet){
-        if (wallet.getBalance().compareTo(BigDecimal.ZERO) < 0){
+    public void requireSufficientBalance(Wallet wallet, BigDecimal totalAmount){
+        if (wallet.getBalance().compareTo(totalAmount) < 0){
             throw new PaymentAmountException("Amount must be a positive value");
         }
     }

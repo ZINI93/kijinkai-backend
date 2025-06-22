@@ -26,7 +26,7 @@ public class Delivery extends BaseEntity {
     private Long deliveryId;
 
     @Column(name = "delivery_uuid", nullable = false, updatable = false, unique = true)
-    private String deliveryUuid;
+    private UUID deliveryUuid;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false, updatable = false)
@@ -90,8 +90,8 @@ public class Delivery extends BaseEntity {
 
 
     @Builder
-    public Delivery(String deliveryUuid, Order order, Customer customer, DeliveryStatus deliveryStatus, String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, Carrier carrier, String trackingNumber, BigDecimal deliveryFee, LocalDateTime estimatedDeliveryAt, LocalDateTime shippedAt, LocalDateTime deliveredAt, String deliveryRequest, String cancelReason) {
-        this.deliveryUuid = deliveryUuid != null ? deliveryRequest : UUID.randomUUID().toString();
+    public Delivery(UUID deliveryUuid, Order order, Customer customer, DeliveryStatus deliveryStatus, String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, Carrier carrier, String trackingNumber, BigDecimal deliveryFee, LocalDateTime estimatedDeliveryAt, LocalDateTime shippedAt, LocalDateTime deliveredAt, String deliveryRequest, String cancelReason) {
+        this.deliveryUuid = deliveryUuid != null ? deliveryUuid : UUID.randomUUID();
         this.order = order;
         this.customer = customer;
         this.deliveryStatus = deliveryStatus != null ? deliveryStatus : DeliveryStatus.PENDING;

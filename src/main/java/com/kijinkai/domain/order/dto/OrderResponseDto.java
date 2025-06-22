@@ -7,12 +7,13 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Builder
 @Getter
 public class OrderResponseDto {
 
-    private String orderUuid;
+    private UUID orderUuid;
     private Customer customer;
     private BigDecimal deliveryFee;
     private BigDecimal totalPriceOriginal;   // 엔화의 상품전체가격
@@ -26,7 +27,7 @@ public class OrderResponseDto {
 
 
     @Builder
-    public OrderResponseDto(String orderUuid, Customer customer, BigDecimal deliveryFee, BigDecimal totalPriceOriginal, BigDecimal totalPriceConverted, BigDecimal finalPriceOriginal, String convertedCurrency, OrderStatus orderstate, String memo, String rejectedReason, PaymentStatus paymentStatus) {
+    public OrderResponseDto(UUID orderUuid, Customer customer, BigDecimal deliveryFee, BigDecimal totalPriceOriginal, BigDecimal totalPriceConverted, BigDecimal finalPriceOriginal, String convertedCurrency, OrderStatus orderstate, String memo, String rejectedReason, PaymentStatus paymentStatus) {
         this.orderUuid = orderUuid;
         this.customer = customer;
         this.deliveryFee = deliveryFee;

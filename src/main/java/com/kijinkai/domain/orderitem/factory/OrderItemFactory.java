@@ -15,20 +15,20 @@ import java.util.UUID;
 @Component
 public class OrderItemFactory {
 
-    public OrderItem createOrderItem(Customer customer, Platform platform, Order order,  OrderItemRequestDto requestDto) {
+    public OrderItem createOrderItem(Customer customer, Platform platform, Order order, BigDecimal convertedPrice, BigDecimal exchangeRate, OrderItemRequestDto requestDto) {
 
         return OrderItem.builder()
-                .orderItemUuid(UUID.randomUUID().toString())
+                .orderItemUuid(UUID.randomUUID())
                 .customer(customer)
                 .platform(platform)
                 .order(order)
                 .productLink(requestDto.getProductLink())
                 .quantity(requestDto.getQuantity())
                 .priceOriginal(requestDto.getPriceOriginal())
-                .priceConverted(BigDecimal.ZERO)
+                .priceConverted(convertedPrice)
                 .currencyOriginal(Currency.JPY)
                 .currencyConverted(requestDto.getCurrencyConverted())
-                .exchangeRate(BigDecimal.ZERO)
+                .exchangeRate(exchangeRate)
                 .memo(requestDto.getMemo())
                 .build();
 

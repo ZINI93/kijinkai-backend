@@ -2,6 +2,7 @@ package com.kijinkai.domain.platform.mapper;
 
 import com.kijinkai.domain.platform.dto.PlatformResponseDto;
 import com.kijinkai.domain.platform.entity.Platform;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 
@@ -16,4 +17,5 @@ public class PlatformMapper {
                 .baseUrl(platform.getBaseUrl())
                 .build();
     }
+
 }

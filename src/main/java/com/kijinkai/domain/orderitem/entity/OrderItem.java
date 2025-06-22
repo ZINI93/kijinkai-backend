@@ -1,12 +1,15 @@
 package com.kijinkai.domain.orderitem.entity;
 
+import com.kijinkai.domain.BaseEntity;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.order.entity.Order;
+import com.kijinkai.domain.orderitem.dto.OrderItemUpdateDto;
 import com.kijinkai.domain.orderitem.exception.OrderItemValidateException;
 import com.kijinkai.domain.platform.entity.Platform;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
+import org.hibernate.sql.Update;
 
 import java.math.BigDecimal;
 import java.util.Objects;
@@ -15,7 +18,7 @@ import java.util.UUID;
 @Getter
 @Table(name = "order_items")
 @Entity
-public class OrderItem {
+public class OrderItem extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +26,7 @@ public class OrderItem {
     private Long orderItemId;
 
     @Column(name = "order_item_uuid", nullable = false, updatable = false, unique = true)
-    private String orderItemUuid;
+    private UUID orderItemUuid;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
@@ -43,9 +46,6 @@ public class OrderItem {
     @Column(nullable = false)
     private int quantity;
 
-    @Column(columnDefinition = "TEXT")
-    private String memo;
-
     @Column(name = "price_original", nullable = false)
     private BigDecimal priceOriginal;
 
@@ -54,7 +54,7 @@ public class OrderItem {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "currency_original", nullable = false)
-    private Currency currencyOriginal;
+    private Currency currencyOriginal; //JYP
 
     @Enumerated(EnumType.STRING)
     @Column(name = "currency_converted", nullable = false)
@@ -63,10 +63,12 @@ public class OrderItem {
     @Column(name = "exchange_rate", nullable = false, updatable = false)
     private BigDecimal exchangeRate;
 
+    @Column(columnDefinition = "TEXT")
+    private String memo;
 
     @Builder
-    public OrderItem(String orderItemUuid, Customer customer, Platform platform, Order order, String productLink, int quantity, BigDecimal priceOriginal, BigDecimal priceConverted, Currency currencyOriginal, Currency currencyConverted, BigDecimal exchangeRate, String memo) {
-        this.orderItemUuid = orderItemUuid != null ? orderItemUuid : UUID.randomUUID().toString();
+    public OrderItem(UUID orderItemUuid, Customer customer, Platform platform, Order order, String productLink, int quantity, BigDecimal priceOriginal, BigDecimal priceConverted, Currency currencyOriginal, Currency currencyConverted, BigDecimal exchangeRate, String memo) {
+        this.orderItemUuid = orderItemUuid != null ? orderItemUuid : UUID.randomUUID();
         this.customer = customer;
         this.platform = platform;
         this.order = order;
@@ -81,18 +83,15 @@ public class OrderItem {
     }
 
 
-    public void updateOrderItem(Platform platform, String productLink, int quantity, String memo, BigDecimal priceOriginal, Currency currencyConverted) {
+    public void updateOrderItem(OrderItemUpdateDto updateDto, Platform platform) {
         this.platform = platform;
-        this.productLink = productLink;
-        this.quantity = quantity;
-        this.memo = memo;
-        this.priceOriginal = priceOriginal;
-        this.currencyConverted = currencyConverted;
+        this.productLink = updateDto.getProductLink();
+        this.quantity = updateDto.getQuantity();
+        this.memo = updateDto.getMemo();
+        this.priceOriginal = updateDto.getPriceOriginal();
+        this.currencyConverted = updateDto.getCurrencyConverted();
     }
 
-    public void updateEstimatedPrice(BigDecimal priceOriginal) {
-        this.priceOriginal = priceOriginal;
-    }
 
     public void validateOrderAndOrderItem(Order order) {
 

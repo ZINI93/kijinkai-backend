@@ -18,7 +18,7 @@ public class DeliveryFactory {
     public Delivery createDelivery(Order order, Address address, DeliveryRequestDto requestDto) {
 
         return new Delivery(
-                UUID.randomUUID().toString(),
+                UUID.randomUUID(),
                 order,
                 order.getCustomer(),
                 DeliveryStatus.PENDING,
