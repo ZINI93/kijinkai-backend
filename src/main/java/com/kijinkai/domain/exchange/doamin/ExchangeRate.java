@@ -21,9 +21,16 @@ public class ExchangeRate extends TimeBaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "from_currency", nullable = false)
     private String fromCurrency;
+
+    @Column(name = "to_currency", nullable = false)
     private String toCurrency;
+
+    @Column(nullable = false)
     private BigDecimal rate;
+
+    @Column(name = "fetch_at", nullable = false)
     private LocalDateTime fetchedAt;
 
     @Builder

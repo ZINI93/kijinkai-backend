@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 
 @Getter
@@ -22,7 +23,7 @@ public class Wallet extends BaseEntity {
     private Long walletId;
 
     @Column(name = "wallet_uuid", nullable = false, updatable = false, unique = true)
-    private String walletUuid;
+    private UUID walletUuid;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false, updatable = false, unique = true)
@@ -44,11 +45,11 @@ public class Wallet extends BaseEntity {
 
 
     @Builder
-    public Wallet(String walletUuid, Customer customer, BigDecimal balance, Currency currency, WalletStatus walletStatus, Long version) {
-        this.walletUuid = walletUuid;
+    public Wallet(UUID walletUuid, Customer customer, BigDecimal balance, Currency currency, WalletStatus walletStatus, Long version) {
+        this.walletUuid = walletUuid != null ? walletUuid : UUID.randomUUID();
         this.customer = customer;
         this.balance = balance;
-        this.currency = currency;
+        this.currency = currency != null ? currency : Currency.JPY;
         this.walletStatus = walletStatus;
         this.version = version;
     }
@@ -90,4 +91,5 @@ public class Wallet extends BaseEntity {
         }
         this.balance = this.balance.subtract(amount);
     }
+
 }

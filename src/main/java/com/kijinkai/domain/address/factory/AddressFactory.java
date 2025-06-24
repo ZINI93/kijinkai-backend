@@ -1,4 +1,4 @@
-package com.kijinkai.domain.address.fectory;
+package com.kijinkai.domain.address.factory;
 
 import com.kijinkai.domain.address.dto.AddressRequestDto;
 import com.kijinkai.domain.address.entity.Address;

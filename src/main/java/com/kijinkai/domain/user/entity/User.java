@@ -19,7 +19,7 @@ public class User extends BaseEntity {
     private Long userId;
 
     @Column(name = "user_uuid", unique = true, nullable = false, updatable = false)
-    private String userUuid;
+    private UUID userUuid;
 
     @Column(name = "email", unique = true, nullable = false, updatable = false)
     private String email;
@@ -35,16 +35,16 @@ public class User extends BaseEntity {
     private UserRole userRole;
 
     @Builder
-    public User(String userUuid, String email, String password, String nickname, UserRole userRole) {
-        this.userUuid = userUuid != null ? userUuid : UUID.randomUUID().toString();
+    public User(UUID userUuid, String email, String password, String nickname, UserRole userRole) {
+        this.userUuid = userUuid != null ? userUuid : UUID.randomUUID();
         this.email = email;
         this.password = password;
         this.nickname = nickname;
         this.userRole = userRole != null ? userRole : UserRole.USER;
     }
 
-    public void updateUser(String password, String nickname) {
+    public void updateUser(String password, UserUpdateDto updateDto) {
         this.password = password;
-        this.nickname = nickname;
+        this.nickname = updateDto.getNickname();
     }
 }

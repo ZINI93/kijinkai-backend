@@ -29,4 +29,6 @@ public interface WalletRepository extends JpaRepository<Wallet, Long> {
     Optional<Wallet> findByIdWithPessimisticLock(@Param("walletId") Long walletId);
 
     Optional<Wallet> findByCustomerCustomerId(Long customerId);
+
+    Optional<Wallet> findByWalletId(Long walletId);
 }

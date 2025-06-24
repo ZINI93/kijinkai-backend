@@ -1,9 +1,13 @@
 package com.kijinkai.domain.orderitem.validator;
 
+import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.orderitem.dto.OrderItemRequestDto;
+import com.kijinkai.domain.orderitem.entity.OrderItem;
+import com.kijinkai.domain.orderitem.exception.OrderItemValidateException;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 @Component
 public class OrderItemValidator {
@@ -15,5 +19,15 @@ public class OrderItemValidator {
         if (dto.getProductLink() == null || dto.getProductLink().isBlank())
             throw new IllegalArgumentException("상품 링크는 필수입니다.");
         // 추가 유효성 검사 가능
+    }
+
+    public void validateCustomerOwnershipOfOrderItem(Customer customer, OrderItem orderItem){
+        String orderCustomerUuid = orderItem.getOrder().getCustomer().getCustomerUuid();
+        if (!customer.getCustomerUuid().equals(orderCustomerUuid)) {
+            throw new OrderItemValidateException(
+                    String.format("Customer UUID mismatch: expected %s, but got %s",
+                            customer.getCustomerUuid(), orderCustomerUuid)
+            );
+        }
     }
 }

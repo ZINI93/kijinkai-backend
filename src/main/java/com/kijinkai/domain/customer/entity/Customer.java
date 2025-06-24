@@ -1,5 +1,6 @@
 package com.kijinkai.domain.customer.entity;
 
+import com.kijinkai.domain.BaseEntity;
 import com.kijinkai.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -11,7 +12,7 @@ import java.util.UUID;
 @Getter
 @Table(name = "customers")
 @Entity
-public class Customer {
+public class Customer extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "customer_id", nullable = false, updatable = false, unique = true)

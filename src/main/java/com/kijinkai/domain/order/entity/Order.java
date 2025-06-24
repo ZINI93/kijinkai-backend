@@ -3,7 +3,6 @@ package com.kijinkai.domain.order.entity;
 import com.kijinkai.domain.BaseEntity;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.orderitem.entity.Currency;
-import com.kijinkai.domain.payment.entity.Payment;
 import com.kijinkai.domain.payment.entity.PaymentStatus;
 import com.kijinkai.domain.payment.entity.PaymentType;
 import jakarta.persistence.*;

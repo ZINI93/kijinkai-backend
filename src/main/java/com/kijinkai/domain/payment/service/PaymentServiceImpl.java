@@ -18,6 +18,7 @@ import com.kijinkai.domain.payment.factory.PaymentFactory;
 import com.kijinkai.domain.payment.mapper.PaymentMapper;
 import com.kijinkai.domain.payment.repository.PaymentRepository;
 import com.kijinkai.domain.payment.validate.PaymentValidator;
+import com.kijinkai.domain.transaction.service.TransactionService;
 import com.kijinkai.domain.user.validator.UserValidator;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import com.kijinkai.domain.wallet.exception.WalletUpdateFailedException;
@@ -29,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 @Slf4j
@@ -189,7 +191,7 @@ public class PaymentServiceImpl implements PaymentService{
 
 
     private Customer findCustomerByUserUuid(String userUuid) {
-        return customerRepository.findByUserUserUuid(userUuid)
+        return customerRepository.findByUserUserUuid(UUID.fromString(userUuid))
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for userUuid: %s", userUuid)));
     }
 

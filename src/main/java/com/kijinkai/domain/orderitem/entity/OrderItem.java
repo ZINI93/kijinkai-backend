@@ -1,6 +1,7 @@
 package com.kijinkai.domain.orderitem.entity;
 
 import com.kijinkai.domain.BaseEntity;
+import com.kijinkai.domain.TimeBaseEntity;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.orderitem.dto.OrderItemUpdateDto;
@@ -18,7 +19,7 @@ import java.util.UUID;
 @Getter
 @Table(name = "order_items")
 @Entity
-public class OrderItem extends BaseEntity {
+public class OrderItem extends TimeBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,10 +28,6 @@ public class OrderItem extends BaseEntity {
 
     @Column(name = "order_item_uuid", nullable = false, updatable = false, unique = true)
     private UUID orderItemUuid;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false)
-    private Customer customer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "platform_id", nullable = false)
@@ -67,9 +64,8 @@ public class OrderItem extends BaseEntity {
     private String memo;
 
     @Builder
-    public OrderItem(UUID orderItemUuid, Customer customer, Platform platform, Order order, String productLink, int quantity, BigDecimal priceOriginal, BigDecimal priceConverted, Currency currencyOriginal, Currency currencyConverted, BigDecimal exchangeRate, String memo) {
+    public OrderItem(UUID orderItemUuid, Platform platform, Order order, String productLink, int quantity, BigDecimal priceOriginal, BigDecimal priceConverted, Currency currencyOriginal, Currency currencyConverted, BigDecimal exchangeRate, String memo) {
         this.orderItemUuid = orderItemUuid != null ? orderItemUuid : UUID.randomUUID();
-        this.customer = customer;
         this.platform = platform;
         this.order = order;
         this.productLink = productLink;

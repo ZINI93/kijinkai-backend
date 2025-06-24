@@ -13,7 +13,7 @@ import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.order.entity.OrderStatus;
 import com.kijinkai.domain.order.exception.OrderCreationException;
 import com.kijinkai.domain.order.exception.OrderNotFoundException;
-import com.kijinkai.domain.order.fectory.OrderFactory;
+import com.kijinkai.domain.order.factory.OrderFactory;
 import com.kijinkai.domain.order.mapper.OrderMapper;
 import com.kijinkai.domain.order.repository.OrderRepository;
 import com.kijinkai.domain.order.validator.OrderValidator;
@@ -25,6 +25,9 @@ import com.kijinkai.domain.orderitem.exception.OrderUpdateException;
 import com.kijinkai.domain.orderitem.repository.OrderItemRepository;
 import com.kijinkai.domain.orderitem.service.OrderItemService;
 import com.kijinkai.domain.payment.exception.PaymentProcessingException;
+import com.kijinkai.domain.transaction.entity.TransactionStatus;
+import com.kijinkai.domain.transaction.entity.TransactionType;
+import com.kijinkai.domain.transaction.service.TransactionService;
 import com.kijinkai.domain.user.validator.UserValidator;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import com.kijinkai.domain.wallet.exception.WalletNotFoundException;
@@ -66,6 +69,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderItemService orderItemService;
     private final ExchangeRateService exchangeRateService;
+    private final TransactionService transactionService;
 
     /**
      * 사용자가 링크와 가격을 입력하여 주문을 생성하는 프로세스
@@ -123,7 +127,7 @@ public class OrderServiceImpl implements OrderService {
             BigDecimal calculateTotalAmountOriginal = BigDecimal.ZERO; // 원본 통화(USD 등)의 총액
 
             for (OrderItemUpdateDto itemUpdate : updateDto.getOrderItems()) {
-                OrderItem orderItem = orderItemRepository.findByOrderItemUuid(itemUpdate.getOrderItemUuid())
+                OrderItem orderItem = orderItemRepository.findByOrderItemUuid(UUID.fromString(itemUpdate.getOrderItemUuid()))
                         .orElseThrow(() -> new OrderItemNotFoundException("Order item with UUID: " + itemUpdate.getOrderItemUuid() + " not found."));
 
                 orderItem.validateOrderAndOrderItem(order);
@@ -139,7 +143,7 @@ public class OrderServiceImpl implements OrderService {
 
             // 2. 환율을 적용하여 원화 총액 계산 //유저에게 원화로 얼마인지 정보 제공
             BigDecimal convertedTotalAmount = exchangeCalculator.calculateConvertedAmount(calculateTotalAmountOriginal, exchangeRate);
-            exchangeCalculator.validateConverterAmount(calculateTotalAmountOriginal,exchangeRate);
+            exchangeCalculator.validateConverterAmount(calculateTotalAmountOriginal, exchangeRate);
 
             updateOrderEstimate(order, calculateTotalAmountOriginal, convertedTotalAmount, updateDto);
             Order savedOrder = orderRepository.save(order);
@@ -154,13 +158,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * 사용자가 견적을 검토한 후 결제를 진행하는 프로세스
+     * 유저가 견적을 검토한 후 결제를 진행하는 프로세스
      *
      * @param userUuid
      * @param orderUuid
      * @return 결제 완료된 주문 응답 DTO
      */
-    @Override // 유저가 검토 후 돈을 지불
+    @Override
     public OrderResponseDto completedOrder(String userUuid, String orderUuid) {
         return executeWithOptimisticLockRetry(() ->
                 processOrderCompletion(userUuid, orderUuid));
@@ -184,11 +188,16 @@ public class OrderServiceImpl implements OrderService {
         int updatedRows = walletRepository.decreaseBalanceAtomic(wallet.getWalletId(), amountToPay);
 
         if (updatedRows == 0) {
-            throw new WalletUpdateFailedException("Insufficient balance for refund");
+            throw new WalletUpdateFailedException("Insufficient balance for payment or wallet update failed");
         }
 
         order.completePayment();  // order status change paid
         Order savedOrder = orderRepository.save(order);
+
+
+        Wallet updateWallet = walletRepository.findByWalletId(wallet.getWalletId()).orElseThrow(() -> new WalletNotFoundException(String.format("Wallet not found for wallet id: %s", wallet.getWalletId())));
+        BigDecimal balanceAfter = updateWallet.getBalance();
+        transactionService.createTransactionWithValidate(userUuid, wallet, order, TransactionType.PAYMENT, amountToPay, wallet.getBalance(), balanceAfter, TransactionStatus.COMPLETED);
 
         log.info("Completed order for order uuid:{}", savedOrder.getOrderUuid());
 
@@ -290,7 +299,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private Customer findCustomerByUserUuid(String userUuid) {
-        return customerRepository.findByUserUserUuid(userUuid)
+        return customerRepository.findByUserUserUuid(UUID.fromString(userUuid))
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for user uuid %s", userUuid)));
     }
 

@@ -20,23 +20,17 @@ import com.kijinkai.domain.orderitem.factory.OrderItemFactory;
 import com.kijinkai.domain.orderitem.mapper.OrderItemMapper;
 import com.kijinkai.domain.orderitem.repository.OrderItemRepository;
 import com.kijinkai.domain.orderitem.validator.OrderItemValidator;
-import com.kijinkai.domain.payment.dto.PaymentResponseDto;
-import com.kijinkai.domain.payment.exception.PaymentProcessingException;
 import com.kijinkai.domain.platform.entity.Platform;
 import com.kijinkai.domain.platform.exception.PlatformNotFoundException;
 import com.kijinkai.domain.platform.repository.PlatformRepository;
-import com.kijinkai.domain.user.repository.UserRepository;
-import com.kijinkai.domain.exchange.repository.ExchangeRateRepository;
 import com.kijinkai.domain.user.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.UUID;
-import java.util.function.Supplier;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -91,7 +85,9 @@ public class OrderItemServiceImpl implements OrderItemService {
     public OrderItem updateOrderItemWithValidate(String userUuid, String orderItemUuid, OrderItemUpdateDto updateDto) {
 
         Customer customer = findCustomerByUserUuid(userUuid);
-        OrderItem orderItem = findOrderItemByCustomerAndOrderItemUuid(customer, orderItemUuid);
+        OrderItem orderItem = findOrderItemByOrderItemUuid(orderItemUuid);
+        orderItemValidator.validateCustomerOwnershipOfOrderItem(customer,orderItem);
+
         orderValidator.requireDraftOrderStatus(orderItem.getOrder());
 
         Platform platform = findPlatformByPlatformUuid(updateDto.getPlatformUuid());
@@ -134,7 +130,8 @@ public class OrderItemServiceImpl implements OrderItemService {
     public OrderItemResponseDto getOrderItemInfo(String userUuid, String orderItemUuid) {
 
         Customer customer = findCustomerByUserUuid(userUuid);
-        OrderItem orderItem = findOrderItemByCustomerAndOrderItemUuid(customer, orderItemUuid);
+        OrderItem orderItem = findOrderItemByOrderItemUuid(orderItemUuid);
+        orderItemValidator.validateCustomerOwnershipOfOrderItem(customer,orderItem);
 
         return orderItemMapper.toResponseDto(orderItem);
     }
@@ -144,10 +141,6 @@ public class OrderItemServiceImpl implements OrderItemService {
                 .orElseThrow(() -> new PlatformNotFoundException(String.format("Platform not found for platform uuid: %s", platformUuid)));
     }
 
-    private OrderItem findOrderItemByCustomerAndOrderItemUuid(Customer customer, String orderItemUuid) {
-        return orderItemRepository.findByCustomerUuidAndOrderItemUuid(UUID.fromString(customer.getUser().getUserUuid()), UUID.fromString(orderItemUuid))
-                .orElseThrow(() -> new OrderNotFoundException(String.format("OrderItem not found for customer uuid: %s and order uuid: %s", customer.getCustomerUuid(), orderItemUuid)));
-    }
 
     private Customer findCustomerByUserUuid(String userUuid) {
         return customerRepository.findByUserUserUuid(UUID.fromString(userUuid))

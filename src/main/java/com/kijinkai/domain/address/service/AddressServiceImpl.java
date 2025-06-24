@@ -5,7 +5,7 @@ import com.kijinkai.domain.address.dto.AddressResponseDto;
 import com.kijinkai.domain.address.dto.AddressUpdateDto;
 import com.kijinkai.domain.address.entity.Address;
 import com.kijinkai.domain.address.exception.AddressNotFoundException;
-import com.kijinkai.domain.address.fectory.AddressFactory;
+import com.kijinkai.domain.address.factory.AddressFactory;
 import com.kijinkai.domain.address.mapper.AddressMapper;
 import com.kijinkai.domain.address.repository.AddressRepository;
 import com.kijinkai.domain.customer.entity.Customer;

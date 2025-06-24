@@ -1,6 +1,7 @@
 package com.kijinkai.domain.address.entity;
 
 import com.kijinkai.domain.BaseEntity;
+import com.kijinkai.domain.TimeBaseEntity;
 import com.kijinkai.domain.customer.entity.Customer;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -15,7 +16,8 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "addresses")
 @Entity
-public class Address extends BaseEntity {
+public class Address extends TimeBaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)

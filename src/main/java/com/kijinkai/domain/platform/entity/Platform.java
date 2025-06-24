@@ -14,6 +14,7 @@ import java.util.UUID;
 @Table(name = "platforms")
 @Entity
 public class Platform extends TimeBaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)

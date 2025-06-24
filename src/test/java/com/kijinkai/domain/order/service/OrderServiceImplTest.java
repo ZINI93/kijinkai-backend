@@ -7,7 +7,7 @@ import com.kijinkai.domain.order.dto.OrderResponseDto;
 import com.kijinkai.domain.order.dto.OrderUpdateDto;
 import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.order.entity.OrderStatus;
-import com.kijinkai.domain.order.fectory.OrderFactory;
+import com.kijinkai.domain.order.factory.OrderFactory;
 import com.kijinkai.domain.order.mapper.OrderMapper;
 import com.kijinkai.domain.order.repository.OrderRepository;
 import com.kijinkai.domain.order.validator.OrderValidator;
