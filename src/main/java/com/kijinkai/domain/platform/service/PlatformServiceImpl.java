@@ -20,7 +20,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -85,17 +87,17 @@ public class PlatformServiceImpl implements PlatformService{
     }
 
     /**
-     * Platform 전체 조회
-     * @param platform
-     * @param pageable
-     * @return 전체조회 DTO
+     * platform 전체 조회
+     * @return
      */
 
     @Override
-    public Page<PlatformResponseDto> getPlatforms(Pageable pageable) {
-        Page<Platform> platforms = platformRepository.findAllByPlatform(pageable);
+    public List<PlatformResponseDto> getPlatforms() {
 
-        return platforms.map(platformMapper::toResponse);
+        List<Platform> platforms = platformRepository.findAll();
+
+        return platforms.stream().map(platformMapper::toResponse)
+                .collect(Collectors.toUnmodifiableList());
     }
 
     /**

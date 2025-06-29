@@ -3,7 +3,7 @@ package com.kijinkai.domain.payment.entity;
 import com.kijinkai.domain.BaseEntity;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.order.entity.Order;
-import com.kijinkai.domain.orderitem.entity.Currency;
+import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -26,7 +26,7 @@ public class Payment extends BaseEntity {
     private Long paymentId;
 
     @Column(name = "payment_uuid", nullable = false, updatable = false, unique = true)
-    private String paymentUuid;
+    private UUID paymentUuid;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false, updatable = false)
@@ -40,9 +40,11 @@ public class Payment extends BaseEntity {
     @JoinColumn(name = "order_id", nullable = false, updatable = false)
     private Order order;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", nullable = false)
     private PaymentStatus paymentStatus;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "payment_method", nullable = false)
     private PaymentMethod paymentMethod;
 
@@ -50,16 +52,17 @@ public class Payment extends BaseEntity {
     private BigDecimal amountOriginal;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "payment_currency_original", nullable = false)
     private Currency currencyOriginal;
 
     @Column(nullable = false)
     private BigDecimal  amountConverter;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "payment_currency_converter", nullable = false)
     private Currency currencyConverter;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "payment_type", nullable = false)
     private PaymentType paymentType;
 
@@ -73,8 +76,8 @@ public class Payment extends BaseEntity {
 
 
     @Builder
-    public Payment(String paymentUuid, Customer customer, Wallet wallet, Order order, PaymentStatus paymentStatus, PaymentMethod paymentMethod, BigDecimal amountOriginal, Currency currencyOriginal, BigDecimal amountConverter, Currency currencyConverter, PaymentType paymentType, String description, String externalTransactionId, BigDecimal exchangeRate) {
-        this.paymentUuid = paymentUuid != null ? paymentUuid : UUID.randomUUID().toString();
+    public Payment(UUID paymentUuid, Customer customer, Wallet wallet, Order order, PaymentStatus paymentStatus, PaymentMethod paymentMethod, BigDecimal amountOriginal, Currency currencyOriginal, BigDecimal amountConverter, Currency currencyConverter, PaymentType paymentType, String description, String externalTransactionId, BigDecimal exchangeRate) {
+        this.paymentUuid = paymentUuid != null ? paymentUuid : UUID.randomUUID();
         this.customer = customer;
         this.wallet = wallet;
         this.order = order;

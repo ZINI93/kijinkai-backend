@@ -10,8 +10,11 @@ import com.kijinkai.domain.user.exception.UserUpdateException;
 import com.kijinkai.domain.user.factory.UserFactory;
 import com.kijinkai.domain.user.mapper.UserMapper;
 import com.kijinkai.domain.user.repository.UserRepository;
+import com.kijinkai.domain.user.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +34,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
     private final UserFactory factory;
+    private final UserValidator userValidator;
 
     /**
      * email, password, nickname을 받아서 계정생성 프로세스
@@ -61,7 +65,7 @@ public class UserServiceImpl implements UserService {
      * @return 업데이트 응답 DTO
      */
     @Override @Transactional
-    public UserResponseDto updateUserWithValidate(String userUuid, UserUpdateDto updateDto) {
+    public UserResponseDto updateUserWithValidate(UUID userUuid, UserUpdateDto updateDto) {
         try {
             log.info("Updating user for user uuid:{}", userUuid);
 
@@ -88,9 +92,26 @@ public class UserServiceImpl implements UserService {
      * @return
      */
     @Override
-    public UserResponseDto getUserInfo(String userUuid) {
+    public UserResponseDto getUserInfo(UUID userUuid) {
         User user = findUserByUserUuid(userUuid);
         return userMapper.toResponse(user);
+    }
+
+    /**
+     * 관리자가 유저 관리로 전체 리스트를 확인하는 프로세스 ( 이메일, 닉네임으로 검색 )
+     * @param userUuid
+     * @param email
+     * @param nickname
+     * @param pageable
+     * @return userRepository
+     */
+    @Override
+    public Page<UserResponseDto> findAllByUsers(UUID userUuid, String email, String nickname, Pageable pageable) {
+
+        User user = findUserByUserUuid(userUuid);
+        userValidator.requireAdminRole(user);
+
+        return userRepository.findByNameAndNickname(email,nickname,pageable);
     }
 
     /**
@@ -98,15 +119,16 @@ public class UserServiceImpl implements UserService {
      * @param userUuid
      */
     @Override @Transactional
-    public void deleteUser(String userUuid) {
+    public void deleteUser(UUID userUuid) {
         log.info("Deleting user fro userUuid:{}", userUuid);
         User user = findUserByUserUuid(userUuid);
         userRepository.delete(user);
     }
 
-    private User findUserByUserUuid(String userUuid) {
-        return userRepository.findByUserUuid(UUID.fromString(userUuid))
+    private User findUserByUserUuid(UUID userUuid) {
+        return userRepository.findByUserUuid(userUuid)
                 .orElseThrow(() -> new UserNotFoundException(String.format("User not found for user uuid: %s", userUuid)));
     }
+
 
 }

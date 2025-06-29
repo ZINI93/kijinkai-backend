@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-import static com.kijinkai.domain.orderitem.entity.Currency.JPY;
+import static com.kijinkai.domain.exchange.doamin.Currency.JPY;
 
 
 @Component

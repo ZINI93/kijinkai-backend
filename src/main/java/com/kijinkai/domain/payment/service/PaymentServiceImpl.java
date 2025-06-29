@@ -4,10 +4,9 @@ package com.kijinkai.domain.payment.service;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.customer.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.repository.CustomerRepository;
-import com.kijinkai.domain.exchange.calculator.CurrencyExchangeCalculator;
+import com.kijinkai.domain.exchange.service.PriceCalculationService;
 import com.kijinkai.domain.exchange.doamin.ExchangeRate;
-import com.kijinkai.domain.exchange.service.ExchangeRateService;
-import com.kijinkai.domain.orderitem.entity.Currency;
+import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.payment.dto.PaymentRequestDto;
 import com.kijinkai.domain.payment.dto.PaymentResponseDto;
 import com.kijinkai.domain.payment.entity.Payment;
@@ -18,7 +17,6 @@ import com.kijinkai.domain.payment.factory.PaymentFactory;
 import com.kijinkai.domain.payment.mapper.PaymentMapper;
 import com.kijinkai.domain.payment.repository.PaymentRepository;
 import com.kijinkai.domain.payment.validate.PaymentValidator;
-import com.kijinkai.domain.transaction.service.TransactionService;
 import com.kijinkai.domain.user.validator.UserValidator;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import com.kijinkai.domain.wallet.exception.WalletUpdateFailedException;
@@ -43,17 +41,15 @@ public class PaymentServiceImpl implements PaymentService{
     private final WalletRepository walletRepository;
     private final CustomerRepository customerRepository;
 
-    private final ExchangeRateService exchangeRateService;
-
     private final PaymentMapper paymentMapper;
     private final UserValidator userValidator;
     private final PaymentValidator paymentValidator;
     private final PaymentFactory paymentFactory;
 
-    private final CurrencyExchangeCalculator exchangeCalculator;
+    private final PriceCalculationService priceCalculationService;
 
     /**
-     * 유저가 현지 화폐로 지불된 돈을 엔화로 환전 후 값이 필드에 들어가고 완료 전 보류 되는 프로세스 * 이 시점에 돈이 지갑으로 들어가지 않음
+     * 유저가 현지 화폐로 지불된 돈을 엔화로 환전 후 값이 필드에 들어가고 완료 전 보류 되는 프로세스 * 이 시점에 돈이 지갑으로 들어가지 않음, 충전 수수료 200엔
      * @param userUuid
      * @param requestDto
      * @return 생성된 지불 응답 DTO
@@ -67,9 +63,8 @@ public class PaymentServiceImpl implements PaymentService{
         paymentValidator.validateAmount(requestDto);
 
         BigDecimal amountOriginal = requestDto.getAmountOriginal();
-        BigDecimal exchangeRate = getLatestExchangeRate(requestDto.getCurrencyConverter(), Currency.JPY);
-        BigDecimal convertedAmount = exchangeCalculator.calculateConvertedAmount(amountOriginal, exchangeRate);
-        exchangeCalculator.validateConverterAmount(amountOriginal,exchangeRate);
+
+        BigDecimal convertedAmount = priceCalculationService.convertAndCalculateTotalInJpy(amountOriginal, requestDto.getCurrencyConverter(), new BigDecimal(200.00));
 
         Payment payment = paymentFactory.createPayment(customer, wallet, amountOriginal, convertedAmount, requestDto);
         Payment savedPayment = paymentRepository.save(payment);
@@ -196,30 +191,13 @@ public class PaymentServiceImpl implements PaymentService{
     }
 
     private Payment findPaymentByCustomerUuidAndPaymentUuid(Customer customer,String paymentUuid) {
-        return paymentRepository.findByCustomerCustomerUuidAndPaymentUuid(customer.getCustomerUuid(), paymentUuid)
+        return paymentRepository.findByCustomerCustomerUuidAndPaymentUuid(customer.getCustomerUuid(), UUID.fromString(paymentUuid))
                 .orElseThrow(() -> new PaymentNotFoundException("CustomerUuidAndPaymentUuid: Payment not found"));
     }
 
     private Wallet findWalletByCustomerId(Customer customer) {
         return walletRepository.findByCustomerCustomerId(customer.getCustomerId())
                 .orElseThrow(() -> new CustomerNotFoundException("Customer uuid: wallet not found"));
-    }
-
-    /**
-     * ExchangeRateService를 통해 최신 환율을 조회합니다.
-     * 환율이 없는 경우 (예: 아직 API 호출 전 또는 실패)에 대한 견고한 처리 필요.
-     * @param fromCurrency 기준 통화 (예: USD)
-     * @param toCurrency 대상 통화 (예: KRW)
-     * @return 최신 환율 (BigDecimal)
-     * @throws RuntimeException 환율 정보를 찾을 수 없을 경우
-     */
-    private BigDecimal getLatestExchangeRate(Currency fromCurrency, Currency toCurrency) {
-
-        return exchangeRateService.getLatestExchangeRate(fromCurrency, toCurrency)
-                .map(ExchangeRate::getRate) // ExchangeRate 엔티티에서 rate 값 추출
-                .orElseThrow(() -> new IllegalStateException(
-                        String.format("Latest exchange rate for %s to %s not found. Please ensure exchange rate update is working.",
-                                fromCurrency, toCurrency)));
     }
 
     public PaymentResponseDto executeWithOptimisticLockRetry(Supplier<PaymentResponseDto> operation) {

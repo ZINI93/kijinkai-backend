@@ -16,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Slf4j
 @RequiredArgsConstructor
 @Transactional
@@ -80,12 +82,12 @@ public class AddressServiceImpl implements AddressService{
     }
 
     private Address findAddressByCustomerUuidAndAddressUuid(String addressUuid, Customer customer) {
-        return addressRepository.findByCustomerCustomerUuidAndAddressUuid(customer.getCustomerUuid(), addressUuid)
+        return addressRepository.findByCustomerCustomerUuidAndAddressUuid(customer.getCustomerUuid(), UUID.fromString(addressUuid))
                 .orElseThrow(() -> new AddressNotFoundException("CustomerUuid and AddressUuid : Address not found"));
     }
 
     private Customer findCustomerByUserUuid(String userUuid) {
-        return customerRepository.findByUserUserUuid(userUuid)
+        return customerRepository.findByUserUserUuid(UUID.fromString(userUuid))
                 .orElseThrow(() -> new CustomerNotFoundException("UserUuid: Customer not found"));
     }
 }

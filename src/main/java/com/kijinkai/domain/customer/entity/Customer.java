@@ -1,6 +1,7 @@
 package com.kijinkai.domain.customer.entity;
 
 import com.kijinkai.domain.BaseEntity;
+import com.kijinkai.domain.customer.dto.CustomerUpdateDto;
 import com.kijinkai.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -13,13 +14,14 @@ import java.util.UUID;
 @Table(name = "customers")
 @Entity
 public class Customer extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "customer_id", nullable = false, updatable = false, unique = true)
     private Long customerId;
 
     @Column(name = "customer_uuid", nullable = false, updatable = false, unique = true)
-    private String customerUuid;
+    private UUID customerUuid;
 
     @Column(name = "first_name", nullable = false)
     private String firstName;
@@ -40,8 +42,8 @@ public class Customer extends BaseEntity {
 
 
     @Builder
-    public Customer(String customerUuid, String firstName, String lastName, String phoneNumber, CustomerTier customerTier, User user) {
-        this.customerUuid = customerUuid != null ? customerUuid : UUID.randomUUID().toString();
+    public Customer(UUID customerUuid, String firstName, String lastName, String phoneNumber, CustomerTier customerTier, User user) {
+        this.customerUuid = customerUuid != null ? customerUuid : UUID.randomUUID();
         this.firstName = firstName;
         this.lastName = lastName;
         this.phoneNumber = phoneNumber;
@@ -49,11 +51,15 @@ public class Customer extends BaseEntity {
         this.user = user;
     }
 
-    public void updateCustomer(String firstName, String lastName, String phoneNumber) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.phoneNumber = phoneNumber;
+    public void updateCustomer(CustomerUpdateDto customerUpdateDto) {
+        this.firstName = customerUpdateDto.getFirstName();
+        this.lastName = customerUpdateDto.getLastName();
+        this.phoneNumber = customerUpdateDto.getLastName();
     }
+//
+//    public void updateCustomerTier(){
+//        this.customerTier = ;
+//    }
 }
 
 

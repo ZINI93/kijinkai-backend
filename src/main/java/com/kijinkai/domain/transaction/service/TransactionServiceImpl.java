@@ -96,7 +96,7 @@ public class TransactionServiceImpl implements TransactionService {
 
 
     private Transaction findTransactionByCustomerAndTransactionUuid(Customer customer,String transactionUuid) {
-        return transactionRepository.findByCustomerCustomerUuidAndTransactionUuid(UUID.fromString(customer.getCustomerUuid()), UUID.fromString(transactionUuid))
+        return transactionRepository.findByCustomerCustomerUuidAndTransactionUuid(customer.getCustomerUuid(), UUID.fromString(transactionUuid))
                 .orElseThrow(() -> new TransactionNotFoundException(String.format("Transaction not found for customer uuid: %s, transaction uuid: %s", customer.getCustomerUuid(), transactionUuid)));
     }
 

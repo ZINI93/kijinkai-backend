@@ -11,11 +11,11 @@ import java.util.UUID;
 public class PlatformResponseDto {
 
     private UUID platformUuid;
-    private String userUuid;
+    private UUID userUuid;
     private String baseUrl;
 
     @Builder
-    public PlatformResponseDto(UUID platformUuid, String userUuid, String baseUrl) {
+    public PlatformResponseDto(UUID platformUuid, UUID userUuid, String baseUrl) {
         this.platformUuid = platformUuid;
         this.userUuid = userUuid;
         this.baseUrl = baseUrl;

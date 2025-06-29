@@ -6,14 +6,15 @@ import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Builder
 public class DeliveryResponseDto {
 
-    private String deliveryUuid;
-    private String orderUuid;
-    private String customerUuid;
+    private UUID deliveryUuid;
+    private UUID orderUuid;
+    private UUID customerUuid;
     private DeliveryStatus deliveryStatus;
 
     // --- 배송 주소 스냅샷 (Snapshot) ---
@@ -36,7 +37,7 @@ public class DeliveryResponseDto {
     private String cancelReason; // 배송 취소/실패 사유 (nullable)
 
     @Builder
-    public DeliveryResponseDto(String deliveryUuid, String orderUuid, String customerUuid, DeliveryStatus deliveryStatus, String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, String carrier, String trackingNumber, BigDecimal deliveryFee, LocalDateTime estimatedDeliveryAt, LocalDateTime shippedAt, LocalDateTime deliveredAt, String deliveryRequest, String cancelReason) {
+    public DeliveryResponseDto(UUID deliveryUuid, UUID orderUuid, UUID customerUuid, DeliveryStatus deliveryStatus, String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, String carrier, String trackingNumber, BigDecimal deliveryFee, LocalDateTime estimatedDeliveryAt, LocalDateTime shippedAt, LocalDateTime deliveredAt, String deliveryRequest, String cancelReason) {
         this.deliveryUuid = deliveryUuid;
         this.orderUuid = orderUuid;
         this.customerUuid = customerUuid;

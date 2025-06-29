@@ -64,6 +64,7 @@ public class Delivery extends BaseEntity {
 
     // ------------------------------------
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50) // 택배사 이름
     private Carrier carrier;
 

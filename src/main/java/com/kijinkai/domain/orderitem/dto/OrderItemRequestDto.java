@@ -1,6 +1,6 @@
 package com.kijinkai.domain.orderitem.dto;
 
-import com.kijinkai.domain.orderitem.entity.Currency;
+import com.kijinkai.domain.exchange.doamin.Currency;
 import lombok.Getter;
 
 import java.math.BigDecimal;

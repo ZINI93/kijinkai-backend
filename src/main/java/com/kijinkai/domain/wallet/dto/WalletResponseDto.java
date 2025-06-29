@@ -1,18 +1,19 @@
 package com.kijinkai.domain.wallet.dto;
 
 import com.kijinkai.domain.customer.entity.Customer;
-import com.kijinkai.domain.orderitem.entity.Currency;
+import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.wallet.entity.WalletStatus;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Getter
 @Builder
 public class WalletResponseDto {
 
-    private String walletUuid;
+    private UUID walletUuid;
     private Customer customer;
     private BigDecimal balance;
     private Currency currency;
@@ -20,7 +21,7 @@ public class WalletResponseDto {
     private Long version;
 
     @Builder
-    public WalletResponseDto(String walletUuid, Customer customer, BigDecimal balance, Currency currency, WalletStatus walletStatus, Long version) {
+    public WalletResponseDto(UUID walletUuid, Customer customer, BigDecimal balance, Currency currency, WalletStatus walletStatus, Long version) {
         this.walletUuid = walletUuid;
         this.customer = customer;
         this.balance = balance;

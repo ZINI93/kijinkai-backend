@@ -4,7 +4,7 @@ package com.kijinkai.domain.transaction.entity;
 import com.kijinkai.domain.BaseEntity;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.order.entity.Order;
-import com.kijinkai.domain.orderitem.entity.Currency;
+import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import jakarta.persistence.*;
 import lombok.Builder;

@@ -2,7 +2,7 @@ package com.kijinkai.domain.transaction.factory;
 
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.order.entity.Order;
-import com.kijinkai.domain.orderitem.entity.Currency;
+import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.transaction.entity.Transaction;
 import com.kijinkai.domain.transaction.entity.TransactionStatus;
 import com.kijinkai.domain.transaction.entity.TransactionType;
@@ -18,7 +18,7 @@ public class TransactionFactory {
     public Transaction createTransaction(Customer customer, Wallet wallet, Order order, TransactionType transactionType, BigDecimal amount, BigDecimal balanceBefore, BigDecimal balanceAfter, TransactionStatus transactionStatus){
 
         return Transaction.builder()
-                .transactionUUid(UUID.randomUUID())
+                .transactionUuid(UUID.randomUUID())
                 .customer(customer)
                 .wallet(wallet)
                 .order(order)

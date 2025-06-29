@@ -7,11 +7,13 @@ import com.kijinkai.domain.platform.entity.Platform;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 public interface PlatformService {
 
     PlatformResponseDto createPlatformWithValidate(String userUuid, PlatformRequestDto requestDto);
     PlatformResponseDto updatePlatformWithValidate(String userUuid, String platformUuid, PlatformUpdateDto updateDto);
     void deletePlatform(String userUuid, String platformUuid);
-    Page<PlatformResponseDto> getPlatforms(Pageable pageable);
+    List<PlatformResponseDto> getPlatforms();
     PlatformResponseDto getPlatformInfo(String userUuid, String platformUuid);
 }

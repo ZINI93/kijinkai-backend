@@ -2,9 +2,10 @@ package com.kijinkai.domain.wallet.mapper;
 
 import com.kijinkai.domain.wallet.dto.WalletResponseDto;
 import com.kijinkai.domain.wallet.entity.Wallet;
+import org.springframework.stereotype.Component;
 
+@Component
 public class WalletMapper {
-
 
     public WalletResponseDto toResponse(Wallet wallet){
 

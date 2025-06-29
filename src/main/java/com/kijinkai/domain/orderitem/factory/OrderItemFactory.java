@@ -4,7 +4,7 @@ package com.kijinkai.domain.orderitem.factory;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.orderitem.dto.OrderItemRequestDto;
-import com.kijinkai.domain.orderitem.entity.Currency;
+import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.orderitem.entity.OrderItem;
 import com.kijinkai.domain.platform.entity.Platform;
 import org.springframework.stereotype.Component;
@@ -19,7 +19,6 @@ public class OrderItemFactory {
 
         return OrderItem.builder()
                 .orderItemUuid(UUID.randomUUID())
-                .customer(customer)
                 .platform(platform)
                 .order(order)
                 .productLink(requestDto.getProductLink())

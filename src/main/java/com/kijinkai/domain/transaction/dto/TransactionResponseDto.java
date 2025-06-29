@@ -1,6 +1,6 @@
 package com.kijinkai.domain.transaction.dto;
 
-import com.kijinkai.domain.orderitem.entity.Currency;
+import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.transaction.entity.TransactionStatus;
 import com.kijinkai.domain.transaction.entity.TransactionType;
 import lombok.Builder;

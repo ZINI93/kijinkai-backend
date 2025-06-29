@@ -1,27 +1,21 @@
 package com.kijinkai.domain.orderitem.dto;
 
-import com.kijinkai.domain.customer.entity.Customer;
-import com.kijinkai.domain.order.entity.Order;
-import com.kijinkai.domain.orderitem.entity.Currency;
-import com.kijinkai.domain.platform.entity.Platform;
-import jakarta.persistence.*;
+import com.kijinkai.domain.exchange.doamin.Currency;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.UUID;
 
 
 @Getter
 @Builder
 public class OrderItemResponseDto {
 
-    private String orderItemUuid;
-    private String customerUuid;
-    private String platformUuid;
-    private String orderUuid;
+    private UUID orderItemUuid;
+    private UUID customerUuid;
+    private UUID platformUuid;
+    private UUID orderUuid;
     private String productLink;
     private int quantity;
     private String memo;
@@ -32,7 +26,7 @@ public class OrderItemResponseDto {
     private BigDecimal exchangeRate;
 
     @Builder
-    public OrderItemResponseDto(String orderItemUuid, String customerUuid, String platformUuid, String orderUuid, String productLink, int quantity, String memo, BigDecimal priceOriginal, BigDecimal priceConverted, String currencyOriginal, Currency currencyConverted, BigDecimal exchangeRate) {
+    public OrderItemResponseDto(UUID orderItemUuid, UUID customerUuid, UUID platformUuid, UUID orderUuid, String productLink, int quantity, String memo, BigDecimal priceOriginal, BigDecimal priceConverted, String currencyOriginal, Currency currencyConverted, BigDecimal exchangeRate) {
         this.orderItemUuid = orderItemUuid;
         this.customerUuid = customerUuid;
         this.platformUuid = platformUuid;

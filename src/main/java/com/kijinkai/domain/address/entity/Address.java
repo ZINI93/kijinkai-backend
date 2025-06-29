@@ -24,7 +24,7 @@ public class Address extends TimeBaseEntity {
     private Long addressId;
 
     @Column(name = "address_uuid", nullable = false, updatable = false, unique = true)
-    private String addressUuid;
+    private UUID addressUuid;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false, updatable = false)
@@ -55,8 +55,8 @@ public class Address extends TimeBaseEntity {
 
 
     @Builder
-    public Address (String addressUuid, Customer customer, String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, Boolean isDefault) {
-        this.addressUuid = addressUuid != null ? addressUuid : UUID.randomUUID().toString();
+    public Address (UUID addressUuid, Customer customer, String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, Boolean isDefault) {
+        this.addressUuid = addressUuid != null ? addressUuid : UUID.randomUUID();
         this.customer = customer;
         this.recipientName = recipientName;
         this.recipientPhoneNumber = recipientPhoneNumber;

@@ -3,9 +3,8 @@ package com.kijinkai.domain.order.service;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.customer.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.repository.CustomerRepository;
-import com.kijinkai.domain.exchange.calculator.CurrencyExchangeCalculator;
+import com.kijinkai.domain.exchange.service.PriceCalculationService;
 import com.kijinkai.domain.exchange.doamin.ExchangeRate;
-import com.kijinkai.domain.exchange.service.ExchangeRateService;
 import com.kijinkai.domain.order.dto.OrderRequestDto;
 import com.kijinkai.domain.order.dto.OrderResponseDto;
 import com.kijinkai.domain.order.dto.OrderUpdateDto;
@@ -18,7 +17,7 @@ import com.kijinkai.domain.order.mapper.OrderMapper;
 import com.kijinkai.domain.order.repository.OrderRepository;
 import com.kijinkai.domain.order.validator.OrderValidator;
 import com.kijinkai.domain.orderitem.dto.OrderItemUpdateDto;
-import com.kijinkai.domain.orderitem.entity.Currency;
+import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.orderitem.entity.OrderItem;
 import com.kijinkai.domain.orderitem.exception.OrderItemNotFoundException;
 import com.kijinkai.domain.orderitem.exception.OrderUpdateException;
@@ -57,7 +56,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderItemRepository orderItemRepository;
     private final WalletRepository walletRepository;
     private final CustomerRepository customerRepository;
-    private final CurrencyExchangeCalculator exchangeCalculator;
+    private final PriceCalculationService exchangeCalculator;
 
     private final OrderMapper orderMapper;
 
@@ -68,7 +67,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderValidator orderValidator;
 
     private final OrderItemService orderItemService;
-    private final ExchangeRateService exchangeRateService;
+    private final PriceCalculationService priceCalculationService;
     private final TransactionService transactionService;
 
     /**
@@ -138,12 +137,8 @@ public class OrderServiceImpl implements OrderService {
                 calculateTotalAmountOriginal = calculateTotalAmountOriginal.add(orderItem.getPriceOriginal());
             }
 
-            // 1. 최신 환율 정보 가져오기
-            BigDecimal exchangeRate = getLatestExchangeRate(Currency.JPY, updateDto.getConvertedCurrency());
 
-            // 2. 환율을 적용하여 원화 총액 계산 //유저에게 원화로 얼마인지 정보 제공
-            BigDecimal convertedTotalAmount = exchangeCalculator.calculateConvertedAmount(calculateTotalAmountOriginal, exchangeRate);
-            exchangeCalculator.validateConverterAmount(calculateTotalAmountOriginal, exchangeRate);
+            BigDecimal convertedTotalAmount = priceCalculationService.calculateTotalPrice(calculateTotalAmountOriginal, updateDto.getConvertedCurrency(), BigDecimal.ZERO);
 
             updateOrderEstimate(order, calculateTotalAmountOriginal, convertedTotalAmount, updateDto);
             Order savedOrder = orderRepository.save(order);
@@ -304,26 +299,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private Order findOrderByCustomerUuidAndOrderUuid(Customer customer, String orderUuid) {
-        return orderRepository.findByCustomerCustomerUuidAndOrderUuid(UUID.fromString(customer.getCustomerUuid()), UUID.fromString(orderUuid))
+        return orderRepository.findByCustomerCustomerUuidAndOrderUuid(customer.getCustomerUuid(), UUID.fromString(orderUuid))
                 .orElseThrow(() -> new OrderNotFoundException(String.format("Order not found for customer uuid: %s and order uuid: %s", customer.getCustomerUuid(), orderUuid)));
-    }
-
-    /**
-     * ExchangeRateService를 통해 최신 환율을 조회합니다.
-     * 환율이 없는 경우 (예: 아직 API 호출 전 또는 실패)에 대한 견고한 처리 필요.
-     *
-     * @param fromCurrency 기준 통화 (예: USD)
-     * @param toCurrency   대상 통화 (예: KRW)
-     * @return 최신 환율 (BigDecimal)
-     * @throws RuntimeException 환율 정보를 찾을 수 없을 경우
-     */
-    private BigDecimal getLatestExchangeRate(Currency fromCurrency, Currency toCurrency) {
-
-        return exchangeRateService.getLatestExchangeRate(fromCurrency, toCurrency)
-                .map(ExchangeRate::getRate) // ExchangeRate 엔티티에서 rate 값 추출
-                .orElseThrow(() -> new IllegalStateException(
-                        String.format("Latest exchange rate for %s to %s not found. Please ensure exchange rate update is working.",
-                                fromCurrency, toCurrency)));
     }
 
     public OrderResponseDto executeWithOptimisticLockRetry(Supplier<OrderResponseDto> operation) {

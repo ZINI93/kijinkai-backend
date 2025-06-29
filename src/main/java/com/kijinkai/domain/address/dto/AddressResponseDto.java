@@ -5,12 +5,13 @@ import jakarta.persistence.Column;
 import lombok.Builder;
 import lombok.Getter;
 
-@Builder
+import java.util.UUID;
+
 @Getter
 public class AddressResponseDto {
 
-    private String addressUuid;
-    private String customerUuid;
+    private UUID addressUuid;
+    private UUID customerUuid;
     private String recipientName;
     private String recipientPhoneNumber;
     private String country;
@@ -20,7 +21,7 @@ public class AddressResponseDto {
     private String street;
 
     @Builder
-    public AddressResponseDto(String customerUuid, String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, String addressUuid) {
+    public AddressResponseDto(UUID customerUuid, String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, UUID addressUuid) {
         this.customerUuid = customerUuid;
         this.recipientName = recipientName;
         this.recipientPhoneNumber = recipientPhoneNumber;

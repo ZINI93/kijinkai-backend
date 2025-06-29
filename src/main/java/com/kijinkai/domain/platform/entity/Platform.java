@@ -17,8 +17,8 @@ public class Platform extends TimeBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(nullable = false)
-    private Long platFromId;
+    @Column(name = "platform_id", nullable = false)
+    private Long platformId;
 
     @Column(name = "platform_uuid")
     private UUID platformUuid;

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.Objects;
+import java.util.UUID;
 
 @Component
 public class OrderItemValidator {
@@ -22,7 +23,7 @@ public class OrderItemValidator {
     }
 
     public void validateCustomerOwnershipOfOrderItem(Customer customer, OrderItem orderItem){
-        String orderCustomerUuid = orderItem.getOrder().getCustomer().getCustomerUuid();
+        UUID orderCustomerUuid = orderItem.getOrder().getCustomer().getCustomerUuid();
         if (!customer.getCustomerUuid().equals(orderCustomerUuid)) {
             throw new OrderItemValidateException(
                     String.format("Customer UUID mismatch: expected %s, but got %s",

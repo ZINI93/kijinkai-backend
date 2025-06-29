@@ -1,0 +1,16 @@
+services:
+  mysql:
+    container_name: mysql_db
+    image: mysql:8.0.30
+    volumes:
+      - ./db/conf.d:/etc/mysql/conf.d
+      - ./db/initdb.d:/docker-entrypoint-initdb.d
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_DATABASE=kijinkai_local
+      - MYSQL_USER=kijinkai_local_user
+      - MYSQL_PASSWORD=251001Dockerfile
+      - MYSQL_ROOT_PASSWORD=kijinkai0320
+      - TZ=Asia/Seoul
+

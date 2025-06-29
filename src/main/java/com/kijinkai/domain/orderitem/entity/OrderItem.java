@@ -1,8 +1,7 @@
 package com.kijinkai.domain.orderitem.entity;
 
-import com.kijinkai.domain.BaseEntity;
 import com.kijinkai.domain.TimeBaseEntity;
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.orderitem.dto.OrderItemUpdateDto;
 import com.kijinkai.domain.orderitem.exception.OrderItemValidateException;
@@ -10,7 +9,6 @@ import com.kijinkai.domain.platform.entity.Platform;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
-import org.hibernate.sql.Update;
 
 import java.math.BigDecimal;
 import java.util.Objects;
@@ -50,11 +48,11 @@ public class OrderItem extends TimeBaseEntity {
     private BigDecimal priceConverted;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "currency_original", nullable = false)
+    @Column(name = "order_item_currency_original", nullable = false)
     private Currency currencyOriginal; //JYP
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "currency_converted", nullable = false)
+    @Column(name = "order_item_currency_converted", nullable = false)
     private Currency currencyConverted;
 
     @Column(name = "exchange_rate", nullable = false, updatable = false)

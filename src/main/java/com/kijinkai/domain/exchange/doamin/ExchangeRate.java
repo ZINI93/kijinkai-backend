@@ -2,18 +2,18 @@ package com.kijinkai.domain.exchange.doamin;
 
 import com.kijinkai.domain.TimeBaseEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
 import java.util.Objects;
 
 @Entity
-@Table(name = "exchange_rates")
+@Table(name = "exchange_rates",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"from_currency", "to_currency"}))
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ExchangeRate extends TimeBaseEntity{
 
@@ -22,10 +22,10 @@ public class ExchangeRate extends TimeBaseEntity{
     private Long id;
 
     @Column(name = "from_currency", nullable = false)
-    private String fromCurrency;
+    private Currency fromCurrency;
 
     @Column(name = "to_currency", nullable = false)
-    private String toCurrency;
+    private Currency toCurrency;
 
     @Column(nullable = false)
     private BigDecimal rate;
@@ -34,14 +34,7 @@ public class ExchangeRate extends TimeBaseEntity{
     private LocalDateTime fetchedAt;
 
     @Builder
-    public ExchangeRate(String fromCurrency, String toCurrency, BigDecimal rate, LocalDateTime fetchedAt) {
-        // 도메인 규칙: 통화 코드는 3글자여야 하고, 환율은 양수여야 합니다.
-        if (fromCurrency == null || fromCurrency.length() != 3) {
-            throw new IllegalArgumentException("From currency must be a 3-letter code.");
-        }
-        if (toCurrency == null || toCurrency.length() != 3) {
-            throw new IllegalArgumentException("To currency must be a 3-letter code.");
-        }
+    public ExchangeRate(Currency fromCurrency, Currency toCurrency, BigDecimal rate, LocalDateTime fetchedAt) {
         if (rate == null || rate.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Exchange rate must be a positive value.");
         }
@@ -49,8 +42,6 @@ public class ExchangeRate extends TimeBaseEntity{
             throw new IllegalArgumentException("Fetched date cannot be null.");
         }
 
-        this.fromCurrency = fromCurrency.toUpperCase(); // 대문자로 저장
-        this.toCurrency = toCurrency.toUpperCase();     // 대문자로 저장
         this.rate = rate;
         this.fetchedAt = fetchedAt;
     }

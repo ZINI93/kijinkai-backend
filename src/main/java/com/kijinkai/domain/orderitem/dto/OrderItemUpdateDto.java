@@ -1,8 +1,7 @@
 package com.kijinkai.domain.orderitem.dto;
 
 import com.kijinkai.domain.order.entity.Order;
-import com.kijinkai.domain.orderitem.entity.Currency;
-import com.kijinkai.domain.platform.entity.Platform;
+import com.kijinkai.domain.exchange.doamin.Currency;
 import lombok.Builder;
 import lombok.Getter;
 

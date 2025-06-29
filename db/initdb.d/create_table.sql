@@ -44,8 +44,6 @@ CREATE INDEX `idx_customers_phone_number` ON `customers` (`phone_number`);
 CREATE INDEX `idx_customers_user_id` ON `customers` (`user_id`);
 CREATE INDEX `idx_customers_customer_tier` ON `customers` (`customer_tier`);
 
--- `wallets` 테이블 생성
--- `customers` 테이블의 `customer_id`를 참조합니다.
 CREATE TABLE `wallets` (
     `wallet_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '지갑 ID',
     `wallet_uuid` BINARY(16) NOT NULL UNIQUE COMMENT '지갑 고유 UUID',
@@ -61,7 +59,7 @@ CREATE TABLE `wallets` (
     `updated_by` VARCHAR(50) COMMENT '최종 수정자',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
 
-    CONSTRAINT `chk_currency` CHECK (`currency` IN ('JPY', 'KRW')),
+    CONSTRAINT `chk_currency` CHECK (`currency` IN ('JPY', 'KRW', 'CLP', 'USD')),
     CONSTRAINT `fk_wallets_customer_id` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -70,8 +68,6 @@ CREATE INDEX `idx_wallets_customer_id` ON `wallets` (`customer_id`);
 CREATE INDEX `idx_wallets_wallet_uuid` ON `wallets` (`wallet_uuid`);
 CREATE INDEX `idx_wallets_currency` ON `wallets` (`currency`);
 
--- `platforms` 테이블 생성
--- `users` 테이블의 `user_id`를 참조합니다.
 CREATE TABLE `platforms` (
     `platform_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '플랫폼 ID',
     `platform_uuid` BINARY(16) UNIQUE COMMENT '플랫폼 고유 UUID',
@@ -87,8 +83,6 @@ CREATE TABLE `platforms` (
     CONSTRAINT `fk_platforms_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- `addresses` 테이블 생성
--- `customers` 테이블의 `customer_id`를 참조합니다.
 CREATE TABLE `addresses` (
     `address_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '주소 ID',
     `address_uuid` BINARY(16) NOT NULL UNIQUE COMMENT '주소 고유 UUID', -- VARCHAR(36) 대신 BINARY(16) 사용 권장
@@ -113,9 +107,6 @@ CREATE INDEX `idx_addresses_customer_id` ON `addresses` (`customer_id`);
 CREATE INDEX `idx_addresses_address_uuid` ON `addresses` (`address_uuid`);
 CREATE INDEX `idx_addresses_zipcode` ON `addresses` (`zipcode`);
 
-
--- `orders` 테이블 생성
--- `customers` 테이블의 `customer_id`를 참조합니다.
 CREATE TABLE `orders` (
     `order_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '주문 ID',
     `order_uuid` BINARY(16) NOT NULL UNIQUE COMMENT '주문 고유 UUID',
@@ -136,7 +127,7 @@ CREATE TABLE `orders` (
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
 
     CONSTRAINT `chk_order_status` CHECK (`order_status` IN ('DRAFT', 'PENDING_APPROVAL', 'AWAITING_PAYMENT', 'CANCEL', 'PAID', 'PREPARE_DELIVERY', 'SHIPPING', 'DELIVERED', 'REJECTED')),
-    CONSTRAINT `chk_converted_currency` CHECK (`converted_currency` IN ('JPY', 'KRW')),
+    CONSTRAINT `chk_converted_currency` CHECK (`converted_currency` IN ('JPY', 'KRW', 'CLP', 'USD')),
     CONSTRAINT `fk_orders_customer_id` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -145,8 +136,6 @@ CREATE INDEX `idx_orders_customer_id` ON `orders` (`customer_id`);
 CREATE INDEX `idx_orders_order_uuid` ON `orders` (`order_uuid`);
 CREATE INDEX `idx_orders_status` ON `orders` (`order_status`);
 
--- `order_items` 테이블 생성
--- `customers`, `platforms`, `orders` 테이블을 참조합니다.
 CREATE TABLE `order_items` (
     `order_item_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '주문 상품 ID',
     `order_item_uuid` BINARY(16) NOT NULL UNIQUE COMMENT '주문 상품 고유 UUID',
@@ -156,35 +145,31 @@ CREATE TABLE `order_items` (
     `quantity` INT NOT NULL COMMENT '수량',
     `price_original` DECIMAL(19, 4) NOT NULL COMMENT '원본 통화(엔화) 기준 상품 단가',
     `price_converted` DECIMAL(19, 4) NOT NULL COMMENT '변환된 통화 기준 상품 단가',
-    `currency_original` VARCHAR(20) NOT NULL COMMENT '원본 통화 코드 (ISO 4217)',
-    `currency_converted` VARCHAR(20) NOT NULL COMMENT '변환된 통화 코드 (ISO 4217)',
+    `order_item_currency_original` VARCHAR(20) NOT NULL COMMENT '원본 통화 코드 (ISO 4217)',
+    `order_item_currency_converted` VARCHAR(20) NOT NULL COMMENT '변환된 통화 코드 (ISO 4217)',
     `exchange_rate` DECIMAL(10, 6) NOT NULL COMMENT '환율',
     `memo` TEXT COMMENT '상품 항목 관련 메모',
 
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시간',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
 
-    CONSTRAINT `chk_currency_original` CHECK (`currency_original` IN ('JPY', 'KRW')),
-    CONSTRAINT `chk_currency_converted` CHECK (`currency_converted` IN ('JPY', 'KRW')),
+    CONSTRAINT `chk_order_item_currency_original` CHECK (`order_item_currency_original` IN ('JPY', 'KRW', 'CLP', 'USD')),
+    CONSTRAINT `chk_order_item_currency_converted` CHECK (`order_item_currency_converted` IN ('JPY', 'KRW', 'CLP', 'USD')),
     CONSTRAINT `fk_order_items_platform_id` FOREIGN KEY (`platform_id`) REFERENCES `platforms` (`platform_id`),
     CONSTRAINT `fk_order_items_order_id` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 인덱스 추가 (성능 고려)
-CREATE INDEX `idx_order_items_customer_id` ON `order_items` (`customer_id`);
 CREATE INDEX `idx_order_items_platform_id` ON `order_items` (`platform_id`);
 CREATE INDEX `idx_order_items_order_id` ON `order_items` (`order_id`);
 CREATE INDEX `idx_order_items_order_item_uuid` ON `order_items` (`order_item_uuid`);
 
-
--- `deliveries` 테이블 생성
--- `orders`, `customers` 테이블을 참조합니다.
 CREATE TABLE `deliveries` (
     `delivery_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '배송 ID',
     `delivery_uuid` BINARY(16) NOT NULL UNIQUE COMMENT '배송 고유 UUID',
     `order_id` BIGINT NOT NULL COMMENT '주문 ID',
     `customer_id` BIGINT NOT NULL COMMENT '고객 ID',
-    `delivery_status` VARCHAR(20) NOT NULL COMMENT '배송 상태 (예: PENDING, SHIPPED, DELIVERED)',
+    `delivery_status` VARCHAR(20) NOT NULL COMMENT '배송 상태',
     `recipient_name` VARCHAR(100) NOT NULL COMMENT '수령인 이름',
     `recipient_phone_number` VARCHAR(20) NOT NULL COMMENT '수령인 전화번호',
     `country` VARCHAR(100) NOT NULL COMMENT '국가',
@@ -221,8 +206,6 @@ CREATE INDEX `idx_deliveries_tracking_number` ON `deliveries` (`tracking_number`
 CREATE INDEX `idx_deliveries_delivery_status` ON `deliveries` (`delivery_status`);
 CREATE INDEX `idx_deliveries_estimated_delivery_at` ON `deliveries` (`estimated_delivery_at`);
 
--- `payments` 테이블 생성
--- `customers`, `wallets`, `orders` 테이블을 참조합니다.
 CREATE TABLE `payments` (
     `payment_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '결제 ID',
     `payment_uuid` BINARY(16) NOT NULL UNIQUE COMMENT '결제 고유 UUID',
@@ -232,9 +215,9 @@ CREATE TABLE `payments` (
     `payment_status` VARCHAR(20) NOT NULL COMMENT '결제 상태 (예: PENDING, COMPLETED, FAILED)',
     `payment_method` VARCHAR(50) NOT NULL COMMENT '결제 수단 (예: CREDIT_CARD, BANK_TRANSFER)',
     `amount_original` DECIMAL(19, 4) NOT NULL COMMENT '원본 통화 기준 결제 금액',
-    `currency_original` VARCHAR(20) NOT NULL COMMENT '원본 통화 코드 (ISO 4217)',
+    `payment_currency_original` VARCHAR(20) NOT NULL COMMENT '원본 통화 코드 (ISO 4217)',
     `amount_converter` DECIMAL(19, 4) NOT NULL COMMENT '변환된 통화 기준 결제 금액',
-    `currency_converter` VARCHAR(20) NOT NULL COMMENT '변환된 통화 코드 (ISO 4217)',
+    `payment_currency_converter` VARCHAR(20) NOT NULL COMMENT '변환된 통화 코드 (ISO 4217)',
     `payment_type` VARCHAR(50) NOT NULL COMMENT '결제 유형',
     `description` VARCHAR(500) COMMENT '결제 설명',
     `external_transaction_id` VARCHAR(255) COMMENT '외부 트랜잭션 ID',
@@ -248,8 +231,8 @@ CREATE TABLE `payments` (
 
     CONSTRAINT `chk_payment_status` CHECK (`payment_status` IN ('PENDING', 'COMPLETED', 'CANCEL', 'FAILED', 'REFUNDED')),
     CONSTRAINT `chk_payment_method` CHECK (`payment_method` IN ('CAS', 'BALANCE')),
-    CONSTRAINT `chk_currency_original` CHECK (`currency_original` IN ('JPY', 'KRW')),
-    CONSTRAINT `chk_currency_converter` CHECK (`currency_converter` IN ('JPY', 'KRW')),
+    CONSTRAINT `chk_payment_currency_original` CHECK (`payment_currency_original` IN ('JPY', 'KRW', 'CLP', 'USD')),
+    CONSTRAINT `chk_payment_currency_converter` CHECK (`payment_currency_converter` IN ('JPY', 'KRW', 'CLP', 'USD')),
     CONSTRAINT `chk_payment_type` CHECK (`payment_type` IN ('CREDIT', 'DEBIT')),
     CONSTRAINT `fk_payments_customer_id` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`),
     CONSTRAINT `fk_payments_wallet_id` FOREIGN KEY (`wallet_id`) REFERENCES `wallets` (`wallet_id`),
@@ -265,8 +248,6 @@ CREATE INDEX `idx_payments_status` ON `payments` (`payment_status`);
 CREATE INDEX `idx_payments_method` ON `payments` (`payment_method`);
 
 
--- `transactions` 테이블 생성
--- `customers`, `wallets`, `orders` 테이블을 참조합니다.
 CREATE TABLE `transactions` (
     `transaction_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '트랜잭션 ID',
     `transaction_uuid` BINARY(16) NOT NULL UNIQUE COMMENT '트랜잭션 고유 UUID',
@@ -284,11 +265,11 @@ CREATE TABLE `transactions` (
     `created_by` VARCHAR(50) COMMENT '생성자',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시간',
 
-    `updated_by` VARCHAR(50) COMMENT '최종 수정자',
+    `updated_at` VARCHAR(50) COMMENT '최종 수정자',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
 
     CONSTRAINT `chk_transaction_type` CHECK (`transaction_type` IN ('PAYMENT', 'REFUND', 'CHARGE', 'WITHDRAWAL', 'ADMIN_ADJUSTMENT')),
-    CONSTRAINT `chk_transaction_currency` CHECK (`currency` IN ('JPY', 'KRW')),
+    CONSTRAINT `chk_transaction_currency` CHECK (`currency` IN ('JPY', 'KRW', 'CLP', 'USD')),
     CONSTRAINT `chk_transaction_status` CHECK (`transaction_status` IN ('PENDING', 'COMPLETED', 'FAILED')),
     CONSTRAINT `fk_transactions_customer_id` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`),
     CONSTRAINT `fk_transactions_wallet_id` FOREIGN KEY (`wallet_id`) REFERENCES `wallets` (`wallet_id`),
@@ -305,8 +286,6 @@ CREATE INDEX `idx_transactions_status` ON `transactions` (`transaction_status`);
 CREATE INDEX `idx_transactions_currency` ON `transactions` (`currency`);
 
 
--- `exchange_rates` 테이블 생성
--- 다른 테이블을 참조하지 않습니다.
 CREATE TABLE `exchange_rates` (
     `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '환율 ID',
     `from_currency` VARCHAR(10) NOT NULL COMMENT '기준 통화 (예: USD)',

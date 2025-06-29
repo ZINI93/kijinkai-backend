@@ -2,9 +2,10 @@ package com.kijinkai.domain.address.mapper;
 
 import com.kijinkai.domain.address.dto.AddressResponseDto;
 import com.kijinkai.domain.address.entity.Address;
+import org.springframework.stereotype.Component;
 
+@Component
 public class AddressMapper {
-
 
     public AddressResponseDto toResponse(Address address){
 

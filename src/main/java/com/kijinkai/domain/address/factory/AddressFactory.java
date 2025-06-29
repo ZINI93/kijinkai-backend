@@ -15,7 +15,7 @@ public class AddressFactory {
 
 
         return Address.builder().
-                addressUuid(UUID.randomUUID().toString()).
+                addressUuid(UUID.randomUUID()).
                 customer(customer).
                 zipcode(requestDto.getZipcode()).
                 state(requestDto.getState()).

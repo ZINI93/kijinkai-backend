@@ -4,16 +4,15 @@ package com.kijinkai.domain.orderitem.service;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.customer.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.repository.CustomerRepository;
-import com.kijinkai.domain.exchange.calculator.CurrencyExchangeCalculator;
-import com.kijinkai.domain.exchange.doamin.ExchangeRate;
 import com.kijinkai.domain.exchange.service.ExchangeRateService;
+import com.kijinkai.domain.exchange.service.PriceCalculationService;
+import com.kijinkai.domain.exchange.doamin.ExchangeRate;
 import com.kijinkai.domain.order.entity.Order;
-import com.kijinkai.domain.order.exception.OrderNotFoundException;
 import com.kijinkai.domain.order.validator.OrderValidator;
 import com.kijinkai.domain.orderitem.dto.OrderItemRequestDto;
 import com.kijinkai.domain.orderitem.dto.OrderItemResponseDto;
 import com.kijinkai.domain.orderitem.dto.OrderItemUpdateDto;
-import com.kijinkai.domain.orderitem.entity.Currency;
+import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.orderitem.entity.OrderItem;
 import com.kijinkai.domain.orderitem.exception.OrderItemNotFoundException;
 import com.kijinkai.domain.orderitem.factory.OrderItemFactory;
@@ -42,7 +41,7 @@ public class OrderItemServiceImpl implements OrderItemService {
     private final PlatformRepository platformRepository;
     private final OrderItemRepository orderItemRepository;
 
-    private final ExchangeRateService exchangeRateService;
+    private final PriceCalculationService priceCalculationService;
 
     private final OrderItemValidator orderItemValidator;
     private final OrderValidator orderValidator;
@@ -50,7 +49,8 @@ public class OrderItemServiceImpl implements OrderItemService {
     private final OrderItemFactory orderItemFactory;
     private final OrderItemMapper orderItemMapper;
 
-    private final CurrencyExchangeCalculator exchangeCalculator;
+    private final PriceCalculationService exchangeCalculator;
+    private final ExchangeRateService exchangeRateService;
 
 
     /**
@@ -66,11 +66,12 @@ public class OrderItemServiceImpl implements OrderItemService {
 
         Platform platform = findPlatformByPlatformUuid(requestDto.getPlatformUuid());
         BigDecimal priceOriginal = requestDto.getPriceOriginal();
-        BigDecimal exchangeRate = getLatestExchangeRate(Currency.JPY, requestDto.getCurrencyConverted());
-        BigDecimal convertedAmount = exchangeCalculator.calculateConvertedAmount(priceOriginal, exchangeRate);
-        exchangeCalculator.validateConverterAmount(priceOriginal, exchangeRate);
 
-        return orderItemFactory.createOrderItem(customer, platform, order, convertedAmount, exchangeRate, requestDto);
+        BigDecimal convertedAmount = priceCalculationService.calculateTotalPrice(priceOriginal, requestDto.getCurrencyConverted(), BigDecimal.ZERO);
+        BigDecimal exchangeRate = exchangeRateService.getExchangeRate(Currency.JPY, requestDto.getCurrencyConverted());
+
+
+        return orderItemFactory.createOrderItem(customer, platform, order, convertedAmount,exchangeRate, requestDto);
     }
 
 
@@ -145,24 +146,6 @@ public class OrderItemServiceImpl implements OrderItemService {
     private Customer findCustomerByUserUuid(String userUuid) {
         return customerRepository.findByUserUserUuid(UUID.fromString(userUuid))
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for user uuid: %s", userUuid)));
-    }
-
-    /**
-     * ExchangeRateService를 통해 최신 환율을 조회합니다.
-     * 환율이 없는 경우 (예: 아직 API 호출 전 또는 실패)에 대한 견고한 처리 필요.
-     *
-     * @param fromCurrency 기준 통화 (예: USD)
-     * @param toCurrency   대상 통화 (예: KRW)
-     * @return 최신 환율 (BigDecimal)
-     * @throws RuntimeException 환율 정보를 찾을 수 없을 경우
-     */
-    private BigDecimal getLatestExchangeRate(Currency fromCurrency, Currency toCurrency) {
-
-        return exchangeRateService.getLatestExchangeRate(fromCurrency, toCurrency)
-                .map(ExchangeRate::getRate) // ExchangeRate 엔티티에서 rate 값 추출
-                .orElseThrow(() -> new IllegalStateException(
-                        String.format("Latest exchange rate for %s to %s not found. Please ensure exchange rate update is working.",
-                                fromCurrency, toCurrency)));
     }
 
 }

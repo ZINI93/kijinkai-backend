@@ -2,14 +2,13 @@ package com.kijinkai.domain.order.dto;
 
 import com.kijinkai.domain.order.entity.OrderStatus;
 import com.kijinkai.domain.orderitem.dto.OrderItemUpdateDto;
-import com.kijinkai.domain.orderitem.entity.Currency;
+import com.kijinkai.domain.exchange.doamin.Currency;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
 
 @Getter
-@Builder
 public class OrderUpdateDto {
 
     private OrderStatus orderstate;
@@ -18,6 +17,7 @@ public class OrderUpdateDto {
     private String rejectedReason;
     private List<OrderItemUpdateDto> orderItems;
 
+    @Builder
     public OrderUpdateDto(OrderStatus orderstate, String memo, String rejectedReason) {
         this.orderstate = orderstate;
         this.memo = memo;

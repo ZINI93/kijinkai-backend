@@ -66,7 +66,7 @@ public class DeliveryServiceImpl implements DeliveryService {
             Order order = findOrderByOrderUuid(orderUuid);
             orderValidator.requirePaidStatusForConfirmation(order);
 
-            Address address = findAddressByCustomer(order);
+            Address address = findAddressByCustomerOrder(order);
             Delivery delivery = factory.createDelivery(order, address, requestDto);
 
             Delivery savedDelivery = deliveryRepository.save(delivery);
@@ -183,23 +183,23 @@ public class DeliveryServiceImpl implements DeliveryService {
     }
 
     private Customer findCustomerByUserUuid(String userUuid) {
-        return customerRepository.findByUserUserUuid(userUuid)
+        return customerRepository.findByUserUserUuid(UUID.fromString(userUuid))
                 .orElseThrow(() -> new CustomerNotFoundException("userUuid: customer not found"));
     }
 
     private Delivery findDeliveryByCustomerAndDeliveryUuid(Customer customer, String deliveryUuid) {
-        return deliveryRepository.findByCustomerCustomerUuidAndDeliveryUuid(customer.getCustomerUuid(), deliveryUuid)
+        return deliveryRepository.findByCustomerCustomerUuidAndDeliveryUuid(customer.getCustomerUuid(), UUID.fromString(deliveryUuid))
                 .orElseThrow(() -> new DeliveryNotFoundException("CustomerUuidAndDeliveryUuid: delivery not found"));
     }
 
     private Address findAddressByCustomerOrder(Order order
     ) {
-        return addressRepository.findByCustomerCustomerUuid(UUID.fromString(order.getCustomer().getCustomerUuid()))
+        return addressRepository.findByCustomerCustomerUuid(order.getCustomer().getCustomerUuid())
                 .orElseThrow(() -> new CustomerNotFoundException("CustomerUuid: Address not found"));
     }
 
     private Order findOrderByOrderUuid(String orderUuid) {
-        return orderRepository.findByOrderUuid(orderUuid)
+        return orderRepository.findByOrderUuid(UUID.fromString(orderUuid))
                 .orElseThrow(() -> new OrderNotFoundException("OrderUuid: Order not found"));
     }
 }
