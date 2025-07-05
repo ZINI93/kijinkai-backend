@@ -1,6 +1,6 @@
 package com.kijinkai.domain.customer.entity;
 
-import com.kijinkai.domain.BaseEntity;
+import com.kijinkai.domain.common.BaseEntity;
 import com.kijinkai.domain.customer.dto.CustomerUpdateDto;
 import com.kijinkai.domain.user.entity.User;
 import jakarta.persistence.*;

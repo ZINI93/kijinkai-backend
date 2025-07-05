@@ -1,6 +1,6 @@
 package com.kijinkai.domain.exchange.doamin;
 
-import com.kijinkai.domain.TimeBaseEntity;
+import com.kijinkai.domain.common.TimeBaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 

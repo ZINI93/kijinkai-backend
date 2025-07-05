@@ -1,7 +1,7 @@
 package com.kijinkai.domain.wallet.entity;
 
 
-import com.kijinkai.domain.BaseEntity;
+import com.kijinkai.domain.common.BaseEntity;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import jakarta.persistence.*;

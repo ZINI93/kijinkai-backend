@@ -1,6 +1,6 @@
 package com.kijinkai.domain.payment.entity;
 
-import com.kijinkai.domain.BaseEntity;
+import com.kijinkai.domain.common.BaseEntity;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.exchange.doamin.Currency;

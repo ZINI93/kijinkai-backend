@@ -30,4 +30,4 @@ COPY --from=build /app/build/libs/*.jar app.jar
 
 # 애플리케이션 실행
 EXPOSE 8080
-CMD ["java", "-jar", "app.jar", "--server.port=${PORT}"]
+CMD ["java", "-jar", "app.jar"]

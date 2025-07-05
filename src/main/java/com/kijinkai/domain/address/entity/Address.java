@@ -1,7 +1,6 @@
 package com.kijinkai.domain.address.entity;
 
-import com.kijinkai.domain.BaseEntity;
-import com.kijinkai.domain.TimeBaseEntity;
+import com.kijinkai.domain.common.TimeBaseEntity;
 import com.kijinkai.domain.customer.entity.Customer;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

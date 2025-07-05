@@ -1,7 +1,7 @@
 package com.kijinkai.domain.platform.entity;
 
 
-import com.kijinkai.domain.TimeBaseEntity;
+import com.kijinkai.domain.common.TimeBaseEntity;
 import com.kijinkai.domain.platform.dto.PlatformUpdateDto;
 import com.kijinkai.domain.user.entity.User;
 import jakarta.persistence.*;

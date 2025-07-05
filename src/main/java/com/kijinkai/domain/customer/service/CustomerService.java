@@ -12,7 +12,7 @@ import java.util.UUID;
 public interface CustomerService {
 
     CustomerResponseDto createCustomerWithValidate(UUID userUuid, CustomerRequestDto requestDto);
-    CustomerResponseDto updateCustomerWithValidate(UUID userUuid, UUID customerUuid, CustomerUpdateDto updateDto);
+    CustomerResponseDto updateCustomerWithValidate(UUID userUuid, String customerUuidStr, CustomerUpdateDto updateDto);
 
     CustomerResponseDto getCustomerInfo(UUID userUuid);
     Page<CustomerResponseDto> getAllByCustomers(UUID userUuid, String firstName, String lastName, String phoneNumber, CustomerTier customerTier, Pageable pageable);

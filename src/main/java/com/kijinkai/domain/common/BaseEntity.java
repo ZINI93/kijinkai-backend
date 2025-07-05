@@ -1,4 +1,4 @@
-package com.kijinkai.domain;
+package com.kijinkai.domain.common;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

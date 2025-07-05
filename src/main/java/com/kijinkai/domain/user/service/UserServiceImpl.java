@@ -1,9 +1,13 @@
 package com.kijinkai.domain.user.service;
 
+import com.kijinkai.domain.mail.exception.InvalidVerificationCodeException;
+import com.kijinkai.domain.mail.exception.VerificationCodeExpiredException;
+import com.kijinkai.domain.mail.service.EmailService;
 import com.kijinkai.domain.user.dto.UserRequestDto;
 import com.kijinkai.domain.user.dto.UserResponseDto;
 import com.kijinkai.domain.user.dto.UserUpdateDto;
 import com.kijinkai.domain.user.entity.User;
+import com.kijinkai.domain.user.exception.DuplicateEmailException;
 import com.kijinkai.domain.user.exception.UserCreationException;
 import com.kijinkai.domain.user.exception.UserNotFoundException;
 import com.kijinkai.domain.user.exception.UserUpdateException;
@@ -11,15 +15,19 @@ import com.kijinkai.domain.user.factory.UserFactory;
 import com.kijinkai.domain.user.mapper.UserMapper;
 import com.kijinkai.domain.user.repository.UserRepository;
 import com.kijinkai.domain.user.validator.UserValidator;
+import com.kijinkai.util.EmailRandomCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 
 @Slf4j
@@ -36,6 +44,10 @@ public class UserServiceImpl implements UserService {
     private final UserFactory factory;
     private final UserValidator userValidator;
 
+    private final RedisTemplate<String, String> redisTemplate;
+    private final EmailRandomCode emailRandomCode;
+    private final EmailService emailService;
+
     /**
      * email, password, nickname을 받아서 계정생성 프로세스
      * @param requestDto
@@ -45,10 +57,25 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto createUserWithValidate(UserRequestDto requestDto) {
         log.info("Creating user for user email:{}", requestDto.getEmail());
 
+        // 이메일 중복 확인
+        if (userRepository.existsByEmail(requestDto.getEmail())) {
+            throw new DuplicateEmailException("이미 사용 중인 이메일 입니다.");
+        }
+
         try {
             String encodedPassword = passwordEncoding(requestDto.getPassword());
             User user = factory.createUser(requestDto, encodedPassword);
             User savedUser = userRepository.save(user);
+
+            // 6자리 인증 코드 생성
+            String verificationCode = emailRandomCode.generateVerificationCode();
+
+            // Redis에 저장 (10분 만료)
+            String key = "email:verify: " + user.getUserUuid();
+            redisTemplate.opsForValue().set(key, verificationCode, 10, TimeUnit.MINUTES);
+
+            // 이메일 발송
+            emailService.sendVerificationEmail(user.getEmail(), verificationCode);
 
             log.info("Created user for user email:{}", savedUser.getEmail());
             return userMapper.toResponse(savedUser);
@@ -56,6 +83,31 @@ public class UserServiceImpl implements UserService {
             log.error("Failed to crate user for user email:{}", requestDto.getEmail(), e);
             throw new UserCreationException("Failed to create user", e);
         }
+    }
+
+    @Transactional
+    public void verifyEmail(UUID userUuid, String code){
+        // 1. Redis에서 인증 코드 확인
+        String key = "email:verify:" + userUuid;
+        String savedCode = redisTemplate.opsForValue().get(key);
+
+        if (savedCode == null){
+            throw new VerificationCodeExpiredException("인증 코드가 만료되었습니다.");
+        }
+
+        if (!savedCode.equals(code)){
+            throw new InvalidVerificationCodeException("잘못된 인증 코드입니다.");
+        }
+
+        // 2. user 상태 업데이트
+
+        User user = findUserByUserUuid(userUuid);
+
+        user.isEmailVerified();
+        user.isActive();
+
+        // 3. Redis에서 코드 삭제
+        redisTemplate.delete(key);
     }
 
     /**

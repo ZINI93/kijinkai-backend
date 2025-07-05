@@ -7,6 +7,9 @@ CREATE TABLE `users` (
     `password` VARCHAR(255) NOT NULL COMMENT '사용자 비밀번호 (해시값 저장 권장)',
     `nick_name` VARCHAR(50) NOT NULL UNIQUE COMMENT '사용자 닉네임',
     `user_role` VARCHAR(20) NOT NULL COMMENT '사용자 역할 (예: USER, ADMIN)',
+    `email_verified` BOOLEAN NOT NULL COMMENT '사용자 메일 등록 확인 여부',
+    `email_verifiedAt` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '이메일 등록 시간',
+    `user_status` VARCHAR(20) NOT NULL COMMENT '사용자 계정 상태',
 
     `created_by` VARCHAR(50) COMMENT '생성자',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시간',
@@ -14,6 +17,7 @@ CREATE TABLE `users` (
     `updated_by` VARCHAR(50) COMMENT '최종 수정자',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
 
+    CONSTRAINT `chk_user_status` CHECK (`user_status` IN ('PENDING', 'ACTIVE', 'SUSPENDED', 'DELETED')),
     CONSTRAINT `chk_user_role` CHECK (`user_role` IN ('USER', 'ADMIN'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -265,7 +269,7 @@ CREATE TABLE `transactions` (
     `created_by` VARCHAR(50) COMMENT '생성자',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시간',
 
-    `updated_at` VARCHAR(50) COMMENT '최종 수정자',
+    `updated_by` VARCHAR(50) COMMENT '최종 수정자',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
 
     CONSTRAINT `chk_transaction_type` CHECK (`transaction_type` IN ('PAYMENT', 'REFUND', 'CHARGE', 'WITHDRAWAL', 'ADMIN_ADJUSTMENT')),

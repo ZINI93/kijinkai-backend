@@ -1,6 +1,6 @@
 package com.kijinkai.domain.orderitem.entity;
 
-import com.kijinkai.domain.TimeBaseEntity;
+import com.kijinkai.domain.common.TimeBaseEntity;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.orderitem.dto.OrderItemUpdateDto;
