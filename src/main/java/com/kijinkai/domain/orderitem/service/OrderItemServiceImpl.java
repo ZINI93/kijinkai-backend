@@ -126,6 +126,16 @@ public class OrderItemServiceImpl implements OrderItemService {
     }
 
 
+    /**
+     * 상품 주문취소
+     * @param orderItemUuid
+     */
+    public void cancelOrderItem(String orderItemUuid){
+        OrderItem orderItem = findOrderItemByOrderItemUuid(orderItemUuid);
+        orderItem.isCancel();
+    }
+
+
     @Override
     @Transactional(readOnly = true)
     public OrderItemResponseDto getOrderItemInfo(String userUuid, String orderItemUuid) {

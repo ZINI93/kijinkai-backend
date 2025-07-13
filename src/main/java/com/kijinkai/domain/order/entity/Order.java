@@ -68,7 +68,7 @@ public class Order extends BaseEntity {
         this.orderStatus = orderStatus;
         this.memo = memo;
         this.rejectedReason = rejectedReason;
-        this.paymentType = paymentType != null ? paymentType : PaymentType.CREDIT;
+        this.paymentType = paymentType;
     }
 
     public Order(Customer customer, String memo) {

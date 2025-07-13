@@ -48,6 +48,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final UserValidator userValidator;
     private final UuidValidator uuidValidator;
 
+
     /**
      * 회원 가입 후 유저에서 고객으로 등록 후 정확한 배송정보를 얻기 위한 프로세스
      *
@@ -55,8 +56,7 @@ public class CustomerServiceImpl implements CustomerService {
      * @param requestDto
      * @return customerMapper
      */
-    @Override
-    @Transactional
+    @Override @Transactional
     public CustomerResponseDto createCustomerWithValidate(UUID userUuid, CustomerRequestDto requestDto) {
 
         User user = findUserByUserUuid(userUuid, "UserUuid : User not found exception");
@@ -83,27 +83,27 @@ public class CustomerServiceImpl implements CustomerService {
      * @param updateDto
      * @return CustomerMapper
      */
-    @Override
-    @Transactional
+    @Override @Transactional
     public CustomerResponseDto updateCustomerWithValidate(UUID userUuid, String customerUuidStr, CustomerUpdateDto updateDto) {
 
         UUID customerUuid = uuidValidator.parseUuid(customerUuidStr);
-        Customer customer = findCustomerByUserUuidAndCustomerUuid(userUuid, customerUuid);
+
+        Customer customer = findCustomerByUserUuidAndCustomerUuid(userUuid,customerUuid);
         customer.updateCustomer(updateDto);
         return customerMapper.toResponse(customer);
     }
 
     /**
-     * 고객의 본인 계정 정보확인 프로세스
+     * 구매자의 정보 조회 프로세트
      * @param userUuid
      * @return CustomerMapper
      */
     @Override
-    @Transactional
     public CustomerResponseDto getCustomerInfo(UUID userUuid) {
         Customer customer = findCustomerByUserUuid(userUuid);
         return customerMapper.toResponse(customer);
     }
+
 
     private Customer findCustomerByUserUuid(UUID userUuid) {
         return customerRepository.findByUserUserUuid(userUuid)

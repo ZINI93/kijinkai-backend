@@ -9,16 +9,16 @@ import java.math.BigDecimal;
 
 @Builder
 @Getter
-public class PaymentRequestDto {
+public class PaymentDepositRequestDto {
 
     private PaymentMethod paymentMethod;
     private BigDecimal amountOriginal;
-    private Currency currencyConverter;
+    private String depositor;
 
     @Builder
-    public PaymentRequestDto(PaymentMethod paymentMethod, BigDecimal amountOriginal, Currency currencyConverter) {
+    public PaymentDepositRequestDto(PaymentMethod paymentMethod, BigDecimal amountOriginal, String depositor) {
         this.paymentMethod = paymentMethod;
         this.amountOriginal = amountOriginal;
-        this.currencyConverter = currencyConverter;
+        this.depositor = depositor;
     }
 }

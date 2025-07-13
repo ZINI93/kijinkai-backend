@@ -39,8 +39,6 @@ public class User extends BaseEntity {
     @Column(name = "user_role", nullable = false)
     private UserRole userRole;
 
-    //-- 추가
-
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified = false;
 

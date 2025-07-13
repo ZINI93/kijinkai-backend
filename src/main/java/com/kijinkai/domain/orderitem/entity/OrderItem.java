@@ -3,6 +3,7 @@ package com.kijinkai.domain.orderitem.entity;
 import com.kijinkai.domain.common.TimeBaseEntity;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.order.entity.Order;
+import com.kijinkai.domain.order.entity.OrderStatus;
 import com.kijinkai.domain.orderitem.dto.OrderItemUpdateDto;
 import com.kijinkai.domain.orderitem.exception.OrderItemValidateException;
 import com.kijinkai.domain.platform.entity.Platform;
@@ -61,8 +62,11 @@ public class OrderItem extends TimeBaseEntity {
     @Column(columnDefinition = "TEXT")
     private String memo;
 
+    @Column(name = "orderItem_status", nullable = false)
+    private OrderItemStatus orderItemStatus;
+
     @Builder
-    public OrderItem(UUID orderItemUuid, Platform platform, Order order, String productLink, int quantity, BigDecimal priceOriginal, BigDecimal priceConverted, Currency currencyOriginal, Currency currencyConverted, BigDecimal exchangeRate, String memo) {
+    public OrderItem(UUID orderItemUuid, Platform platform, Order order, String productLink, int quantity, BigDecimal priceOriginal, BigDecimal priceConverted, Currency currencyOriginal, Currency currencyConverted, BigDecimal exchangeRate, String memo, OrderItemStatus orderItemStatus) {
         this.orderItemUuid = orderItemUuid != null ? orderItemUuid : UUID.randomUUID();
         this.platform = platform;
         this.order = order;
@@ -74,6 +78,7 @@ public class OrderItem extends TimeBaseEntity {
         this.currencyConverted = currencyConverted;
         this.exchangeRate = exchangeRate;
         this.memo = memo;
+        this.orderItemStatus = orderItemStatus != null ? orderItemStatus : OrderItemStatus.PENDING;
     }
 
 
@@ -98,5 +103,9 @@ public class OrderItem extends TimeBaseEntity {
         if (this.priceOriginal.compareTo(BigDecimal.ZERO) < 0) {
             throw new OrderItemValidateException("Estimated price cannot be negative for order item: " + this.orderItemUuid);
         }
+    }
+
+    public void isCancel(){
+        orderItemStatus = OrderItemStatus.CANCELLED;
     }
 }

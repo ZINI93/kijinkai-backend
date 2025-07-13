@@ -3,14 +3,17 @@ package com.kijinkai.domain.wallet.dto;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.wallet.entity.WalletStatus;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Getter
 @Builder
+@NoArgsConstructor
 public class WalletResponseDto {
 
     private UUID walletUuid;

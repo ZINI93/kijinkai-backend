@@ -180,7 +180,7 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal amountToPay = order.getTotalPriceOriginal();
         walletValidator.requireSufficientBalance(wallet, amountToPay);
 
-        int updatedRows = walletRepository.decreaseBalanceAtomic(wallet.getWalletId(), amountToPay);
+        int updatedRows = walletRepository.decreaseBalanceAtomic(wallet.getWalletUuid(), amountToPay);
 
         if (updatedRows == 0) {
             throw new WalletUpdateFailedException("Insufficient balance for payment or wallet update failed");

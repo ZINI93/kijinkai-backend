@@ -2,7 +2,6 @@ package com.kijinkai.domain.wallet.validator;
 
 
 import com.kijinkai.domain.order.exception.OrderStatusException;
-import com.kijinkai.domain.payment.dto.PaymentRequestDto;
 import com.kijinkai.domain.payment.exception.PaymentAmountException;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import com.kijinkai.domain.wallet.entity.WalletStatus;
@@ -19,9 +18,16 @@ public class WalletValidator {
         }
     }
 
+
     public void requireSufficientBalance(Wallet wallet, BigDecimal totalAmount){
         if (wallet.getBalance().compareTo(totalAmount) < 0){
             throw new PaymentAmountException("Amount must be a positive value");
+        }
+    }
+
+    public void validateMinimumExchangeAmount(Wallet wallet){
+        if (wallet.getBalance().compareTo(new BigDecimal(20000)) < 0) {
+            throw new IllegalArgumentException("20,000엔 이상 환전이 가능합니다.");
         }
     }
 }

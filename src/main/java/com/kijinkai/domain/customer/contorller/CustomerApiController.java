@@ -53,10 +53,9 @@ public class CustomerApiController {
         CustomerResponseDto customer = customerService.createCustomerWithValidate(userUuid, customerRequestDto);
         log.info("고객 등록 완료 - 고객 UUID: {}", customer.getCustomerUuid());
 
-
         URI location = ServletUriComponentsBuilder
                 .fromCurrentContextPath()
-                .path("/api/customers/{customerUuid}")
+                .path("/api/v1/customers/{customerUuid}")
                 .buildAndExpand(customer.getCustomerUuid())
                 .toUri();
 

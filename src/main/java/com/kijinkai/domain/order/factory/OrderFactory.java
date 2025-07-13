@@ -25,7 +25,7 @@ public class OrderFactory {
                 .orderStatus(OrderStatus.DRAFT)
                 .rejectedReason(null)
                 .memo(memo)
-                .paymentType(PaymentType.CREDIT)
+                .paymentType(PaymentType.WITHDRAWAL)
                 .build();
     }
 }

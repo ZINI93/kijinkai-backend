@@ -22,4 +22,5 @@ public class WalletFactory {
                 .walletStatus(WalletStatus.ACTIVE)
                 .build();
     }
+
 }

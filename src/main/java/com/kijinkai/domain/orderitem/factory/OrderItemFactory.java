@@ -6,6 +6,7 @@ import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.orderitem.dto.OrderItemRequestDto;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.orderitem.entity.OrderItem;
+import com.kijinkai.domain.orderitem.entity.OrderItemStatus;
 import com.kijinkai.domain.platform.entity.Platform;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +29,7 @@ public class OrderItemFactory {
                 .currencyOriginal(Currency.JPY)
                 .currencyConverted(requestDto.getCurrencyConverted())
                 .exchangeRate(exchangeRate)
+                .orderItemStatus(OrderItemStatus.PENDING)
                 .memo(requestDto.getMemo())
                 .build();
 

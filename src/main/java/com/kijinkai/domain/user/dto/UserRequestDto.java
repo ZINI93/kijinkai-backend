@@ -12,14 +12,14 @@ import lombok.Getter;
 @Builder
 public class UserRequestDto {
 
-    @Schema(description = "user_email", example = "kijinkai@gmail.com")
+    @Schema(description = "사용자 이메일", example = "kijinkai@gmail.com")
     @Email(message = "유효한 이메일이여야 합니다.")
     private String email;
 
-    @Schema(description = "user_password", example = "aaa123K1aaa")
+    @Schema(description = "사용자 비밀번호", example = "aaa123K1aaa")
     private String password;
 
-    @Schema(description = "user_nickname", example = "kijinkai")
+    @Schema(description = "사용자 닉네임", example = "kijinkai")
     @NotBlank(message = "닉네임은 필수 입니다.")
     private String nickname;
 

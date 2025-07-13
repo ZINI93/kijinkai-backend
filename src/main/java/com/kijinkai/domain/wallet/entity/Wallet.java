@@ -39,57 +39,54 @@ public class Wallet extends BaseEntity {
     @Column(name = "wallet_status", nullable = false)
     private WalletStatus walletStatus;
 
+    @Column(name = "freeze_reason")
+    private String freezeReason;
+
     @Version
     @Column(nullable = false)
     private Long version;
 
 
     @Builder
-    public Wallet(UUID walletUuid, Customer customer, BigDecimal balance, Currency currency, WalletStatus walletStatus, Long version) {
+    public Wallet(UUID walletUuid, Customer customer, BigDecimal balance, Currency currency, WalletStatus walletStatus, String freezeReason, Long version) {
         this.walletUuid = walletUuid != null ? walletUuid : UUID.randomUUID();
         this.customer = customer;
         this.balance = balance;
         this.currency = currency != null ? currency : Currency.JPY;
         this.walletStatus = walletStatus;
+        this.freezeReason = freezeReason;
         this.version = version;
     }
 
 
-    public void updateWalletBalance(BigDecimal balance) {
-        this.balance = balance;
+    public Wallet freeze(String reason){
+        return Wallet.builder()
+                .walletUuid(this.walletUuid)
+                .customer(this.customer)
+                .balance(this.balance)
+                .walletStatus(WalletStatus.FROZEN)
+                .freezeReason(reason)
+                .build();
+
     }
 
-    public void updateWalletWalletStatus(WalletStatus walletStatus) {
-        this.walletStatus = walletStatus;
+    public Wallet unfreeze(){
+
+        return Wallet.builder()
+                .walletUuid(this.walletUuid)
+                .customer(this.customer)
+                .balance(this.balance)
+                .walletStatus(WalletStatus.ACTIVE)
+                .build();
+
     }
 
-    /**
-     * 월렛 잔액을 증가시키는 비즈니스 로직.
-     * 잔액 변경은 Wallet 엔티티 내부에서 직접 처리합니다.
-     *
-     * @param amount 증가시킬 금액 (양수여야 함)
-     */
-    public void increaseBalance(BigDecimal amount) {
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Amount to increase must be a positive value");
-        }
-        // !!! 핵심: 새로운 BigDecimal 객체를 현재 balance 필드에 다시 할당 !!!
-        this.balance = this.balance.add(amount);
+
+    public boolean isActive(){
+        return this.walletStatus == WalletStatus.ACTIVE;
     }
 
-    /**
-     * 월렛 잔액을 감소시키는 비즈니스 로직.
-     *
-     * @param amount 감소시킬 금액 (양수여야 함)
-     */
-    public void decreaseBalance(BigDecimal amount) {
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Amount to decrease must be a positive value");
-        }
-        if (this.balance.compareTo(amount) < 0) {
-            throw new IllegalArgumentException("Insufficient balance for withdrawal");
-        }
-        this.balance = this.balance.subtract(amount);
+    public boolean isFrozen(){
+        return this.walletStatus == WalletStatus.FROZEN;
     }
-
 }

@@ -1,6 +1,8 @@
 package com.kijinkai.domain.common;
 
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.kijinkai.domain.user.dto.UserResponseDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,21 +13,24 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Schema(description = "Default Response Dto")
+@Schema(description = "API 공틍 응답 형식")
+@JsonPropertyOrder({"success", "message", "data"})
 public class BasicResponseDto<T> {
 
 
-    @Schema(description = "Successful request processing", example = "true")
+    @Schema(description = "성공 여부", example = "true")
     private Boolean success;
 
-    @Schema(description = "Response message", example = "success")
+    @Schema(description = "응답 메세지", example = "요청이 성공적으로 처리되었습니다.")
     private String message;
 
-
-    @Schema(description = "Response data", example = "data")
+    @Schema(description = "응답 데이터",
+    anyOf = {UserResponseDto.class, Object.class})
     private T data;
 
-    // 성공 응답 (데이터 포함)
+    /**
+     * 성공 응답 - 기본 메시지와 데이터
+     */
     public static <T> BasicResponseDto<T> success(T data) {
         return BasicResponseDto.<T>builder()
                 .success(true)
@@ -34,7 +39,9 @@ public class BasicResponseDto<T> {
                 .build();
     }
 
-    // 성공 응답 (메시지 및 데이터 포함)
+    /**
+     * 성공 응답 - 커스텀 메시지와 데이터
+     */
     public static <T> BasicResponseDto<T> success(String message, T data) {
         return BasicResponseDto.<T>builder()
                 .success(true)
@@ -43,8 +50,10 @@ public class BasicResponseDto<T> {
                 .build();
     }
 
-    // 성공 응답 (데이터 없이 메시지만)
-    public static BasicResponseDto<Void> success(String message) {
+    /**
+     * 성공 응답 - 메시지만 (데이터 없음)
+     */
+    public static BasicResponseDto<Void> successWithMessage(String message) {  // 메서드명 명확화
         return BasicResponseDto.<Void>builder()
                 .success(true)
                 .message(message)
@@ -52,8 +61,23 @@ public class BasicResponseDto<T> {
                 .build();
     }
 
-    // 실패 응답 (메시지 포함)
-    public static BasicResponseDto<Void> fail(String message) {
+    /**
+     * 성공 응답 - 기본 메시지만
+     */
+    public static BasicResponseDto<Void> success() {  // 새로 추가
+        return BasicResponseDto.<Void>builder()
+                .success(true)
+                .message("요청이 성공적으로 처리되었습니다.")
+                .data(null)
+                .build();
+    }
+
+    // === 실패 응답 메서드들 ===
+
+    /**
+     * 실패 응답 - 에러 메시지만
+     */
+    public static BasicResponseDto<Void> failure(String message) {  // fail → failure (명확성)
         return BasicResponseDto.<Void>builder()
                 .success(false)
                 .message(message)
@@ -61,8 +85,10 @@ public class BasicResponseDto<T> {
                 .build();
     }
 
-    // 실패 응답 (메시지 및 에러 데이터 포함 - 예를 들어, 유효성 검사 오류 목록)
-    public static <T> BasicResponseDto<T> fail(String message, T errorData) {
+    /**
+     * 실패 응답 - 에러 메시지와 에러 데이터
+     */
+    public static <T> BasicResponseDto<T> failure(String message, T errorData) {
         return BasicResponseDto.<T>builder()
                 .success(false)
                 .message(message)

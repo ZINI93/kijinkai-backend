@@ -1,19 +1,24 @@
 package com.kijinkai.domain.user.service;
 
+import com.kijinkai.domain.mail.service.EmailService;
 import com.kijinkai.domain.user.dto.UserRequestDto;
 import com.kijinkai.domain.user.dto.UserResponseDto;
 import com.kijinkai.domain.user.dto.UserUpdateDto;
 import com.kijinkai.domain.user.entity.User;
 import com.kijinkai.domain.user.entity.UserRole;
+import com.kijinkai.domain.user.entity.UserStatus;
 import com.kijinkai.domain.user.factory.UserFactory;
 import com.kijinkai.domain.user.mapper.UserMapper;
 import com.kijinkai.domain.user.repository.UserRepository;
+import com.kijinkai.util.EmailRandomCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
@@ -31,6 +36,9 @@ class UserServiceImplTest {
     @Mock PasswordEncoder passwordEncoder;
     @Mock UserMapper mapper;
     @Mock UserFactory factory;
+    @Mock EmailService emailService;
+    @Mock EmailRandomCode emailRandomCode;
+    @Mock RedisTemplate<String, String> redisTemplate;
     @InjectMocks UserServiceImpl userService;
 
     UserRequestDto requestDto;
@@ -41,7 +49,7 @@ class UserServiceImplTest {
     void setUp(){
 
         requestDto = UserRequestDto.builder().email("aaa@gmail.com").password("12341234").nickname("zinikun").build();
-        user = new User(UUID.randomUUID().toString(), requestDto.getEmail(), requestDto.getPassword(), requestDto.getNickname(), UserRole.USER);
+        user = new User(UUID.randomUUID(), requestDto.getEmail(), requestDto.getPassword(), requestDto.getNickname(), UserRole.USER, false , UserStatus.PENDING);
 
 
         response = new UserResponseDto(user.getUserUuid(), user.getEmail(), user.getNickname());
@@ -49,10 +57,21 @@ class UserServiceImplTest {
 
     @Test
     void createUserWithValidate() {
+
+        String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
+        String verificationCode = "123456";
+
         //given
+        when(emailRandomCode.generateVerificationCode()).thenReturn(verificationCode);
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(factory.createUser(requestDto, encodedPassword)).thenReturn(user);
+
         when(mapper.toResponse(user)).thenReturn(response);
         when(userRepository.save(any(User.class))).thenReturn(user);
-        when(factory.createUser(requestDto)).thenReturn(user);
+
+
+        ValueOperations<String, String> valueOps = mock(ValueOperations.class);
+        when(redisTemplate.opsForValue()).thenReturn(valueOps);
 
         //when
         UserResponseDto result = userService.createUserWithValidate(requestDto);
@@ -60,9 +79,7 @@ class UserServiceImplTest {
         //then
         assertNotNull(result);
         assertEquals(user.getEmail(), result.getEmail());
-
         verify(userRepository,times(1)).save(any(User.class));
-
     }
 
     @Test
