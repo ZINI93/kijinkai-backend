@@ -227,9 +227,7 @@ public class PaymentServiceImpl implements PaymentService {
         paymentValidator.requiredPendingStatus(payment);
         paymentValidator.validateWithdrawalType(payment);
 
-        if (!payment.getWallet().getWalletStatus().equals(WalletStatus.ACTIVE)) {
-            throw new InactiveWalletException("Wallet is inactive");
-        }
+        walletValidator.requireActiveStatus(payment.getWallet());
 
         BigDecimal feeAmount = new BigDecimal("300.00");
         BigDecimal totalDeductionAmount = payment.getAmountOriginal().add(feeAmount);
@@ -359,11 +357,11 @@ public class PaymentServiceImpl implements PaymentService {
      * @return
      */
     @Override
-    public PaymentResponseDto getPaymentInfoByAdmin(UUID userUuid, String paymentUuid) {
+    public PaymentResponseDto getPaymentInfoByAdmin(UUID adminUuid, String paymentUuid) {
 
-        log.info("Searching payment for user uuid:{}", userUuid);
+        log.info("Searching payment for admin uuid:{}", adminUuid);
 
-        findByAdminWithAdminValidate(userUuid);
+        findByAdminWithAdminValidate(adminUuid);
 
         Payment payment = findPaymentByPaymentUuid(paymentUuid);
 

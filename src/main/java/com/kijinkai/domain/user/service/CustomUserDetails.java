@@ -1,5 +1,6 @@
 package com.kijinkai.domain.user.service;
 
+import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.user.exception.UserNotFoundException;
 import com.kijinkai.domain.user.entity.User;
 import org.springframework.security.core.GrantedAuthority;

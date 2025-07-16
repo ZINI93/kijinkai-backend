@@ -2,10 +2,13 @@ package com.kijinkai.domain.wallet.service;
 
 
 import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.exception.CustomerNotFoundException;
+import com.kijinkai.domain.customer.repository.CustomerRepository;
 import com.kijinkai.domain.user.entity.User;
 import com.kijinkai.domain.user.exception.UserNotFoundException;
 import com.kijinkai.domain.user.repository.UserRepository;
 import com.kijinkai.domain.user.validator.UserValidator;
+import com.kijinkai.domain.wallet.dto.WalletFreezeRequest;
 import com.kijinkai.domain.wallet.dto.WalletResponseDto;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import com.kijinkai.domain.wallet.entity.WalletStatus;
@@ -31,6 +34,7 @@ public class WalletServiceImpl implements WalletService {
 
     private final UserRepository userRepository;
     private final WalletRepository walletRepository;
+    private final CustomerRepository customerRepository;
     private final WalletMapper walletMapper;
 
     private final WalletFactory walletFactory;
@@ -134,24 +138,27 @@ public class WalletServiceImpl implements WalletService {
     /**
      * 고객의 지갑 조회
      *
-     * @param customerUuid
-     * @param walletUuid
+     * @param userUuid
      * @return
      */
-    public WalletResponseDto getWalletBalance(UUID customerUuid, String walletUuid) {
-        Wallet wallet = findWalletByCustomerUuidAndWalletUuid(customerUuid, UUID.fromString(walletUuid));
+    @Override
+    public WalletResponseDto getWalletBalance(UUID userUuid) {
+
+        Customer customer = findCustomerByUserUuid(userUuid);
+        Wallet wallet = findWalletByCustomerUuid(customer);
+
         return walletMapper.toResponse(wallet);
     }
 
 
     /**
      * 관리자가 유저 월렛 조회
-     *
      * @param userUuid
      * @param walletUuid
      * @return
      */
-    public WalletResponseDto geCustomerWalletBalanceByAdmin(UUID userUuid, String walletUuid) {
+    @Override
+    public WalletResponseDto getCustomerWalletBalanceByAdmin(UUID userUuid, String walletUuid) {
 
         User user = findUserByUserUUid(userUuid);
         userValidator.requireAdminRole(user);
@@ -163,21 +170,21 @@ public class WalletServiceImpl implements WalletService {
 
     /**
      * 관리자가 규약 위반한 유저의 지갑 동결
-     *
      * @param adminUUid
      * @param walletUuid
-     * @param reason
+     * @param request
      * @return
      */
+    @Override
     @Transactional
-    public WalletResponseDto freezeWallet(UUID adminUUid, String walletUuid, String reason) {
-        log.info("Freezing wallet: {} for reason: {}", walletUuid, reason);
+    public WalletResponseDto freezeWallet(UUID adminUUid, String walletUuid, WalletFreezeRequest request) {
+        log.info("Freezing wallet: {} for reason: {}", walletUuid, request);
 
         User user = findUserByUserUUid(adminUUid);
         userValidator.requireAdminRole(user);
 
         Wallet wallet = findWalletByWalletUuid(UUID.fromString(walletUuid));
-        Wallet freezeWallet = wallet.freeze(reason);
+        Wallet freezeWallet = wallet.freeze(request);
         Wallet saevedWallet = walletRepository.save(freezeWallet);
 
         return walletMapper.toResponse(saevedWallet);
@@ -187,7 +194,6 @@ public class WalletServiceImpl implements WalletService {
     /**
      * 관리자가 규약 위반한 유저의 지갑 동결 해제
      * 객페 업데이트
-     *
      * @param userUuid
      * @param walletUuid
      * @return
@@ -206,13 +212,13 @@ public class WalletServiceImpl implements WalletService {
         return walletMapper.toResponse(saevedWallet);
     }
 
+
     //helper method
 
     private User findUserByUserUUid(UUID userUuid) {
         return userRepository.findByUserUuid(userUuid)
                 .orElseThrow(() -> new UserNotFoundException(String.format("User not found for user uuid: %s", userUuid)));
     }
-
     private Wallet findWalletByWalletUuid(UUID walletUuid) {
         return walletRepository.findByWalletUuid(walletUuid)
                 .orElseThrow(() -> new WalletNotFoundException(String.format("Wallet not found for wallet uuid: %s", walletUuid)));
@@ -223,11 +229,15 @@ public class WalletServiceImpl implements WalletService {
                 .orElseThrow(() -> new WalletNotFoundException(String.format("User not found for wallet uuid: %s", walletUuid)));
     }
 
-    private Wallet findWalletByWalletId(Long walletId) {
-        return walletRepository.findById(walletId)
-                .orElseThrow(() -> new WalletNotFoundException(String.format("Wallet not found for wallet id: %s", walletId)));
+    private Customer findCustomerByUserUuid(UUID userUuid) {
+        return customerRepository.findByUserUserUuid(userUuid)
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for user uuid: %s", userUuid)));
     }
 
+    private Wallet findWalletByCustomerUuid(Customer customer) {
+        return walletRepository.findByCustomerCustomerUuid(customer.getCustomerUuid())
+                .orElseThrow(() -> new WalletNotFoundException(String.format("Wallet not found for customer uuid: %s", customer.getCustomerUuid())));
+    }
 }
 
 

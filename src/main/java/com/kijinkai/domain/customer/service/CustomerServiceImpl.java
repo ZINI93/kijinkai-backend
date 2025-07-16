@@ -48,10 +48,9 @@ public class CustomerServiceImpl implements CustomerService {
     private final UserValidator userValidator;
     private final UuidValidator uuidValidator;
 
-
     /**
      * 회원 가입 후 유저에서 고객으로 등록 후 정확한 배송정보를 얻기 위한 프로세스
-     *
+     * 이때 계정의 지갑이 생김
      * @param userUuid
      * @param requestDto
      * @return customerMapper

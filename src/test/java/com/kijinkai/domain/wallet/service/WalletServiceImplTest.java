@@ -5,7 +5,7 @@ import com.kijinkai.domain.user.entity.User;
 import com.kijinkai.domain.user.entity.UserRole;
 import com.kijinkai.domain.user.repository.UserRepository;
 import com.kijinkai.domain.user.validator.UserValidator;
-import com.kijinkai.domain.wallet.dto.WalletRequestDto;
+import com.kijinkai.domain.wallet.dto.WalletFreezeRequest;
 import com.kijinkai.domain.wallet.dto.WalletResponseDto;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import com.kijinkai.domain.wallet.entity.WalletStatus;
@@ -55,12 +55,8 @@ class WalletServiceImplTest {
     private UUID customerUuid;
     private UUID walletUuid;
 
-    private User user;
-    private Customer customer;
-    private Wallet wallet;
 
     private WalletResponseDto walletResponseDto;
-    private WalletRequestDto walletRequestDto;
 
 
     private void setWalletId(Wallet wallet, Long id) throws Exception {
@@ -221,7 +217,7 @@ class WalletServiceImplTest {
         when(walletMapper.toResponse(wallet)).thenReturn(response);
         //When
 
-        WalletResponseDto result = walletService.getWalletBalance(customerUuid, walletUuid);
+        WalletResponseDto result = walletService.getWalletBalance(customerUuid);
 
         //Then
         assertThat(result).isNotNull();
@@ -246,7 +242,7 @@ class WalletServiceImplTest {
         when(walletMapper.toResponse(wallet)).thenReturn(response);
 
         //When
-        WalletResponseDto result = walletService.geCustomerWalletBalanceByAdmin(adminUuid, walletUuid);
+        WalletResponseDto result = walletService.getCustomerWalletBalanceByAdmin(adminUuid, walletUuid);
 
         //Then
         assertThat(result).isNotNull();
@@ -264,9 +260,10 @@ class WalletServiceImplTest {
         String reason = "규약을 위반했지요....";
 
         User admin = createMockUser(adminUuid, UserRole.ADMIN);
-        Customer customer = createMockCustomer(user);
+        Customer customer = createMockCustomer(admin);
         Wallet wallet = createMockWallet(UUID.fromString(walletUuid), customer, new BigDecimal(1000000.00), WalletStatus.CLOSED);
         WalletResponseDto response = WalletResponseDto.builder().walletUuid(wallet.getWalletUuid()).balance(wallet.getBalance()).walletStatus(wallet.getWalletStatus()).build();
+        WalletFreezeRequest FreezeRequest = new WalletFreezeRequest("규약위반");
 
         when(userRepository.findByUserUuid(adminUuid)).thenReturn(Optional.ofNullable(admin));
         when(walletRepository.findByWalletUuid(UUID.fromString(walletUuid))).thenReturn(Optional.ofNullable(wallet));
@@ -274,12 +271,12 @@ class WalletServiceImplTest {
         when(walletMapper.toResponse(wallet)).thenReturn(response);
 
         //When
-        WalletResponseDto result = walletService.freezeWallet(adminUuid, walletUuid, reason);
+        WalletResponseDto result = walletService.freezeWallet(adminUuid, walletUuid, FreezeRequest);
 
         //Then
         assertThat(result).isNotNull();
         assertThat(result.getWalletStatus()).isEqualTo(WalletStatus.CLOSED);
-        assertThat(admin).isNotEqualTo(user);
+        assertThat(admin).isNotEqualTo(admin);
 
         verify(walletRepository, times(1)).save(any(Wallet.class));
         verify(userRepository, times(1)).findByUserUuid(adminUuid);
@@ -295,7 +292,7 @@ class WalletServiceImplTest {
         String walletUuid = UUID.randomUUID().toString();
 
         User admin = createMockUser(adminUuid, UserRole.ADMIN);
-        Customer customer = createMockCustomer(user);
+        Customer customer = createMockCustomer(admin);
         Wallet wallet = createMockWallet(UUID.fromString(walletUuid), customer, new BigDecimal(1000000.00), WalletStatus.ACTIVE);
         WalletResponseDto response = WalletResponseDto.builder().walletUuid(wallet.getWalletUuid()).balance(wallet.getBalance()).walletStatus(wallet.getWalletStatus()).build();
 
@@ -310,7 +307,7 @@ class WalletServiceImplTest {
         //Then
         assertThat(result).isNotNull();
         assertThat(result.getWalletStatus()).isEqualTo(WalletStatus.ACTIVE);
-        assertThat(admin).isNotEqualTo(user);
+        assertThat(admin).isNotEqualTo(admin);
 
         verify(walletRepository, times(1)).save(any(Wallet.class));
         verify(userRepository, times(1)).findByUserUuid(adminUuid);

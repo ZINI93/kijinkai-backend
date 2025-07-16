@@ -4,6 +4,7 @@ package com.kijinkai.domain.wallet.entity;
 import com.kijinkai.domain.common.BaseEntity;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.exchange.doamin.Currency;
+import com.kijinkai.domain.wallet.dto.WalletFreezeRequest;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -59,13 +60,13 @@ public class Wallet extends BaseEntity {
     }
 
 
-    public Wallet freeze(String reason){
+    public Wallet freeze(WalletFreezeRequest request){
         return Wallet.builder()
                 .walletUuid(this.walletUuid)
                 .customer(this.customer)
                 .balance(this.balance)
                 .walletStatus(WalletStatus.FROZEN)
-                .freezeReason(reason)
+                .freezeReason(request.getReason())
                 .build();
 
     }

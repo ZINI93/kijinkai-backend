@@ -46,6 +46,8 @@ public interface WalletRepository extends JpaRepository<Wallet, Long> {
 
     Optional<Wallet> findByCustomerCustomerUuidAndWalletUuid(UUID customerUuid, UUID walletUuid);
 
+    Optional<Wallet> findByCustomerCustomerUuid(UUID customerUuid);
+
 
 //    /**
 //     * 원자적 잔액 증가 (충전용)
