@@ -1,5 +1,6 @@
 package com.kijinkai.domain.address.entity;
 
+import com.kijinkai.domain.address.dto.AddressUpdateDto;
 import com.kijinkai.domain.common.TimeBaseEntity;
 import com.kijinkai.domain.customer.entity.Customer;
 import jakarta.persistence.*;
@@ -48,7 +49,6 @@ public class Address extends TimeBaseEntity {
     @Column(nullable = false)
     private String street;
 
-
     @Column(name = "is_default", nullable = false)
     private Boolean isDefault;
 
@@ -68,13 +68,13 @@ public class Address extends TimeBaseEntity {
     }
 
 
-    public void updateAddress(String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street) {
-        this.recipientName = recipientName;
-        this.recipientPhoneNumber = recipientPhoneNumber;
-        this.country = country;
-        this.zipcode = zipcode;
-        this.state = state;
-        this.city = city;
-        this.street = street;
+    public void updateAddress(AddressUpdateDto addressUpdateDto) {
+        this.recipientName = addressUpdateDto.getRecipientName();
+        this.recipientPhoneNumber = addressUpdateDto.getRecipientPhoneNumber();
+        this.country = addressUpdateDto.getCountry();
+        this.zipcode = addressUpdateDto.getZipcode();
+        this.state = addressUpdateDto.getState();
+        this.city = addressUpdateDto.getCity();
+        this.street = addressUpdateDto.getStreet();
     }
 }

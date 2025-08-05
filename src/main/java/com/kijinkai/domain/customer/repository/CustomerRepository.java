@@ -15,4 +15,5 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>, Custo
 
     Optional<Customer> findByUserUserUuidAndCustomerUuid(UUID userUuid, UUID customerUuid);
     Optional<Customer> findByUserUserUuid(UUID userUuid);
+    Optional<Customer> findByCustomerUuid(UUID customerUuid);
 }

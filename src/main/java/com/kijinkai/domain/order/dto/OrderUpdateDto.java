@@ -18,9 +18,11 @@ public class OrderUpdateDto {
     private List<OrderItemUpdateDto> orderItems;
 
     @Builder
-    public OrderUpdateDto(OrderStatus orderstate, String memo, String rejectedReason) {
+    public OrderUpdateDto(OrderStatus orderstate, Currency convertedCurrency, String memo, String rejectedReason, List<OrderItemUpdateDto> orderItems) {
         this.orderstate = orderstate;
+        this.convertedCurrency = convertedCurrency;
         this.memo = memo;
         this.rejectedReason = rejectedReason;
+        this.orderItems = orderItems;
     }
 }

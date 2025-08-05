@@ -56,10 +56,7 @@ public class Customer extends BaseEntity {
         this.lastName = customerUpdateDto.getLastName();
         this.phoneNumber = customerUpdateDto.getLastName();
     }
-//
-//    public void updateCustomerTier(){
-//        this.customerTier = ;
-//    }
+
 }
 
 

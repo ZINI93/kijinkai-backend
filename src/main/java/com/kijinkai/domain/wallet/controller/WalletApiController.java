@@ -29,7 +29,6 @@ public class WalletApiController {
     private final WalletService walletService;
 
 
-
     @GetMapping("/me")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "월렛 정보 조회 성공"),

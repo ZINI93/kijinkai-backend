@@ -6,7 +6,7 @@ import java.util.InputMismatchException;
 public enum Currency {
     JPY("JPY", "일본 엔"),
     KRW("KRW", "한국 원"),
-    CLP("PHP", "칠레 페소"),
+    CLP("CLP", "칠레 페소"),
     USD("USD", "미국 달러");
 
     private final String code;

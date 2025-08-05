@@ -177,7 +177,8 @@ public class UserServiceImpl implements UserService {
         userRepository.delete(user);
     }
 
-    private User findUserByUserUuid(UUID userUuid) {
+    @Override
+    public User findUserByUserUuid(UUID userUuid) {
         return userRepository.findByUserUuid(userUuid)
                 .orElseThrow(() -> new UserNotFoundException(String.format("User not found for user uuid: %s", userUuid)));
     }

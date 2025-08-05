@@ -35,8 +35,8 @@ public class OrderValidator {
     }
 
     public void requirePaidStatusForConfirmation(Order order){
-        if (order.getOrderStatus() != OrderStatus.PAID ){
-            throw new OrderStatusException("Order cannot be confirmed; it must be in PAID status.");
+        if (order.getOrderStatus() != OrderStatus.FIRST_PAID){
+            throw new OrderStatusException("Order cannot be confirmed; it must be in FIRST_PAID status.");
         }
     }
 }

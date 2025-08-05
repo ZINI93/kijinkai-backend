@@ -3,7 +3,7 @@ package com.kijinkai.domain.order.factory;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.order.entity.OrderStatus;
-import com.kijinkai.domain.payment.entity.PaymentType;
+import com.kijinkai.domain.payment.domain.enums.PaymentType;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;

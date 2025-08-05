@@ -143,6 +143,7 @@ CREATE INDEX `idx_orders_status` ON `orders` (`order_status`);
 CREATE TABLE `order_items` (
     `order_item_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '주문 상품 ID',
     `order_item_uuid` BINARY(16) NOT NULL UNIQUE COMMENT '주문 상품 고유 UUID',
+    `customer_uuid` BINARY(16) NOT NULL COMMENT '고객 UUID',
     `platform_id` BIGINT NOT NULL COMMENT '플랫폼 ID',
     `order_id` BIGINT NOT NULL UNIQUE COMMENT '주문 ID', -- UNIQUE 제약 조건은 OrderItem이 Order에 대해 1:1 관계일 때 사용 (제공된 엔티티 정의에 따름)
     `product_link` VARCHAR(255) NOT NULL COMMENT '상품 링크',
@@ -210,46 +211,202 @@ CREATE INDEX `idx_deliveries_tracking_number` ON `deliveries` (`tracking_number`
 CREATE INDEX `idx_deliveries_delivery_status` ON `deliveries` (`delivery_status`);
 CREATE INDEX `idx_deliveries_estimated_delivery_at` ON `deliveries` (`estimated_delivery_at`);
 
-CREATE TABLE `payments` (
-    `payment_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '결제 ID',
-    `payment_uuid` BINARY(16) NOT NULL UNIQUE COMMENT '결제 고유 UUID',
-    `customer_id` BIGINT NOT NULL COMMENT '고객 ID',
-    `wallet_id` BIGINT NOT NULL COMMENT '지갑 ID',
-    `order_id` BIGINT NOT NULL COMMENT '주문 ID',
-    `payment_status` VARCHAR(20) NOT NULL COMMENT '결제 상태 (예: PENDING, COMPLETED, FAILED)',
-    `payment_method` VARCHAR(50) NOT NULL COMMENT '결제 수단 (예: CREDIT_CARD, BANK_TRANSFER)',
-    `amount_original` DECIMAL(19, 4) NOT NULL COMMENT '원본 통화 기준 결제 금액',
-    `payment_currency_original` VARCHAR(20) NOT NULL COMMENT '원본 통화 코드 (ISO 4217)',
-    `amount_converter` DECIMAL(19, 4) NOT NULL COMMENT '변환된 통화 기준 결제 금액',
-    `payment_currency_converter` VARCHAR(20) NOT NULL COMMENT '변환된 통화 코드 (ISO 4217)',
-    `payment_type` VARCHAR(50) NOT NULL COMMENT '결제 유형',
-    `description` VARCHAR(500) COMMENT '결제 설명',
-    `external_transaction_id` VARCHAR(255) COMMENT '외부 트랜잭션 ID',
-    `exchange_rate` DECIMAL(10, 6) NOT NULL COMMENT '적용된 환율',
+-- DepositRequest 테이블 생성
+CREATE TABLE `deposit_requests` (
+    `deposit_request_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '입금 요청 ID',
+    `request_uuid` BINARY(16) NOT NULL UNIQUE COMMENT '입금 요청 고유 UUID',
+    `customer_uuid` BINARY(16) NOT NULL COMMENT '고객 UUID',
+    `wallet_uuid` BINARY(16) NOT NULL COMMENT '지갑 UUID',
+    `amount_original` DECIMAL(19, 4) NOT NULL COMMENT '원본 입금 금액',
+    `currency_original` VARCHAR(10) NOT NULL COMMENT '원본 통화',
+    `amount_converted` DECIMAL(19, 4) NOT NULL COMMENT '변환된 입금 금액 (JPY)',
+    `exchange_rate` DECIMAL(18, 8) NOT NULL COMMENT '환율',
+    `depositor_name` VARCHAR(100) NOT NULL COMMENT '입금자명',
+    `bank_account` VARCHAR(50) NOT NULL COMMENT '입금 계좌',
+    `status` VARCHAR(30) NOT NULL COMMENT '입금 상태',
+    `expires_at` DATETIME NOT NULL COMMENT '만료 일시',
+    `processed_by_admin` BINARY(16) COMMENT '처리한 관리자 UUID',
+    `processed_at` DATETIME COMMENT '처리 일시',
+    `admin_memo` TEXT COMMENT '관리자 메모',
+    `rejection_reason` TEXT COMMENT '거절 사유',
+    `version` BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
 
     `created_by` VARCHAR(50) COMMENT '생성자',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시간',
-
     `updated_by` VARCHAR(50) COMMENT '최종 수정자',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
 
-    CONSTRAINT `chk_payment_status` CHECK (`payment_status` IN ('PENDING', 'COMPLETED', 'CANCEL', 'FAILED', 'REFUNDED')),
-    CONSTRAINT `chk_payment_method` CHECK (`payment_method` IN ('CAS', 'BALANCE')),
-    CONSTRAINT `chk_payment_currency_original` CHECK (`payment_currency_original` IN ('JPY', 'KRW', 'CLP', 'USD')),
-    CONSTRAINT `chk_payment_currency_converter` CHECK (`payment_currency_converter` IN ('JPY', 'KRW', 'CLP', 'USD')),
-    CONSTRAINT `chk_payment_type` CHECK (`payment_type` IN ('CREDIT', 'DEBIT')),
-    CONSTRAINT `fk_payments_customer_id` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`),
-    CONSTRAINT `fk_payments_wallet_id` FOREIGN KEY (`wallet_id`) REFERENCES `wallets` (`wallet_id`),
-    CONSTRAINT `fk_payments_order_id` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`)
+    CONSTRAINT `chk_deposit_status` CHECK (`status` IN ('PENDING_ADMIN_APPROVAL', 'APPROVED', 'REJECTED', 'EXPIRED')),
+    CONSTRAINT `chk_deposit_currency_original` CHECK (`currency_original` IN ('JPY', 'KRW', 'CLP', 'USD')),
+    CONSTRAINT `chk_deposit_amount_original_positive` CHECK (`amount_original` > 0),
+    CONSTRAINT `chk_deposit_amount_converted_positive` CHECK (`amount_converted` > 0),
+    CONSTRAINT `chk_deposit_exchange_rate_positive` CHECK (`exchange_rate` > 0),
+    CONSTRAINT `chk_deposit_version_non_negative` CHECK (`version` >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 인덱스 추가 (성능 고려)
-CREATE INDEX `idx_payments_customer_id` ON `payments` (`customer_id`);
-CREATE INDEX `idx_payments_wallet_id` ON `payments` (`wallet_id`);
-CREATE INDEX `idx_payments_order_id` ON `payments` (`order_id`);
-CREATE INDEX `idx_payments_payment_uuid` ON `payments` (`payment_uuid`);
-CREATE INDEX `idx_payments_status` ON `payments` (`payment_status`);
-CREATE INDEX `idx_payments_method` ON `payments` (`payment_method`);
+CREATE INDEX `idx_deposit_requests_request_uuid` ON `deposit_requests` (`request_uuid`);
+CREATE INDEX `idx_deposit_requests_customer_uuid` ON `deposit_requests` (`customer_uuid`);
+CREATE INDEX `idx_deposit_requests_wallet_uuid` ON `deposit_requests` (`wallet_uuid`);
+CREATE INDEX `idx_deposit_requests_status` ON `deposit_requests` (`status`);
+CREATE INDEX `idx_deposit_requests_status_created_at` ON `deposit_requests` (`status`, `created_at`);
+CREATE INDEX `idx_deposit_requests_expires_at` ON `deposit_requests` (`expires_at`);
+CREATE INDEX `idx_deposit_requests_processed_by_admin` ON `deposit_requests` (`processed_by_admin`);
+CREATE INDEX `idx_deposit_requests_customer_request` ON `deposit_requests` (`customer_uuid`, `request_uuid`);
+CREATE INDEX `idx_deposit_requests_status_expires_at` ON `deposit_requests` (`status`, `expires_at`);
+
+-- WithdrawRequest 테이블 생성
+CREATE TABLE `withdraw_requests` (
+    `withdraw_request_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '출금 요청 ID',
+    `request_uuid` BINARY(16) NOT NULL UNIQUE COMMENT '출금 요청 고유 UUID',
+    `customer_uuid` BINARY(16) NOT NULL COMMENT '고객 UUID',
+    `wallet_uuid` BINARY(16) NOT NULL COMMENT '지갑 UUID',
+    `request_amount` DECIMAL(19, 4) NOT NULL COMMENT '요청 출금 금액',
+    `withdraw_fee` DECIMAL(19, 4) NOT NULL COMMENT '출금 수수료',
+    `total_deduct_amount` DECIMAL(19, 4) NOT NULL COMMENT '총 차감 금액 (출금금액 + 수수료)',
+    `target_currency` VARCHAR(10) NOT NULL COMMENT '목표 통화',
+    `converted_amount` DECIMAL(19, 4) NOT NULL COMMENT '변환된 출금 금액',
+    `exchange_rate` DECIMAL(18, 8) NOT NULL COMMENT '환율',
+    `bank_name` VARCHAR(100) NOT NULL COMMENT '은행명',
+    `account_holder` VARCHAR(100) NOT NULL COMMENT '계좌 소유자명',
+    `status` VARCHAR(30) NOT NULL COMMENT '출금 상태',
+    `processed_by_admin` BINARY(16) COMMENT '처리한 관리자 UUID',
+    `processed_at` DATETIME COMMENT '처리 일시',
+    `admin_memo` TEXT COMMENT '관리자 메모',
+    `rejection_reason` TEXT COMMENT '거절 사유',
+    `expires_at` DATETIME NOT NULL COMMENT '만료 일시',
+    `version` BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+
+    `created_by` VARCHAR(50) COMMENT '생성자',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시간',
+    `updated_by` VARCHAR(50) COMMENT '최종 수정자',
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
+
+    -- 제약조건
+    CONSTRAINT `chk_withdraw_status` CHECK (`status` IN ('PENDING_ADMIN_APPROVAL', 'APPROVED', 'BANK_TRANSFER_PENDING', 'COMPLETED', 'REJECTED', 'FAILED')),
+    CONSTRAINT `chk_withdraw_target_currency` CHECK (`target_currency` IN ('JPY', 'KRW', 'CLP', 'USD')),
+    CONSTRAINT `chk_withdraw_request_amount_positive` CHECK (`request_amount` > 0),
+    CONSTRAINT `chk_withdraw_converted_amount_positive` CHECK (`converted_amount` > 0),
+    CONSTRAINT `chk_withdraw_fee_non_negative` CHECK (`withdraw_fee` >= 0),
+    CONSTRAINT `chk_withdraw_total_deduct_positive` CHECK (`total_deduct_amount` > 0),
+    CONSTRAINT `chk_withdraw_exchange_rate_positive` CHECK (`exchange_rate` > 0),
+    CONSTRAINT `chk_withdraw_version_non_negative` CHECK (`version` >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 인덱스 추가 (성능 고려)
+CREATE INDEX `idx_withdraw_requests_request_uuid` ON `withdraw_requests` (`request_uuid`);
+CREATE INDEX `idx_withdraw_requests_customer_uuid` ON `withdraw_requests` (`customer_uuid`);
+CREATE INDEX `idx_withdraw_requests_wallet_uuid` ON `withdraw_requests` (`wallet_uuid`);
+CREATE INDEX `idx_withdraw_requests_status` ON `withdraw_requests` (`status`);
+CREATE INDEX `idx_withdraw_requests_status_created_at` ON `withdraw_requests` (`status`, `created_at`);
+CREATE INDEX `idx_withdraw_requests_expires_at` ON `withdraw_requests` (`expires_at`);
+CREATE INDEX `idx_withdraw_requests_processed_by_admin` ON `withdraw_requests` (`processed_by_admin`);
+CREATE INDEX `idx_withdraw_requests_customer_request` ON `withdraw_requests` (`customer_uuid`, `request_uuid`);
+
+-- RefundRequest 테이블 생성 (수정됨)
+CREATE TABLE `refund_requests` (
+    `refund_request_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '환불 요청 ID',
+    `refund_uuid` BINARY(16) NOT NULL UNIQUE COMMENT '환불 요청 고유 UUID',
+    `customer_uuid` BINARY(16) NOT NULL COMMENT '고객 UUID',
+    `wallet_uuid` BINARY(16) NOT NULL COMMENT '지갑 UUID',
+    `order_item_uuid` BINARY(16) NOT NULL COMMENT '주문 상품 UUID',
+
+    -- 환불 금액 정보
+    `refund_amount` DECIMAL(19, 4) NOT NULL COMMENT '환불 금액',
+    `refund_currency` VARCHAR(10) NOT NULL DEFAULT 'JPY' COMMENT '환불 통화', -- 누락된 컬럼 추가
+
+    -- 환불 정보
+    `refund_reason` VARCHAR(255) NOT NULL COMMENT '환불 사유',
+    `refund_type` VARCHAR(30) NOT NULL COMMENT '환불 유형',
+
+    -- 상태 관리
+    `status` VARCHAR(30) NOT NULL COMMENT '환불 상태',
+
+    -- 관리자 처리 정보
+    `requested_by_admin` BINARY(16) NOT NULL COMMENT '요청한 관리자 UUID', -- 누락된 컬럼 추가
+    `processed_by_admin` BINARY(16) COMMENT '처리한 관리자 UUID',
+    `processed_at` DATETIME COMMENT '처리 일시',
+    `admin_memo` TEXT COMMENT '관리자 메모',
+    `rejection_reason` TEXT COMMENT '거절 사유', -- 누락된 컬럼 추가
+
+    -- 낙관적 잠금
+    `version` BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+
+    -- BaseEntity 필드들
+    `created_by` VARCHAR(50) COMMENT '생성자',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시간',
+    `updated_by` VARCHAR(50) COMMENT '최종 수정자',
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
+
+    -- 제약조건 (수정됨)
+    CONSTRAINT `chk_refund_status` CHECK (`status` IN ('PROCESSING', 'COMPLETED', 'FAILED')),
+    CONSTRAINT `chk_refund_currency` CHECK (`refund_currency` IN ('JPY', 'KRW', 'CLP', 'USD')),
+    CONSTRAINT `chk_refund_type` CHECK (`refund_type` IN ('STOCK_OUT', 'PURCHASE_CANCELLED', 'DEFECTIVE_PRODUCT', 'ADMIN_DECISION')),
+    CONSTRAINT `chk_refund_amount_positive` CHECK (`refund_amount` > 0),
+    CONSTRAINT `chk_refund_version_non_negative` CHECK (`version` >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 인덱스 추가 (수정됨)
+CREATE INDEX `idx_refund_requests_refund_uuid` ON `refund_requests` (`refund_uuid`);
+CREATE INDEX `idx_refund_requests_customer_uuid` ON `refund_requests` (`customer_uuid`);
+CREATE INDEX `idx_refund_requests_wallet_uuid` ON `refund_requests` (`wallet_uuid`);
+CREATE INDEX `idx_refund_requests_order_item_uuid` ON `refund_requests` (`order_item_uuid`);
+CREATE INDEX `idx_refund_requests_status` ON `refund_requests` (`status`);
+CREATE INDEX `idx_refund_requests_requested_by_admin` ON `refund_requests` (`requested_by_admin`);
+CREATE INDEX `idx_refund_requests_processed_by_admin` ON `refund_requests` (`processed_by_admin`);
+CREATE INDEX `idx_refund_requests_customer_refund` ON `refund_requests` (`customer_uuid`, `refund_uuid`);
+
+-- OrderPayment 테이블 생성 (완전 수정됨)
+CREATE TABLE `order_payments` (
+    `order_payment_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '주문 결제 ID',
+    `payment_uuid` BINARY(16) NOT NULL UNIQUE COMMENT '결제 고유 UUID',
+    `customer_uuid` BINARY(16) NOT NULL COMMENT '고객 UUID',
+    `wallet_uuid` BINARY(16) NOT NULL COMMENT '지갑 UUID',
+    `order_uuid` BINARY(16) NOT NULL COMMENT '주문 UUID',
+
+    -- 결제 정보
+    `payment_amount` DECIMAL(19, 4) NOT NULL COMMENT '결제 금액',
+    `payment_currency` VARCHAR(10) NOT NULL DEFAULT 'JPY' COMMENT '결제 통화', -- 누락된 컬럼 추가
+    `payment_order` VARCHAR(20) NOT NULL COMMENT '결제 순서 (FIRST, SECOND)', -- 누락된 컬럼 추가
+
+    -- 상태 관리
+    `status` VARCHAR(30) NOT NULL COMMENT '결제 상태',
+    `payment_type` VARCHAR(30) NOT NULL COMMENT '결제 유형 (PRODUCT_PAYMENT, SHIPPING_PAYMENT)',
+
+    -- 처리 정보
+    `rejection_reason` TEXT COMMENT '거절 사유',
+    `paid_at` DATETIME COMMENT '지불 일시',
+    `created_by_admin` BINARY(16) NOT NULL COMMENT '생성한 관리자 UUID', -- 컬럼명 수정
+
+    -- 낙관적 잠금
+    `version` BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+
+    -- BaseEntity 필드들
+    `created_by` VARCHAR(50) COMMENT '생성자',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시간',
+    `updated_by` VARCHAR(50) COMMENT '최종 수정자',
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
+
+    -- 제약조건 (수정됨)
+    CONSTRAINT `chk_order_payment_status` CHECK (`status` IN ('PENDING_USER_PAYMENT', 'COMPLETED', 'FAILED', 'CANCELLED')),
+    CONSTRAINT `chk_order_payment_type` CHECK (`payment_type` IN ('PRODUCT_PAYMENT', 'SHIPPING_PAYMENT')),
+    CONSTRAINT `chk_order_payment_currency` CHECK (`payment_currency` IN ('JPY', 'KRW', 'CLP', 'USD')),
+    CONSTRAINT `chk_order_payment_order` CHECK (`payment_order` IN ('FIRST', 'SECOND')),
+    CONSTRAINT `chk_order_payment_amount_positive` CHECK (`payment_amount` > 0),
+    CONSTRAINT `chk_order_payment_version_non_negative` CHECK (`version` >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 인덱스 추가 (수정됨)
+CREATE INDEX `idx_order_payments_payment_uuid` ON `order_payments` (`payment_uuid`);
+CREATE INDEX `idx_order_payments_customer_uuid` ON `order_payments` (`customer_uuid`);
+CREATE INDEX `idx_order_payments_wallet_uuid` ON `order_payments` (`wallet_uuid`);
+CREATE INDEX `idx_order_payments_order_uuid` ON `order_payments` (`order_uuid`);
+CREATE INDEX `idx_order_payments_status` ON `order_payments` (`status`);
+CREATE INDEX `idx_order_payments_payment_order` ON `order_payments` (`payment_order`);
+CREATE INDEX `idx_order_payments_payment_type` ON `order_payments` (`payment_type`);
+CREATE INDEX `idx_order_payments_created_by_admin` ON `order_payments` (`created_by_admin`);
+CREATE INDEX `idx_order_payments_customer_payment` ON `order_payments` (`customer_uuid`, `payment_uuid`);
+CREATE INDEX `idx_order_payments_order_payment_order` ON `order_payments` (`order_uuid`, `payment_order`);
 
 
 CREATE TABLE `transactions` (

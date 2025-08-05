@@ -5,13 +5,15 @@ import com.kijinkai.domain.delivery.dto.DeliveryResponseDto;
 import com.kijinkai.domain.delivery.dto.DeliveryUpdateDto;
 import com.kijinkai.domain.delivery.entity.Delivery;
 
+import java.util.UUID;
+
 public interface DeliveryService {
 
-    DeliveryResponseDto createDeliveryWithValidate(String userUuid, String orderUuid, DeliveryRequestDto requestDto);
-    DeliveryResponseDto deliveryShipped(String userUuid, String deliveryUuid);
+    DeliveryResponseDto createDeliveryWithValidate(UUID userUuid, UUID orderUuid, DeliveryRequestDto requestDto);
+    DeliveryResponseDto deliveryShipped(UUID userUuid, UUID deliveryUuid);
 
-    DeliveryResponseDto updateDeliveryWithValidate(String userUuid, String deliveryUuid, DeliveryUpdateDto updateDto);
+    DeliveryResponseDto updateDeliveryWithValidate(UUID userUuid, UUID deliveryUuid, DeliveryUpdateDto updateDto);
 
-    void deleteDelivery(String userUuid, String deliveryUuid);
-    DeliveryResponseDto getDeliveryInfo(String userUuid, String deliveryUuid);
+    void deleteDelivery(UUID userUuid, UUID deliveryUuid);
+    DeliveryResponseDto getDeliveryInfo(UUID userUuid, UUID deliveryUuid);
 }

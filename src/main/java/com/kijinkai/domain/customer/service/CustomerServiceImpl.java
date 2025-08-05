@@ -130,6 +130,15 @@ public class CustomerServiceImpl implements CustomerService {
         return customerRepository.findAllByCustomers(userUuid, firstName, lastName, phoneNumber, customerTier, pageable);
     }
 
+    @Override
+    public Customer findByUserUuid(UUID userUuid) {
+
+        Customer customer = customerRepository.findByUserUserUuid(userUuid)
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for user uuid: %s", userUuid)));
+
+        return customer;
+    }
+
     private User findUserByUserUuid(UUID userUuid, String userUuid1) {
         return userRepository.findByUserUuid(userUuid)
                 .orElseThrow(() -> new UserNotFoundException(userUuid1));

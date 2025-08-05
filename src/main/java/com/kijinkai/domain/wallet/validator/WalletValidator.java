@@ -2,7 +2,7 @@ package com.kijinkai.domain.wallet.validator;
 
 
 import com.kijinkai.domain.order.exception.OrderStatusException;
-import com.kijinkai.domain.payment.exception.PaymentAmountException;
+import com.kijinkai.domain.payment.domain.exception.PaymentAmountException;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import com.kijinkai.domain.wallet.entity.WalletStatus;
 import org.springframework.stereotype.Component;

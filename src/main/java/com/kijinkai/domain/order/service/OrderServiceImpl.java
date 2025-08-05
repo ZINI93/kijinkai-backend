@@ -4,7 +4,6 @@ import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.customer.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.repository.CustomerRepository;
 import com.kijinkai.domain.exchange.service.PriceCalculationService;
-import com.kijinkai.domain.exchange.doamin.ExchangeRate;
 import com.kijinkai.domain.order.dto.OrderRequestDto;
 import com.kijinkai.domain.order.dto.OrderResponseDto;
 import com.kijinkai.domain.order.dto.OrderUpdateDto;
@@ -17,13 +16,12 @@ import com.kijinkai.domain.order.mapper.OrderMapper;
 import com.kijinkai.domain.order.repository.OrderRepository;
 import com.kijinkai.domain.order.validator.OrderValidator;
 import com.kijinkai.domain.orderitem.dto.OrderItemUpdateDto;
-import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.orderitem.entity.OrderItem;
 import com.kijinkai.domain.orderitem.exception.OrderItemNotFoundException;
 import com.kijinkai.domain.orderitem.exception.OrderUpdateException;
 import com.kijinkai.domain.orderitem.repository.OrderItemRepository;
 import com.kijinkai.domain.orderitem.service.OrderItemService;
-import com.kijinkai.domain.payment.exception.PaymentProcessingException;
+import com.kijinkai.domain.payment.domain.exception.PaymentProcessingException;
 import com.kijinkai.domain.transaction.entity.TransactionStatus;
 import com.kijinkai.domain.transaction.entity.TransactionType;
 import com.kijinkai.domain.transaction.service.TransactionService;
@@ -56,7 +54,6 @@ public class OrderServiceImpl implements OrderService {
     private final OrderItemRepository orderItemRepository;
     private final WalletRepository walletRepository;
     private final CustomerRepository customerRepository;
-    private final PriceCalculationService exchangeCalculator;
 
     private final OrderMapper orderMapper;
 
@@ -78,7 +75,7 @@ public class OrderServiceImpl implements OrderService {
      * @return 생성된 주문 응답 DTO
      */
     @Override  // 유저가 링크, 가격을 입력
-    public OrderResponseDto createOrderProcess(String userUuid, OrderRequestDto requestDto) {
+    public OrderResponseDto createOrderProcess(UUID userUuid, OrderRequestDto requestDto) {
         log.info("Crating order for user uuid:{}", userUuid);
 
         try {
@@ -112,7 +109,7 @@ public class OrderServiceImpl implements OrderService {
      * @return 업데이트된 주문 응답 dto
      */
     @Override
-    public OrderResponseDto updateOrderEstimate(String userUuid, String orderUuid, OrderUpdateDto updateDto) {
+    public OrderResponseDto updateOrderEstimate(UUID userUuid, UUID orderUuid, OrderUpdateDto updateDto) {
         log.info("updating order for user uuid: {}, order uuid: {}", userUuid, orderUuid);
 
         try {
@@ -126,7 +123,7 @@ public class OrderServiceImpl implements OrderService {
             BigDecimal calculateTotalAmountOriginal = BigDecimal.ZERO; // 원본 통화(USD 등)의 총액
 
             for (OrderItemUpdateDto itemUpdate : updateDto.getOrderItems()) {
-                OrderItem orderItem = orderItemRepository.findByOrderItemUuid(UUID.fromString(itemUpdate.getOrderItemUuid()))
+                OrderItem orderItem = orderItemRepository.findByOrderItemUuid(itemUpdate.getOrderItemUuid())
                         .orElseThrow(() -> new OrderItemNotFoundException("Order item with UUID: " + itemUpdate.getOrderItemUuid() + " not found."));
 
                 orderItem.validateOrderAndOrderItem(order);
@@ -137,7 +134,6 @@ public class OrderServiceImpl implements OrderService {
                 calculateTotalAmountOriginal = calculateTotalAmountOriginal.add(orderItem.getPriceOriginal());
             }
 
-
             BigDecimal convertedTotalAmount = priceCalculationService.calculateTotalPrice(calculateTotalAmountOriginal, updateDto.getConvertedCurrency(), BigDecimal.ZERO);
 
             updateOrderEstimate(order, calculateTotalAmountOriginal, convertedTotalAmount, updateDto);
@@ -147,25 +143,25 @@ public class OrderServiceImpl implements OrderService {
 
             return orderMapper.toResponse(savedOrder);
         } catch (Exception e) {
-            log.error("Failed to update order estimate for order uuid: {]", orderUuid, e);
+            log.error("Failed to update order estimate for order uuid: {}", orderUuid, e);
             throw new OrderUpdateException("Failed to update order estimate", e);
         }
     }
 
     /**
      * 유저가 견적을 검토한 후 결제를 진행하는 프로세스
-     *
+     *   --- 결제 서비스로 이동
      * @param userUuid
      * @param orderUuid
      * @return 결제 완료된 주문 응답 DTO
      */
     @Override
-    public OrderResponseDto completedOrder(String userUuid, String orderUuid) {
+    public OrderResponseDto completedOrder(UUID userUuid, UUID orderUuid) {
         return executeWithOptimisticLockRetry(() ->
                 processOrderCompletion(userUuid, orderUuid));
     }
 
-    private OrderResponseDto processOrderCompletion(String userUuid, String orderUuid) {
+    private OrderResponseDto processOrderCompletion(UUID userUuid, UUID orderUuid) {
 
         log.info("Completing order for user uuid:{}", userUuid);
 
@@ -175,7 +171,6 @@ public class OrderServiceImpl implements OrderService {
 
         Wallet wallet = findWalletByCustomerId(customer);
         walletValidator.requireActiveStatus(wallet);
-
 
         BigDecimal amountToPay = order.getTotalPriceOriginal();
         walletValidator.requireSufficientBalance(wallet, amountToPay);
@@ -207,7 +202,7 @@ public class OrderServiceImpl implements OrderService {
      * @return 배송 준비 상태의 주문 응답 DTO
      */
     @Override // 관리자가 결제 완료된 주문서를 보고 배송 준비 시작단계
-    public OrderResponseDto confirmOrder(String userUuid, String orderUuid) {
+    public OrderResponseDto confirmOrder(UUID userUuid, UUID orderUuid) {
 
         log.info("Confirming order for user uuid:{}", userUuid);
 
@@ -217,7 +212,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = findOrderByCustomerUuidAndOrderUuid(customer, orderUuid);
         orderValidator.requirePaidStatusForConfirmation(order);
 
-        order.updateOrderState(OrderStatus.PREPARE_DELIVERY);
+        order.updateOrderStatus(OrderStatus.PREPARE_DELIVERY);
 
         log.info("Confirmed order for order uuid:{}", order.getOrderUuid());
 
@@ -233,7 +228,7 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     @Transactional(readOnly = true)
-    public OrderResponseDto getOrderInfo(String userUuid, String orderUuid) {
+    public OrderResponseDto getOrderInfo(UUID userUuid, UUID orderUuid) {
 
         log.info("Searching order for user uuid:{}", userUuid);
 
@@ -244,7 +239,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override // 유저가 오더 캔슬
-    public OrderResponseDto cancelOrder(String userUuid, String orderUuid) {
+    public OrderResponseDto cancelOrder(UUID userUuid, UUID orderUuid) {
 
         log.info("Canceling order for user uuid:{}", userUuid);
 
@@ -266,7 +261,7 @@ public class OrderServiceImpl implements OrderService {
      * @param orderUuid
      */
     @Override //관리자가 강제 삭제
-    public void deleteOrder(String userUuid, String orderUuid) {
+    public void deleteOrder(UUID userUuid, UUID orderUuid) {
 
         log.info("Deleting order for user uuid:{}", userUuid);
 
@@ -288,18 +283,19 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new WalletNotFoundException(String.format("Wallet not found for customer uuid: %s", customer.getCustomerUuid())));
     }
 
-    private Order findOrderByOrderUuid(String orderUuid) {
-        return orderRepository.findByOrderUuid(UUID.fromString(orderUuid))
+    @Override
+    public Order findOrderByOrderUuid(UUID orderUuid) {
+        return orderRepository.findByOrderUuid(orderUuid)
                 .orElseThrow(() -> new OrderNotFoundException(String.format("Order not found for order uuid: %s", orderUuid)));
     }
 
-    private Customer findCustomerByUserUuid(String userUuid) {
-        return customerRepository.findByUserUserUuid(UUID.fromString(userUuid))
+    private Customer findCustomerByUserUuid(UUID userUuid) {
+        return customerRepository.findByUserUserUuid(userUuid)
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for user uuid %s", userUuid)));
     }
 
-    private Order findOrderByCustomerUuidAndOrderUuid(Customer customer, String orderUuid) {
-        return orderRepository.findByCustomerCustomerUuidAndOrderUuid(customer.getCustomerUuid(), UUID.fromString(orderUuid))
+    private Order findOrderByCustomerUuidAndOrderUuid(Customer customer, UUID orderUuid) {
+        return orderRepository.findByCustomerCustomerUuidAndOrderUuid(customer.getCustomerUuid(), orderUuid)
                 .orElseThrow(() -> new OrderNotFoundException(String.format("Order not found for customer uuid: %s and order uuid: %s", customer.getCustomerUuid(), orderUuid)));
     }
 

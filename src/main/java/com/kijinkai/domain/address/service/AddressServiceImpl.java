@@ -31,40 +31,26 @@ public class AddressServiceImpl implements AddressService{
     private final AddressMapper addressMapper;
 
     @Override
-    public AddressResponseDto createAddressWithValidate(String userUuid, AddressRequestDto requestDto) {
+    public AddressResponseDto createAddressWithValidate(UUID userUuid, AddressRequestDto requestDto) {
 
         Customer customer = findCustomerByUserUuid(userUuid);
-
         Address address = addressFactory.createAddress(customer, requestDto);
         Address savedAddress = addressRepository.save(address);
 
         return addressMapper.toResponse(savedAddress);
     }
 
-    private void updateAddress(Address address, AddressUpdateDto updateDto){
-        address.updateAddress(
-                updateDto.getRecipientName(),
-                updateDto.getRecipientPhoneNumber(),
-                updateDto.getCountry(),
-                updateDto.getZipcode(),
-                updateDto.getState(),
-                updateDto.getCity(),
-                updateDto.getStreet()
-        );
-    }
-
-
     @Override
-    public AddressResponseDto updateAddressWithValidate(String userUuid, String addressUuid, AddressUpdateDto updateDto) {
+    public AddressResponseDto updateAddressWithValidate(UUID userUuid, UUID addressUuid, AddressUpdateDto updateDto) {
 
         Customer customer = findCustomerByUserUuid(userUuid);
         Address address = findAddressByCustomerUuidAndAddressUuid(addressUuid, customer);
-        updateAddress(address,updateDto);
+        address.updateAddress(updateDto);
         return addressMapper.toResponse(address);
     }
 
     @Override
-    public AddressResponseDto getAddressInfo(String userUuid, String addressUuid) {
+    public AddressResponseDto getAddressInfo(UUID userUuid, UUID addressUuid) {
         Customer customer = findCustomerByUserUuid(userUuid);
         Address address = findAddressByCustomerUuidAndAddressUuid(addressUuid, customer);
 
@@ -72,7 +58,7 @@ public class AddressServiceImpl implements AddressService{
     }
 
     @Override
-    public void deleteAddress(String userUuid, String addressUuid) {
+    public void deleteAddress(UUID userUuid, UUID addressUuid) {
 
         Customer customer = findCustomerByUserUuid(userUuid);
         Address address = findAddressByCustomerUuidAndAddressUuid(addressUuid, customer);
@@ -81,13 +67,13 @@ public class AddressServiceImpl implements AddressService{
 
     }
 
-    private Address findAddressByCustomerUuidAndAddressUuid(String addressUuid, Customer customer) {
-        return addressRepository.findByCustomerCustomerUuidAndAddressUuid(customer.getCustomerUuid(), UUID.fromString(addressUuid))
+    private Address findAddressByCustomerUuidAndAddressUuid(UUID addressUuid, Customer customer) {
+        return addressRepository.findByCustomerCustomerUuidAndAddressUuid(customer.getCustomerUuid(), addressUuid)
                 .orElseThrow(() -> new AddressNotFoundException("CustomerUuid and AddressUuid : Address not found"));
     }
 
-    private Customer findCustomerByUserUuid(String userUuid) {
-        return customerRepository.findByUserUserUuid(UUID.fromString(userUuid))
+    private Customer findCustomerByUserUuid(UUID userUuid) {
+        return customerRepository.findByUserUserUuid(userUuid)
                 .orElseThrow(() -> new CustomerNotFoundException("UserUuid: Customer not found"));
     }
 }

@@ -44,6 +44,7 @@ public class DeliveryServiceImpl implements DeliveryService {
 
     private final DeliveryFactory factory;
     private final DeliveryMapper deliveryMapper;
+
     private final DeliveryValidator deliveryValidator;
     private final UserValidator userValidator;
     private final OrderValidator orderValidator;
@@ -58,7 +59,7 @@ public class DeliveryServiceImpl implements DeliveryService {
      * @return 주문생성 응답 DTO
      */
     @Override @Transactional
-    public DeliveryResponseDto createDeliveryWithValidate(String userUuid, String orderUuid, DeliveryRequestDto requestDto) {
+    public DeliveryResponseDto createDeliveryWithValidate(UUID userUuid, UUID orderUuid, DeliveryRequestDto requestDto) {
 
         log.info("Creating delivery for user uuid: {}", userUuid);
 
@@ -76,7 +77,7 @@ public class DeliveryServiceImpl implements DeliveryService {
             return deliveryMapper.toResponse(savedDelivery);
         } catch (Exception e) {
             log.error("Failed to create delivery for user uuid: {}", userUuid);
-            throw new DeliveryCreationException("Failed to crate delivery", e);
+            throw new DeliveryCreationException("Failed to create delivery", e);
         }
     }
 
@@ -88,7 +89,7 @@ public class DeliveryServiceImpl implements DeliveryService {
      * @return 배송시작 응답 DTO
      */
     @Override @Transactional // 배송시작 버튼
-    public DeliveryResponseDto deliveryShipped(String userUuid, String deliveryUuid) {
+    public DeliveryResponseDto deliveryShipped(UUID userUuid, UUID deliveryUuid) {
 
         Customer customer = findCustomerByUserUuid(userUuid);
         Delivery delivery = findDeliveryByCustomerAndDeliveryUuid(customer, deliveryUuid);
@@ -98,27 +99,12 @@ public class DeliveryServiceImpl implements DeliveryService {
 
 
         Order order = delivery.getOrder();
-        order.updateOrderState(OrderStatus.SHIPPING);
+        order.updateOrderStatus(OrderStatus.SHIPPING);
         delivery.updateDeliveryStatus(DeliveryStatus.SHIPPED);
 
         return deliveryMapper.toResponse(delivery);
     }
 
-    private void updateDelivery(Delivery delivery, DeliveryUpdateDto updateDto) {
-
-        delivery.updateDelivery(
-                updateDto.getRecipientName(),
-                updateDto.getRecipientPhoneNumber(),
-                updateDto.getCountry(),
-                updateDto.getZipcode(),
-                updateDto.getState(),
-                updateDto.getCity(),
-                updateDto.getStreet(),
-                updateDto.getCarrier(),
-                updateDto.getTrackingNumber(),
-                updateDto.getDeliveryFee()
-        );
-    }
 
     /**
      * 배송 준비중에서 물품이 배송업체로 인도되기 전에 구매자가 급히 주소변경 등 배송정보를 변경요청사항이 있으면 관리자가 수동으로 수정해는 프로세스
@@ -129,7 +115,7 @@ public class DeliveryServiceImpl implements DeliveryService {
      * @return
      */
     @Override @Transactional // admin
-    public DeliveryResponseDto updateDeliveryWithValidate(String userUuid, String deliveryUuid, DeliveryUpdateDto updateDto) {
+    public DeliveryResponseDto updateDeliveryWithValidate(UUID userUuid, UUID deliveryUuid, DeliveryUpdateDto updateDto) {
 
         try {
             log.info("Updating delivery for delivery uuid:{}", deliveryUuid);
@@ -139,7 +125,7 @@ public class DeliveryServiceImpl implements DeliveryService {
             Delivery delivery = findDeliveryByCustomerAndDeliveryUuid(customer, deliveryUuid);
             orderValidator.requirePaidStatusForConfirmation(delivery.getOrder());
 
-            updateDelivery(delivery, updateDto);
+            delivery.updateDelivery(updateDto);
 
             log.info("Updated delivery for delivery uuid:{}", delivery.getDeliveryUuid());
             return deliveryMapper.toResponse(delivery);
@@ -156,7 +142,7 @@ public class DeliveryServiceImpl implements DeliveryService {
      */
 
     @Override @Transactional
-    public void deleteDelivery(String userUuid, String deliveryUuid) {
+    public void deleteDelivery(UUID userUuid, UUID deliveryUuid) {
 
         log.info("Deleting delivery for delivery uuid:{}", deliveryUuid);
         Customer customer = findCustomerByUserUuid(userUuid);
@@ -174,7 +160,7 @@ public class DeliveryServiceImpl implements DeliveryService {
      */
 
     @Override
-    public DeliveryResponseDto getDeliveryInfo(String userUuid, String deliveryUuid) {
+    public DeliveryResponseDto getDeliveryInfo(UUID userUuid, UUID deliveryUuid) {
         log.info("Searching delivery for delivery uuid: {} and delivery uuid: {}", userUuid, deliveryUuid);
         Customer customer = findCustomerByUserUuid(userUuid);
         Delivery delivery = findDeliveryByCustomerAndDeliveryUuid(customer, deliveryUuid);
@@ -182,13 +168,13 @@ public class DeliveryServiceImpl implements DeliveryService {
         return deliveryMapper.toResponse(delivery);
     }
 
-    private Customer findCustomerByUserUuid(String userUuid) {
-        return customerRepository.findByUserUserUuid(UUID.fromString(userUuid))
+    private Customer findCustomerByUserUuid(UUID userUuid) {
+        return customerRepository.findByUserUserUuid(userUuid)
                 .orElseThrow(() -> new CustomerNotFoundException("userUuid: customer not found"));
     }
 
-    private Delivery findDeliveryByCustomerAndDeliveryUuid(Customer customer, String deliveryUuid) {
-        return deliveryRepository.findByCustomerCustomerUuidAndDeliveryUuid(customer.getCustomerUuid(), UUID.fromString(deliveryUuid))
+    private Delivery findDeliveryByCustomerAndDeliveryUuid(Customer customer, UUID deliveryUuid) {
+        return deliveryRepository.findByCustomerCustomerUuidAndDeliveryUuid(customer.getCustomerUuid(), deliveryUuid)
                 .orElseThrow(() -> new DeliveryNotFoundException("CustomerUuidAndDeliveryUuid: delivery not found"));
     }
 
@@ -198,8 +184,8 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .orElseThrow(() -> new CustomerNotFoundException("CustomerUuid: Address not found"));
     }
 
-    private Order findOrderByOrderUuid(String orderUuid) {
-        return orderRepository.findByOrderUuid(UUID.fromString(orderUuid))
+    private Order findOrderByOrderUuid(UUID orderUuid) {
+        return orderRepository.findByOrderUuid(orderUuid)
                 .orElseThrow(() -> new OrderNotFoundException("OrderUuid: Order not found"));
     }
 }

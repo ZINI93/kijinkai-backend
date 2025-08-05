@@ -3,6 +3,7 @@ package com.kijinkai.domain.delivery.entity;
 
 import com.kijinkai.domain.common.BaseEntity;
 import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.delivery.dto.DeliveryUpdateDto;
 import com.kijinkai.domain.order.entity.Order;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -113,17 +114,17 @@ public class Delivery extends BaseEntity {
         this.cancelReason = cancelReason;
     }
 
-    public void updateDelivery(String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, Carrier carrier, String trackingNumber, BigDecimal deliveryFee) {
-        this.recipientName = recipientName;
-        this.recipientPhoneNumber = recipientPhoneNumber;
-        this.country = country;
-        this.zipcode = zipcode;
-        this.state = state;
-        this.city = city;
-        this.street = street;
-        this.carrier = carrier;
-        this.trackingNumber = trackingNumber;
-        this.deliveryFee = deliveryFee;
+    public void updateDelivery(DeliveryUpdateDto updateDto) {
+        this.recipientName = updateDto.getRecipientName();
+        this.recipientPhoneNumber = updateDto.getRecipientPhoneNumber();
+        this.country = updateDto.getCountry();
+        this.zipcode = updateDto.getZipcode();
+        this.state = updateDto.getState();
+        this.city = updateDto.getCity();
+        this.street = updateDto.getStreet();
+        this.carrier = updateDto.getCarrier();
+        this.trackingNumber = updateDto.getTrackingNumber();
+        this.deliveryFee = updateDto.getDeliveryFee();
     }
 
     public void updateDeliveryStatus(DeliveryStatus deliveryStatus) {

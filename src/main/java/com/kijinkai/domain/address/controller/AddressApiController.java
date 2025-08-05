@@ -1,0 +1,136 @@
+package com.kijinkai.domain.address.controller;
+
+import com.kijinkai.domain.address.dto.AddressRequestDto;
+import com.kijinkai.domain.address.dto.AddressResponseDto;
+import com.kijinkai.domain.address.dto.AddressUpdateDto;
+import com.kijinkai.domain.address.service.AddressService;
+import com.kijinkai.domain.common.BasicResponseDto;
+import com.kijinkai.domain.user.service.CustomUserDetails;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
+import java.util.UUID;
+
+@Slf4j
+@RestController
+@RequiredArgsConstructor
+@RequestMapping(
+        value = "/api/v1/addresses",
+        produces = MediaType.APPLICATION_JSON_VALUE
+)
+public class AddressApiController {
+
+    private final AddressService addressService;
+
+
+    @PostMapping
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "주소 생성 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "주소를 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<AddressResponseDto>> createAddress(
+            Authentication authentication,
+            @Valid @RequestBody AddressRequestDto requestDto
+    ) {
+
+        UUID userUuid = getUserUuid(authentication);
+        log.info("User: {} requests address create", userUuid);
+
+
+        AddressResponseDto address = addressService.createAddressWithValidate(userUuid, requestDto);
+        log.info("Address:{} successfully created by user{}", address.getAddressUuid(), userUuid);
+
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/api/v1/addresses/{addressUuid}")
+                .buildAndExpand(address.getAddressUuid())
+                .toUri();
+
+        return ResponseEntity.created(location).body(BasicResponseDto.success("Successful created address", address));
+    }
+
+
+    @PutMapping("/{addressUuid}")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "주소 업데이트 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "주소를 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<AddressResponseDto>> updateAddress(
+            Authentication authentication,
+            @PathVariable UUID addressUuid,
+            @Valid @RequestBody AddressUpdateDto updateDto
+    ) {
+
+        UUID userUuid = getUserUuid(authentication);
+        log.info("User: {} requests address update", userUuid);
+
+        AddressResponseDto address = addressService.updateAddressWithValidate(userUuid, addressUuid, updateDto);
+        log.info("Address: {}, successfully updated by user {}", address.getAddressUuid(), userUuid);
+
+
+        return ResponseEntity.ok(BasicResponseDto.success("Successful update address", address));
+    }
+
+    @GetMapping("/{addressUuid}")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "주소정보 조회 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "주소를 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<AddressResponseDto>> getAddressInfo(
+            Authentication authentication,
+            @PathVariable UUID addressUuid
+    ) {
+        UUID userUuid = getUserUuid(authentication);
+        log.info("User: {} requests address retrieved", userUuid);
+
+        AddressResponseDto address = addressService.getAddressInfo(userUuid, addressUuid);
+        log.info("Address: {} successfully retrieved by user {}", address.getAddressUuid(), userUuid);
+
+
+        return ResponseEntity.ok(BasicResponseDto.success("Successful retrieved address info", address));
+    }
+
+    @DeleteMapping("/{addressUuid}")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "주소정보 삭제 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "주소를 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<Void> deleteAddress(
+            Authentication authentication,
+            @PathVariable UUID addressUuid
+
+    ) {
+        UUID userUuid = getUserUuid(authentication);
+        log.info("User: {} requests address delete", userUuid);
+
+        addressService.deleteAddress(userUuid, addressUuid);
+
+        return ResponseEntity.noContent().build();
+    }
+
+
+    private static UUID getUserUuid(Authentication authentication) {
+        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+        return customUserDetails.getUserUuid();
+    }
+
+}
+

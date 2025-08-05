@@ -50,7 +50,7 @@ public class TransactionServiceImpl implements TransactionService {
      * @return
      */
     @Override
-    public Transaction createTransactionWithValidate(String userUuid, Wallet wallet, Order order, TransactionType transactionType, BigDecimal amount, BigDecimal balanceBefore, BigDecimal balanceAfter, TransactionStatus transactionStatus) {
+    public Transaction createTransactionWithValidate(UUID userUuid, Wallet wallet, Order order, TransactionType transactionType, BigDecimal amount, BigDecimal balanceBefore, BigDecimal balanceAfter, TransactionStatus transactionStatus) {
         Customer customer = findCustomerByUserUuid(userUuid);
 
         Transaction transaction = transactionFactory.createTransaction(customer, wallet, order, transactionType, amount, balanceBefore, balanceAfter, transactionStatus);
@@ -60,7 +60,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     // 좀 더 확인 후 구현
     @Override
-    public TransactionResponseDto updateTransactionWithValidate(String userUuid, String transactionUuid) {
+    public TransactionResponseDto updateTransactionWithValidate(UUID userUuid, UUID transactionUuid) {
         return null;
     }
 
@@ -71,7 +71,7 @@ public class TransactionServiceImpl implements TransactionService {
      * @return
      */
     @Override
-    public TransactionResponseDto getTransactionInfo(String userUuid, String transactionUuid) {
+    public TransactionResponseDto getTransactionInfo(UUID userUuid, UUID transactionUuid) {
         Customer customer = findCustomerByUserUuid(userUuid);
         Transaction transaction = findTransactionByCustomerAndTransactionUuid(customer, transactionUuid);
 
@@ -85,7 +85,7 @@ public class TransactionServiceImpl implements TransactionService {
      * @return
      */
     @Override
-    public TransactionResponseDto getTransactionInfoByAdmin(String userUuid, String transactionUuid) {
+    public TransactionResponseDto getTransactionInfoByAdmin(UUID userUuid, UUID transactionUuid) {
         Customer customer = findCustomerByUserUuid(userUuid);
         userValidator.requireAdminRole(customer.getUser());
 
@@ -95,18 +95,18 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
 
-    private Transaction findTransactionByCustomerAndTransactionUuid(Customer customer,String transactionUuid) {
-        return transactionRepository.findByCustomerCustomerUuidAndTransactionUuid(customer.getCustomerUuid(), UUID.fromString(transactionUuid))
+    private Transaction findTransactionByCustomerAndTransactionUuid(Customer customer,UUID transactionUuid) {
+        return transactionRepository.findByCustomerCustomerUuidAndTransactionUuid(customer.getCustomerUuid(), transactionUuid)
                 .orElseThrow(() -> new TransactionNotFoundException(String.format("Transaction not found for customer uuid: %s, transaction uuid: %s", customer.getCustomerUuid(), transactionUuid)));
     }
 
-    private Customer findCustomerByUserUuid(String userUuid) {
-        return customerRepository.findByUserUserUuid(UUID.fromString(userUuid))
+    private Customer findCustomerByUserUuid(UUID userUuid) {
+        return customerRepository.findByUserUserUuid(userUuid)
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for user uuid: %s", userUuid)));
     }
 
-    private Transaction findTransactionByTransactionUuid(String transactionUuid) {
-        return transactionRepository.findByTransactionUuid(UUID.fromString(transactionUuid))
+    private Transaction findTransactionByTransactionUuid(UUID transactionUuid) {
+        return transactionRepository.findByTransactionUuid(transactionUuid)
                 .orElseThrow(() -> new TransactionNotFoundException(String.format("Transaction not found for transaction uuid: %s", transactionUuid)));
     }
 }

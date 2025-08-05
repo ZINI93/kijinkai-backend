@@ -20,7 +20,7 @@ public class User extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(nullable = false)
+    @Column(name = "user_id", nullable = false)
     private Long userId;
 
     @Column(name = "user_uuid", unique = true, nullable = false, updatable = false)
@@ -90,6 +90,7 @@ public class User extends BaseEntity {
     }
 
 
-
-
+    public void updateRole(UserRole userRole) {
+        this.userRole = userRole;
+    }
 }

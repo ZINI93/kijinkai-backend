@@ -28,6 +28,9 @@ public class OrderItem extends TimeBaseEntity {
     @Column(name = "order_item_uuid", nullable = false, updatable = false, unique = true)
     private UUID orderItemUuid;
 
+    @Column(name = "customer_uuid" , nullable = false , updatable = false)
+    private UUID customerUuid;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "platform_id", nullable = false)
     private Platform platform;
@@ -92,10 +95,12 @@ public class OrderItem extends TimeBaseEntity {
     }
 
 
+
+
     public void validateOrderAndOrderItem(Order order) {
 
-        if (!Objects.equals(this.getOrder().getOrderId(), order.getOrderId())) {
-            throw new IllegalArgumentException("OrderItem " + this.getOrderItemUuid() + " does not belong to Order " + this.order.getOrderUuid());
+        if (!Objects.equals(this.getOrder().getOrderUuid(), order.getOrderUuid())) {
+            throw new OrderItemValidateException("OrderItem " + this.getOrderItemUuid() + " does not belong to Order " + this.order.getOrderUuid());
         }
     }
 

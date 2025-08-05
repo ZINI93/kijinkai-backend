@@ -147,6 +147,14 @@ public class OrderItemServiceImpl implements OrderItemService {
         return orderItemMapper.toResponseDto(orderItem);
     }
 
+    @Override
+    public OrderItem findOrderItemByOrderItemUuid(UUID orderItemUuid) {
+       return orderItemRepository.findByOrderItemUuid(orderItemUuid)
+                .orElseThrow(() -> new OrderItemNotFoundException(String.format("Order item not found for order item uuid: %s", orderItemUuid)));
+    }
+
+
+    //Helper method
     private Platform findPlatformByPlatformUuid(String platformUuid) {
         return platformRepository.findByPlatformUuid(UUID.fromString(platformUuid))
                 .orElseThrow(() -> new PlatformNotFoundException(String.format("Platform not found for platform uuid: %s", platformUuid)));

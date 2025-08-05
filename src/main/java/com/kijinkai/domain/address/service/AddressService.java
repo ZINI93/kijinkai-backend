@@ -5,10 +5,12 @@ import com.kijinkai.domain.address.dto.AddressResponseDto;
 import com.kijinkai.domain.address.dto.AddressUpdateDto;
 import com.kijinkai.domain.address.repository.AddressRepository;
 
+import java.util.UUID;
+
 public interface AddressService {
 
-    AddressResponseDto createAddressWithValidate(String userUuid, AddressRequestDto requestDto);
-    AddressResponseDto updateAddressWithValidate(String userUuid, String addressUuid, AddressUpdateDto updateDto);
-    AddressResponseDto getAddressInfo(String userUuid, String addressUuid);
-    void deleteAddress(String userUuid, String addressUuid);
+    AddressResponseDto createAddressWithValidate(UUID userUuid, AddressRequestDto requestDto);
+    AddressResponseDto updateAddressWithValidate(UUID userUuid, UUID addressUuid, AddressUpdateDto updateDto);
+    AddressResponseDto getAddressInfo(UUID userUuid, UUID addressUuid);
+    void deleteAddress(UUID userUuid, UUID addressUuid);
 }

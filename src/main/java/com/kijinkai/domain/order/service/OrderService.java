@@ -3,15 +3,18 @@ package com.kijinkai.domain.order.service;
 import com.kijinkai.domain.order.dto.OrderRequestDto;
 import com.kijinkai.domain.order.dto.OrderResponseDto;
 import com.kijinkai.domain.order.dto.OrderUpdateDto;
+import com.kijinkai.domain.order.entity.Order;
+
+import java.util.UUID;
 
 public interface OrderService {
 
-    OrderResponseDto createOrderProcess(String userUuid, OrderRequestDto requestDto);
-    OrderResponseDto completedOrder(String userUuid, String orderUuid);
-    OrderResponseDto updateOrderEstimate(String userUuid, String orderUuid, OrderUpdateDto updateDto);
-    OrderResponseDto getOrderInfo(String userUuid, String orderUuid);
-    OrderResponseDto cancelOrder(String userUuid, String orderUuid);
-    OrderResponseDto confirmOrder(String userUuid, String orderUuid);
-    void deleteOrder(String userUuid, String orderUuid);
-
+    OrderResponseDto createOrderProcess(UUID userUuid, OrderRequestDto requestDto);
+    OrderResponseDto completedOrder(UUID userUuid, UUID orderUuid);
+    OrderResponseDto updateOrderEstimate(UUID userUuid, UUID orderUuid, OrderUpdateDto updateDto);
+    OrderResponseDto getOrderInfo(UUID userUuid, UUID orderUuid);
+    OrderResponseDto cancelOrder(UUID userUuid, UUID orderUuid);
+    OrderResponseDto confirmOrder(UUID userUuid, UUID orderUuid);
+    void deleteOrder(UUID userUuid, UUID orderUuid);
+    Order findOrderByOrderUuid(UUID orderUuid);
 }

@@ -145,7 +145,7 @@ public class WalletServiceImpl implements WalletService {
     public WalletResponseDto getWalletBalance(UUID userUuid) {
 
         Customer customer = findCustomerByUserUuid(userUuid);
-        Wallet wallet = findWalletByCustomerUuid(customer);
+        Wallet wallet = findWalletByCustomerUuid(customer.getCustomerUuid());
 
         return walletMapper.toResponse(wallet);
     }
@@ -212,6 +212,13 @@ public class WalletServiceImpl implements WalletService {
         return walletMapper.toResponse(saevedWallet);
     }
 
+    @Override
+    public Wallet findByCustomerUuid(UUID customerUuid) {
+        Wallet wallet = findWalletByCustomerUuid(customerUuid);
+
+        return wallet;
+    }
+
 
     //helper method
 
@@ -234,9 +241,9 @@ public class WalletServiceImpl implements WalletService {
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for user uuid: %s", userUuid)));
     }
 
-    private Wallet findWalletByCustomerUuid(Customer customer) {
-        return walletRepository.findByCustomerCustomerUuid(customer.getCustomerUuid())
-                .orElseThrow(() -> new WalletNotFoundException(String.format("Wallet not found for customer uuid: %s", customer.getCustomerUuid())));
+    private Wallet findWalletByCustomerUuid(UUID cusotmerUuid) {
+        return walletRepository.findByCustomerCustomerUuid(cusotmerUuid)
+                .orElseThrow(() -> new WalletNotFoundException(String.format("Wallet not found for customer uuid: %s", cusotmerUuid)));
     }
 }
 

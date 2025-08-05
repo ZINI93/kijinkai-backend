@@ -2,7 +2,7 @@ package com.kijinkai.domain.order.dto;
 
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.order.entity.OrderStatus;
-import com.kijinkai.domain.payment.entity.PaymentStatus;
+import com.kijinkai.domain.payment.domain.enums.PaymentStatus;
 import lombok.Builder;
 import lombok.Getter;
 

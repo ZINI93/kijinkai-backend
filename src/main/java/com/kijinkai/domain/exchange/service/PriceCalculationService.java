@@ -52,22 +52,34 @@ public class PriceCalculationService {
         return convertedPrice.add(serviceFee);
     }
 
+//    /**
+//     * 엔화 -> 자국화페로 환전
+//     * @param jpyPrice 일본 엔화 기준 가격
+//     * @param serviceFeePercent 서비스 수수료 (백분율, 예: 5 for 5%)
+//     * @param targetCurrency 대상 통화 (예: KRW)
+//     * @return 총 가격
+//     */
+//    public BigDecimal convertAndCalculateTotalInLocalCurrency(BigDecimal amount, Currency targetCurrency, BigDecimal serviceFeePercent) {
+//        // Exchange 서비스에서 환율 가져와 금액 환전
+//        BigDecimal convertedPrice = exchangeRateService.convertAmount(amount, Currency.JPY, targetCurrency);
+//
+//        // 수수료 계산
+//        BigDecimal serviceFee = convertedPrice.multiply(serviceFeePercent.divide(PERCENT_DIVISOR, 2, RoundingMode.HALF_UP)); // 소수점 처리
+//
+//        // 총 가격
+//        return convertedPrice.subtract(serviceFee);
+//    }
+
     /**
-     * 엔화 -> 자국화페로 환전
+     * 엔화 -> 자국화페로 환전  ( 수수료는 엔화로 차감이 되었기 때문에 ) 순수 환전된 금액
      * @param jpyPrice 일본 엔화 기준 가격
      * @param serviceFeePercent 서비스 수수료 (백분율, 예: 5 for 5%)
      * @param targetCurrency 대상 통화 (예: KRW)
      * @return 총 가격
      */
-    public BigDecimal convertAndCalculateTotalInLocalCurrency(BigDecimal amount, Currency targetCurrency, BigDecimal serviceFeePercent) {
+    public BigDecimal convertAndCalculateTotalInLocalCurrency(BigDecimal amount, Currency targetCurrency) {
         // Exchange 서비스에서 환율 가져와 금액 환전
-        BigDecimal convertedPrice = exchangeRateService.convertAmount(amount, Currency.JPY, targetCurrency);
-
-        // 수수료 계산
-        BigDecimal serviceFee = convertedPrice.multiply(serviceFeePercent.divide(PERCENT_DIVISOR, 2, RoundingMode.HALF_UP)); // 소수점 처리
-
-        // 총 가격
-        return convertedPrice.subtract(serviceFee);
+        return exchangeRateService.convertAmount(amount, Currency.JPY, targetCurrency);
     }
 
 

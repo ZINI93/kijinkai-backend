@@ -6,13 +6,14 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 
 @Getter
 @Builder
 public class OrderItemUpdateDto {
 
-    private String orderItemUuid;
+    private UUID orderItemUuid;
     private Order order;
     private String platformUuid;
     private String productLink;

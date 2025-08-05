@@ -7,10 +7,9 @@ import com.kijinkai.domain.orderitem.dto.OrderItemRequestDto;
 import com.kijinkai.domain.orderitem.dto.OrderItemResponseDto;
 import com.kijinkai.domain.orderitem.dto.OrderItemUpdateDto;
 import com.kijinkai.domain.orderitem.entity.OrderItem;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface OrderItemService {
 
@@ -18,5 +17,6 @@ public interface OrderItemService {
     OrderItem updateOrderItemWithValidate(String userUuid,String orderUuid, OrderItemUpdateDto updateDto);
     OrderItem updateOrderItemByAdmin(String userUuid,String orderUuid, OrderItemUpdateDto updateDto);
     OrderItemResponseDto getOrderItemInfo(String userUuid, String orderItemUuid);
+    OrderItem findOrderItemByOrderItemUuid(UUID orderItemUuid);
 
 }

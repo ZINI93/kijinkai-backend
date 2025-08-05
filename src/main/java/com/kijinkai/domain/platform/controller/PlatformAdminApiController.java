@@ -38,26 +38,27 @@ public class PlatformAdminApiController {
 
     /**
      * 관리자가 플렛폼 등록
+     *
      * @param authentication
      * @param requestDto
      * @return
      */
     @PostMapping
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "관리자가 플렛폼 등록 성공"),
-            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "201", description = "관리자가 플렛폼 등록 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
             @ApiResponse(responseCode = "404", description = "플렛폼을 찾을 수 없음"),
             @ApiResponse(responseCode = "500", description = "서버오류")
     })
     public ResponseEntity<BasicResponseDto<PlatformResponseDto>> createPlatform(
             Authentication authentication,
-            @Valid @RequestBody PlatformRequestDto requestDto){
+            @Valid @RequestBody PlatformRequestDto requestDto) {
 
         UUID adminUuid = getUserUuid(authentication);
         log.info("Admin: {} requests platform creation", adminUuid);
 
         PlatformResponseDto platform = platformService.createPlatformWithValidate(adminUuid, requestDto);
-        log.info("Platform creation completed: {}", platform.getPlatformUuid());
+        log.info("Platform: {} successfully created by admin: {}", platform.getPlatformUuid(), adminUuid);
 
 
         URI location = ServletUriComponentsBuilder
@@ -71,6 +72,7 @@ public class PlatformAdminApiController {
 
     /**
      * 플렛폼 수정
+     *
      * @param authentication
      * @param platformUuid
      * @param updateDto
@@ -79,7 +81,7 @@ public class PlatformAdminApiController {
     @PutMapping("/{platformUuid}")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "관리자가 플렛폼 업데이트 성공"),
-            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
             @ApiResponse(responseCode = "404", description = "플렛폼을 찾을 수 없음"),
             @ApiResponse(responseCode = "500", description = "서버오류")
     })
@@ -87,13 +89,13 @@ public class PlatformAdminApiController {
             Authentication authentication,
             @PathVariable UUID platformUuid,
             @Valid @RequestBody PlatformUpdateDto updateDto
-            ){
+    ) {
 
         UUID adminUuid = getUserUuid(authentication);
         log.info("Admin: {} requests platform update", adminUuid);
 
         PlatformResponseDto platform = platformService.updatePlatformWithValidate(adminUuid, platformUuid, updateDto);
-        log.info("Platform: {} update completed", platform.getPlatformUuid());
+        log.info("Platform: {} successfully updated by admin: {}", platform.getPlatformUuid(), adminUuid);
 
         return ResponseEntity.ok(BasicResponseDto.success("Successful updated platform", platform));
     }
@@ -102,20 +104,19 @@ public class PlatformAdminApiController {
     @DeleteMapping("/{platformUuid}")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "관리자가 플렛폼 삭제 성공"),
-            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
             @ApiResponse(responseCode = "404", description = "플렛폼을 찾을 수 없음"),
             @ApiResponse(responseCode = "500", description = "서버오류")
     })
     public ResponseEntity<Void> deletePlatform(
             @PathVariable UUID platformUuid,
             Authentication authentication
-    ){
+    ) {
         UUID adminUuid = getUserUuid(authentication);
         log.info("Admin: {} requests platform deletion", adminUuid);
 
 
-        platformService.deletePlatform(adminUuid,platformUuid);
-        log.info("Platform: {} deletion completed", platformUuid);
+        platformService.deletePlatform(adminUuid, platformUuid);
 
 
         return ResponseEntity.noContent().build();

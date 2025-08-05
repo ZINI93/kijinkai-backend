@@ -3,8 +3,8 @@ package com.kijinkai.domain.order.entity;
 import com.kijinkai.domain.common.BaseEntity;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.exchange.doamin.Currency;
-import com.kijinkai.domain.payment.entity.PaymentStatus;
-import com.kijinkai.domain.payment.entity.PaymentType;
+import com.kijinkai.domain.payment.domain.enums.PaymentStatus;
+import com.kijinkai.domain.payment.domain.enums.PaymentType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -76,7 +76,14 @@ public class Order extends BaseEntity {
         this.memo = memo;
     }
 
-    public void updateOrderState(OrderStatus orderStatus) {
+    public void fistOrderPayment(){
+        this.orderStatus = OrderStatus.FIRST_PAID;
+    }
+    public void secondOrderPayment(){
+        this.orderStatus = OrderStatus.SECOND_PAID;
+    }
+
+    public void updateOrderStatus(OrderStatus orderStatus) {
         this.orderStatus = orderStatus;
     }
 
@@ -98,7 +105,7 @@ public class Order extends BaseEntity {
     }
 
     public void completePayment() {
-        this.orderStatus = OrderStatus.PAID;
+        this.orderStatus = OrderStatus.FIRST_PAID;
     }
 
     public void cancelOrder(){
