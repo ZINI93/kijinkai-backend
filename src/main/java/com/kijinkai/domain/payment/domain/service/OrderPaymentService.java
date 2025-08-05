@@ -15,12 +15,10 @@ public class OrderPaymentService {
 
     private final PaymentFactory paymentFactory;
     private final UserValidator userValidator;
-    private final PaymentValidator paymentValidator;
 
-    public OrderPaymentService(PaymentFactory paymentFactory, UserValidator userValidator, PaymentValidator paymentValidator) {
+    public OrderPaymentService(PaymentFactory paymentFactory, UserValidator userValidator ) {
         this.paymentFactory = paymentFactory;
         this.userValidator = userValidator;
-        this.paymentValidator = paymentValidator;
     }
 
 

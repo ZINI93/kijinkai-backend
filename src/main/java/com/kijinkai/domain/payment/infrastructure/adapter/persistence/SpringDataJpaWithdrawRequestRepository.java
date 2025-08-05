@@ -9,5 +9,5 @@ import java.util.UUID;
 
 public interface SpringDataJpaWithdrawRequestRepository extends JpaRepository<WithdrawRequest, Long> {
     Optional<WithdrawRequest> findByRequestUuid(UUID requestUuid);
-    Optional<WithdrawRequest> findByRequestUuidAndUserUuid(UUID requestUuid, UUID userUUid);
+    Optional<WithdrawRequest> findByRequestUuidAndCustomerUuid(UUID requestUuid, UUID customerUuid);
 }

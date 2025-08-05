@@ -9,7 +9,7 @@ import java.util.UUID;
 public interface WithdrawRequestRepository {
 
     Optional<WithdrawRequest> findByRequestUuid(UUID requestUuid);
-    Optional<WithdrawRequest> findByRequestUuidAndUserUuid(UUID requestUuid, UUID userUUid);
+    Optional<WithdrawRequest> findByRequestUuidAndCustomerUuid(UUID requestUuid, UUID customerUuid);
     WithdrawRequest save(WithdrawRequest request);
 }
 

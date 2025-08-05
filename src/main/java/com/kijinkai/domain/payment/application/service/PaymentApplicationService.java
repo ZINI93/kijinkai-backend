@@ -68,13 +68,11 @@ public class PaymentApplicationService implements PaymentUseCase {
     private final OrderItemPort orderItemPort;
     private final ExchangePort exchangePort;
 
-
     //repository
     private final DepositRequestRepository depositRequestRepository;
     private final WithdrawRequestRepository withdrawRequestRepository;
     private final RefundRequestRepository refundRequestRepository;
     private final OrderPaymentRepository orderPaymentRepository;
-
 
     //util
     private final PaymentMapper paymentMapper;
@@ -328,7 +326,8 @@ public class PaymentApplicationService implements PaymentUseCase {
     @Override
     public WithdrawResponseDto getWithdrawInfo(UUID requestUuid, UUID userUuid) {
 
-        WithdrawRequest withdrawRequest = findWithdrawRequestByRequestUuidAndUserUuid(requestUuid, userUuid);
+        Customer customer = customerPort.findByUserUuid(userUuid);
+        WithdrawRequest withdrawRequest = findWithdrawRequestByRequestUuidAndUserUuid(requestUuid, customer.getCustomerUuid());
         WithdrawRequest request = withdrawRequestService.getWithdrawInfo(withdrawRequest);
 
         log.info("Retrieved withdraw request for request uuid: {}", requestUuid);
@@ -615,12 +614,12 @@ public class PaymentApplicationService implements PaymentUseCase {
 
     // helper method
     private DepositRequest findDepositRequestByRequestUuid(UUID requestUuid) {
-        return depositRequestRepository.findByRequestUuid(requestUuid)
+        return depositRequestRepository.findByRefundUuid(requestUuid)
                 .orElseThrow(() -> new DepositNotFoundException(String.format("Deposit request not found for request uuid: %s", requestUuid)));
     }
 
     private DepositRequest findDepositRequestByRequest(UUID requestUuid, Customer customer) {
-        return depositRequestRepository.findByRequestUuidAndCustomerUuid(requestUuid, customer.getCustomerUuid())
+        return depositRequestRepository.findByRefundUuidAndCustomerUuid(requestUuid, customer.getCustomerUuid())
                 .orElseThrow(() -> new DepositNotFoundException(String.format("Deposit request not found for request uuid: %s and customer uuid: %s", requestUuid, customer.getCustomerUuid())));
     }
 
@@ -635,13 +634,13 @@ public class PaymentApplicationService implements PaymentUseCase {
                 .orElseThrow(() -> new WithdrawRequestNotFoundException(String.format("Withdraw request not found for request uuid: %s", requestUuid)));
     }
 
-    private WithdrawRequest findWithdrawRequestByRequestUuidAndUserUuid(UUID requestUuid, UUID userUuid) {
-        return withdrawRequestRepository.findByRequestUuidAndUserUuid(requestUuid, userUuid)
+    private WithdrawRequest findWithdrawRequestByRequestUuidAndUserUuid(UUID requestUuid, UUID customerUuid) {
+        return withdrawRequestRepository.findByRequestUuidAndCustomerUuid(requestUuid, customerUuid)
                 .orElseThrow(() -> new WithdrawRequestNotFoundException(String.format("Withdraw request not found for request uuid: %s", requestUuid)));
     }
 
     private RefundRequest findRefundRequestByRefundUuid(UUID refundUuid) {
-        return refundRequestRepository.findByRequestUuid(refundUuid)
+        return refundRequestRepository.findByRefundUuid(refundUuid)
                 .orElseThrow(() -> new RefundNotFoundException(String.format("Refund not found for request uuid: %s", refundUuid)));
     }
 

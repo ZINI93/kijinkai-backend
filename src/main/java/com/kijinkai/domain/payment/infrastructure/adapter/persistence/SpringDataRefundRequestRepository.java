@@ -8,6 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface SpringDataRefundRequestRepository extends JpaRepository<RefundRequest, Long> {
-    Optional<RefundRequest> findByRequestUuid(UUID request);
-    Optional<RefundRequest> findByRequestUuidAndCustomerUuid(UUID requestUuid, UUID customerUuid);
+    Optional<RefundRequest> findByRefundUuid(UUID request);
+    Optional<RefundRequest> findByRefundUuidAndCustomerUuid(UUID requestUuid, UUID customerUuid);
 }

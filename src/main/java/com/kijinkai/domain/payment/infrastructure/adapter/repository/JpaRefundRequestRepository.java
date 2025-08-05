@@ -17,13 +17,13 @@ public class JpaRefundRequestRepository implements RefundRequestRepository {
     private final SpringDataRefundRequestRepository springDataRefundRequestRepository;
 
     @Override
-    public Optional<RefundRequest> findByRequestUuid(UUID request) {
-        return springDataRefundRequestRepository.findByRequestUuid(request);
+    public Optional<RefundRequest> findByRefundUuid(UUID refundUuid) {
+        return springDataRefundRequestRepository.findByRefundUuid(refundUuid);
     }
 
     @Override
-    public Optional<RefundRequest> findByRefundUuidAndCustomerUuid(UUID requestUuid, UUID customerUuid) {
-        return springDataRefundRequestRepository.findByRequestUuidAndCustomerUuid(requestUuid,customerUuid);
+    public Optional<RefundRequest> findByRefundUuidAndCustomerUuid(UUID refundUuid, UUID customerUuid) {
+        return springDataRefundRequestRepository.findByRefundUuidAndCustomerUuid(refundUuid,customerUuid);
     }
 
     @Override

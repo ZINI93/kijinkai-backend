@@ -20,7 +20,7 @@ public class JpaDepositRequestRepositoryAdapter implements DepositRequestReposit
     private final SpringDataJpaDepositRequestRepository springDataJpaDepositRequestRepository;
 
     @Override
-    public Optional<DepositRequest> findByRequestUuid(UUID reqeustUuid) {
+    public Optional<DepositRequest> findByRefundUuid(UUID reqeustUuid) {
         return springDataJpaDepositRequestRepository.findByRequestUuid(reqeustUuid);
     }
 
@@ -30,7 +30,7 @@ public class JpaDepositRequestRepositoryAdapter implements DepositRequestReposit
     }
 
     @Override
-    public Optional<DepositRequest> findByRequestUuidAndCustomerUuid(UUID requestUuid, UUID customerUuid) {
+    public Optional<DepositRequest> findByRefundUuidAndCustomerUuid(UUID requestUuid, UUID customerUuid) {
         return springDataJpaDepositRequestRepository.findByRequestUuidAndCustomerUuid(requestUuid,customerUuid);
     }
 

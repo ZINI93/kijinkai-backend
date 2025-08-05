@@ -32,12 +32,10 @@ public class RefundRequestService {
 
     private final PaymentFactory paymentFactory;
     private final UserValidator userValidator;
-    private final PaymentValidator paymentValidator;
 
-    public RefundRequestService(PaymentFactory paymentFactory, UserValidator userValidator, PaymentValidator paymentValidator) {
+    public RefundRequestService(PaymentFactory paymentFactory, UserValidator userValidator) {
         this.paymentFactory = paymentFactory;
         this.userValidator = userValidator;
-        this.paymentValidator = paymentValidator;
     }
 
     /**
@@ -85,10 +83,4 @@ public class RefundRequestService {
     }
 
 
-    // Helper method
-
-    private User findUserByUserUuid(UUID adminUuid) {
-        return getUserRepository().findByUserUuid(adminUuid)
-                .orElseThrow(() -> new UserNotFoundException(String.format("User not found for admin uuid: %s", adminUuid)));
-    }
 }

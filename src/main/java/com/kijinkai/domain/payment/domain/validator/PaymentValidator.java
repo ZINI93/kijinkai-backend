@@ -2,12 +2,7 @@ package com.kijinkai.domain.payment.domain.validator;
 
 import com.kijinkai.domain.payment.application.dto.PaymentDepositRequestDto;
 import com.kijinkai.domain.payment.application.dto.WithdrawalRequestDto;
-import com.kijinkai.domain.payment.domain.enums.PaymentStatus;
-import com.kijinkai.domain.payment.domain.enums.PaymentType;
 import com.kijinkai.domain.payment.domain.exception.PaymentAmountException;
-import com.kijinkai.domain.payment.domain.exception.PaymentStatusException;
-import com.kijinkai.domain.payment.domain.exception.PaymentTypeException;
-import com.kijinkai.domain.payment.domain.repository.DepositRequestJpaRepository;
 import com.kijinkai.domain.payment.domain.repository.DepositRequestRepository;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import com.kijinkai.domain.wallet.entity.WalletStatus;
@@ -23,17 +18,6 @@ public class PaymentValidator {
 
     private DepositRequestRepository depositRequestRepository;
 
-    public void requiredPendingStatus(Payment payment) {
-        if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
-            throw new PaymentStatusException("payment cannot be completed; it must be in pending status");
-        }
-    }
-
-    public void requiredCompletedStatus(Payment payment) {
-        if (payment.getPaymentStatus() != PaymentStatus.COMPLETED) {
-            throw new PaymentStatusException("payment cannot be refund; it must be in completed status");
-        }
-    }
 
     public void validateAmount(PaymentDepositRequestDto requestDto) {
         if (requestDto.getAmountOriginal().compareTo(BigDecimal.ZERO) < 0) {
@@ -47,11 +31,7 @@ public class PaymentValidator {
         }
     }
 
-    public void validateWithdrawalType(Payment payment) {
-        if (!payment.getPaymentType().equals(PaymentType.WITHDRAWAL)) {
-            throw new PaymentTypeException("거래 타입이 출금이 아닙니다.");
-        }
-    }
+
 
     public void validateDepositEligibility(BigDecimal originalAmount, Wallet wallet) {
 

@@ -9,9 +9,9 @@ import java.util.UUID;
 
 public interface DepositRequestRepository {
 
-    Optional<DepositRequest> findByRequestUuid(UUID reqeustUuid);
+    Optional<DepositRequest> findByRefundUuid(UUID reqeustUuid);
     List<DepositRequest> findByStatus(DepositStatus status);
-    Optional<DepositRequest> findByRequestUuidAndCustomerUuid(UUID requestUuid, UUID customerUuid);
+    Optional<DepositRequest> findByRefundUuidAndCustomerUuid(UUID requestUuid, UUID customerUuid);
     DepositRequest save(DepositRequest depositRequestEntity);
     List<DepositRequest> saveAll(List<DepositRequest> depositRequestEntities);
 }

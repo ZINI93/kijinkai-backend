@@ -16,21 +16,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class PaymentMapper {
 
-    public PaymentResponseDto toResponse(Payment payment, WalletResponseDto walletResponseDto){
-
-        return PaymentResponseDto.builder()
-                .balance(walletResponseDto.getBalance())
-                .paymentUuid(payment.getPaymentUuid())
-                .build();
-    }
-
-    public PaymentResponseDto toResponse(Payment payment){
-
-        return PaymentResponseDto.builder()
-                .paymentUuid(payment.getPaymentUuid())
-                .build();
-    }
-
     public DepositRequestResponseDto createDepositResponse(DepositRequest request){
 
         return DepositRequestResponseDto.builder()

@@ -52,44 +52,6 @@ public class PaymentFactory {
     }
 
 
-    public Payment createWithWithdrawalPayment(Customer customer, Wallet wallet, BigDecimal amountOriginal, BigDecimal amountConverter, WithdrawalRequestDto requestDto) {
-
-        return Payment.builder()
-                .paymentUuid(UUID.randomUUID())
-                .customer(customer)
-                .wallet(wallet)
-                .paymentStatus(PaymentStatus.PENDING)
-                .currencyOriginal(Currency.JPY)
-                .currencyConverter(Currency.KRW)
-                .amountOriginal(amountOriginal)
-                .amountConverter(amountConverter)
-                .paymentType(PaymentType.WITHDRAWAL)
-                .bankName(requestDto.getBankName())
-                .amountNumber(requestDto.getAmountNumber())
-                .amountHolder(requestDto.getAmountHolder())
-                .description(null)
-                .externalTransactionId(null)
-                .build();
-    }
-
-
-    public Payment createWithRefundPayment(OrderItem orderItem, UUID adminUuid, Wallet wallet, BigDecimal amountOriginal, String reason) {
-
-        return Payment.builder()
-                .paymentUuid(UUID.randomUUID())
-                .customer(orderItem.getOrder().getCustomer())
-                .wallet(wallet)
-                .paymentStatus(PaymentStatus.PENDING)
-                .currencyOriginal(Currency.JPY)
-                .currencyConverter(null)
-                .amountOriginal(amountOriginal)
-                .amountConverter(null)
-                .paymentType(PaymentType.REFUND)
-                .refundReason(reason)
-                .refundAdminUuid(adminUuid)
-                .build();
-    }
-
     public RefundRequest createRefundPayment(
             Customer customer, Wallet wallet, OrderItem orderItem
             , BigDecimal refundAmount, UUID adminUuid, String refundReason, RefundType refundType) {

@@ -23,8 +23,8 @@ public class JpaWithdrawRequestRepository implements WithdrawRequestRepository {
     }
 
     @Override
-    public Optional<WithdrawRequest> findByRequestUuidAndUserUuid(UUID requestUuid, UUID userUUid) {
-        return springDataJpaWithdrawRequestRepository.findByRequestUuidAndUserUuid(requestUuid,userUUid);
+    public Optional<WithdrawRequest> findByRequestUuidAndCustomerUuid(UUID requestUuid, UUID customerUuid) {
+        return springDataJpaWithdrawRequestRepository.findByRequestUuidAndCustomerUuid(requestUuid,customerUuid);
     }
 
     @Override

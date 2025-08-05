@@ -31,6 +31,8 @@ public class DepositRequestService {
         this.paymentFactory = paymentFactory;
     }
 
+
+
     /**
      * 입금 요청 생성
      * @param customer
@@ -53,7 +55,6 @@ public class DepositRequestService {
         return paymentFactory.createDepositRequest(customer, wallet, originalAmount, originalCurrency, convertedAmount, exchangeRate, depositorName, bankAccount);
     }
 
-
     /**
      *  입금요청 승인
      * @param depositRequest
@@ -65,7 +66,6 @@ public class DepositRequestService {
         depositRequest.approve(adminUuid, memo);
         return depositRequest;
     }
-
 
     /**
      * 관리자의 입금정보 조회
@@ -81,13 +81,8 @@ public class DepositRequestService {
     }
 
     public DepositRequest getDepositInfo(DepositRequest depositRequest, Customer customer) {
-
-        userValidator.requireAdminRole(customer.getUser());
-
         return depositRequest;
     }
-
-
 
     public void markAsFailed(DepositRequest depositRequest, String reason) {
         depositRequest.markAsFailed(reason);

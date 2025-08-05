@@ -6,7 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface RefundRequestRepository{
-    Optional<RefundRequest> findByRequestUuid(UUID request);
+    Optional<RefundRequest> findByRefundUuid(UUID request);
     Optional<RefundRequest> findByRefundUuidAndCustomerUuid(UUID requestUuid, UUID customerUuid);
     RefundRequest save(RefundRequest request);
 }
