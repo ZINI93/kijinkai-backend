@@ -84,8 +84,9 @@ public class WithdrawRequest extends BaseEntity {
     @Column(name = "rejection_reason")
     private String rejectionReason;
 
-    @Column(name = "expires_at", nullable = false)
+    @Column(name = "expires_at")
     private LocalDateTime expiresAt;
+    // 출금 요청은 만료기간이 필요 없을것 같음 유저가 요청하면 해줘야 함
 
     @Version
     private Long version;
@@ -93,7 +94,7 @@ public class WithdrawRequest extends BaseEntity {
     @Builder
     public WithdrawRequest(UUID customerUuid, UUID walletUuid, BigDecimal requestAmount,
                            BigDecimal withdrawFee, Currency targetCurrency, BigDecimal convertedAmount,
-                           String bankName, String accountNumber, String accountHolder, LocalDateTime expiresAt) {
+                           String bankName, String accountNumber, String accountHolder, LocalDateTime expiresAt, BigDecimal exchangeRate) {
 
         this.requestUuid = UUID.randomUUID();
         this.customerUuid = customerUuid;
@@ -108,18 +109,17 @@ public class WithdrawRequest extends BaseEntity {
         this.accountHolder = accountHolder;
         this.expiresAt = expiresAt;
         this.status = WithdrawStatus.PENDING_ADMIN_APPROVAL;
+        this.exchangeRate = exchangeRate;
     }
 
     // 도메인 로직: 승인
-    public void approve(UUID adminUuid, String memo, BigDecimal exchangeRate) {
+    public void approve(UUID adminUuid, String memo) {
         validateCanApprove();
 
         this.status = WithdrawStatus.APPROVED;
         this.processedByAdmin = adminUuid;
         this.processedAt = LocalDateTime.now();
         this.adminMemo = memo;
-        this.exchangeRate = exchangeRate;
-        this.convertedAmount = calculateConvertedAmount(exchangeRate);
     }
 
     // 도메인 로직: 거절
@@ -173,8 +173,8 @@ public class WithdrawRequest extends BaseEntity {
         this.rejectionReason = reason;
     }
 
-    private BigDecimal calculateConvertedAmount(BigDecimal rate) {
-        return this.convertedAmount.multiply(rate);
+    private BigDecimal calculateConvertedAmount(BigDecimal exchangeRate) {
+        return this.convertedAmount.multiply(exchangeRate);
     }
 
     public boolean isPendingApproval() {

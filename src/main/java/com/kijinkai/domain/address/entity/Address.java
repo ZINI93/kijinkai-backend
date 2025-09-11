@@ -30,23 +30,25 @@ public class Address extends TimeBaseEntity {
     @JoinColumn(name = "customer_id", nullable = false, updatable = false)
     private Customer customer;
 
+    @Column(name = "recipient_name", nullable = false)
     private String recipientName;
 
+    @Column(name = "recipient_phone_number", nullable = false)
     private String recipientPhoneNumber;
 
-    @Column(nullable = false)
+    @Column(name = "country", nullable = false)
     private String country;
 
-    @Column(nullable = false)
+    @Column(name = "zipcode", nullable = false)
     private String zipcode;
 
-    @Column(nullable = false)
+    @Column(name = "state", nullable = false)
     private String state;
 
-    @Column(nullable = false)
+    @Column(name = "city", nullable = false)
     private String city;
 
-    @Column(nullable = false)
+    @Column(name = "street", nullable = false)
     private String street;
 
     @Column(name = "is_default", nullable = false)
@@ -54,7 +56,7 @@ public class Address extends TimeBaseEntity {
 
 
     @Builder
-    public Address (UUID addressUuid, Customer customer, String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, Boolean isDefault) {
+    public Address(UUID addressUuid, Customer customer, String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, Boolean isDefault) {
         this.addressUuid = addressUuid != null ? addressUuid : UUID.randomUUID();
         this.customer = customer;
         this.recipientName = recipientName;

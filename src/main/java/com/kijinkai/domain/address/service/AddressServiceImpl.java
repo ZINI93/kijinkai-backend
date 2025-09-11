@@ -22,7 +22,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional
 @Service
-public class AddressServiceImpl implements AddressService{
+public class AddressServiceImpl implements AddressService {
 
     private final AddressRepository addressRepository;
     private final CustomerRepository customerRepository;
@@ -31,30 +31,40 @@ public class AddressServiceImpl implements AddressService{
     private final AddressMapper addressMapper;
 
     @Override
+    @Transactional
     public AddressResponseDto createAddressWithValidate(UUID userUuid, AddressRequestDto requestDto) {
 
         Customer customer = findCustomerByUserUuid(userUuid);
-        Address address = addressFactory.createAddress(customer, requestDto);
+        Address address = addressFactory.createAddress1(customer, requestDto);
         Address savedAddress = addressRepository.save(address);
 
         return addressMapper.toResponse(savedAddress);
     }
 
-    @Override
-    public AddressResponseDto updateAddressWithValidate(UUID userUuid, UUID addressUuid, AddressUpdateDto updateDto) {
+    @Override @Transactional
+    public AddressResponseDto updateAddressWithValidate(UUID userUuid, AddressUpdateDto updateDto) {
 
-        Customer customer = findCustomerByUserUuid(userUuid);
-        Address address = findAddressByCustomerUuidAndAddressUuid(addressUuid, customer);
+        Customer findByCustomer = findCustomerByUserUuid(userUuid);
+        Address findByAddress = findAddressByCustomer(findByCustomer);
+
+        Address address = findAddressByCustomerUuidAndAddressUuid(findByAddress.getAddressUuid(), findByCustomer);
         address.updateAddress(updateDto);
         return addressMapper.toResponse(address);
     }
 
     @Override
-    public AddressResponseDto getAddressInfo(UUID userUuid, UUID addressUuid) {
-        Customer customer = findCustomerByUserUuid(userUuid);
-        Address address = findAddressByCustomerUuidAndAddressUuid(addressUuid, customer);
+    public AddressResponseDto getAddressInfo(UUID userUuid) {
+        Customer findBycustomer = findCustomerByUserUuid(userUuid);
+        Address findByaddress = findAddressByCustomer(findBycustomer);
+
+        Address address = findAddressByCustomerUuidAndAddressUuid(findByaddress.getAddressUuid(), findBycustomer);
 
         return addressMapper.toResponse(address);
+    }
+
+    private Address findAddressByCustomer(Customer findBycustomer) {
+        return addressRepository.findByCustomerCustomerUuid(findBycustomer.getCustomerUuid())
+                .orElseThrow(() -> new AddressNotFoundException(String.format("Address not found exception for customer uuid: %s", findBycustomer.getCustomerUuid())));
     }
 
     @Override

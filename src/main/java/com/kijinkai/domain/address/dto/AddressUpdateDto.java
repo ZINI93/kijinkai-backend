@@ -12,7 +12,6 @@ public class AddressUpdateDto {
     private String recipientName;
 
     @Schema(description = "수취인 전화번호", example = "010-1111-1234")
-
     private String recipientPhoneNumber;
 
     @Schema(description = "도착지 국가", example = "Korea")

@@ -3,13 +3,13 @@ package com.kijinkai.domain.payment.domain.factory;
 
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.exchange.doamin.Currency;
+import com.kijinkai.domain.order.dto.OrderResponseDto;
 import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.orderitem.entity.OrderItem;
 import com.kijinkai.domain.payment.domain.entity.*;
 import com.kijinkai.domain.payment.application.dto.WithdrawalRequestDto;
-import com.kijinkai.domain.payment.domain.enums.PaymentStatus;
-import com.kijinkai.domain.payment.domain.enums.PaymentType;
-import com.kijinkai.domain.payment.domain.enums.RefundType;
+import com.kijinkai.domain.payment.domain.enums.*;
+import com.kijinkai.domain.wallet.dto.WalletResponseDto;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import org.springframework.stereotype.Component;
 
@@ -21,8 +21,9 @@ public class PaymentFactory {
 
     public DepositRequest createDepositRequest(
             Customer customer, Wallet wallet, BigDecimal originalAmount, Currency originalCurrency,
-            BigDecimal convertAmount, BigDecimal exchangeRate, String depositorName, String bankAccount
+            BigDecimal convertAmount, BigDecimal exchangeRate, String depositorName, BankType bankType
     ) {
+
         return DepositRequest.builder()
                 .customerUuid(customer.getCustomerUuid())
                 .walletUuid(wallet.getWalletUuid())
@@ -31,13 +32,14 @@ public class PaymentFactory {
                 .amountConverted(convertAmount)
                 .exchangeRate(exchangeRate)
                 .depositorName(depositorName)
-                .bankAccount(depositorName)
+                .bankType(bankType)
                 .build();
     }
 
     public WithdrawRequest createWithdrawRequest(
             Customer customer, Wallet wallet, BigDecimal requestAmount, Currency tagetCurrency
-            , BigDecimal withdrawFee, String bankName, String accountHolder, BigDecimal convertedAmount) {
+            , BigDecimal withdrawFee, String bankName, String accountHolder, BigDecimal convertedAmount, String accountNumber,
+            BigDecimal exchangeRate) {
 
         return WithdrawRequest.builder()
                 .customerUuid(customer.getCustomerUuid())
@@ -45,7 +47,9 @@ public class PaymentFactory {
                 .requestAmount(requestAmount)
                 .withdrawFee(withdrawFee)
                 .targetCurrency(tagetCurrency)
+                .exchangeRate(exchangeRate)
                 .convertedAmount(convertedAmount)
+                .accountNumber(accountNumber)
                 .bankName(bankName)
                 .accountHolder(accountHolder)
                 .build();
@@ -68,25 +72,23 @@ public class PaymentFactory {
     }
 
     public OrderPayment createOrderFirstPayment(
-            Customer customer, Wallet wallet,
-            Order order, BigDecimal paymentAmount, UUID adminUuid) {
+            Customer customer, Wallet wallet) {
         return OrderPayment.builder()
                 .customerUuid(customer.getCustomerUuid())
                 .walletUuid(wallet.getWalletUuid())
-                .orderUuid(order.getOrderUuid())
+                .paymentAmount(BigDecimal.ZERO)
                 .paymentType(PaymentType.PRODUCT_PAYMENT)
-                .paymentAmount(paymentAmount)
-                .createdByAdminUuid(adminUuid)
+                .orderPaymentStatus(OrderPaymentStatus.COMPLETED)
+                .paymentOrder(PaymentOrder.FIRST)
                 .build();
     }
     public OrderPayment createOrderSecondPayment(
-            Customer customer, Wallet wallet,
-            Order order, BigDecimal paymentAmount, UUID adminUuid) {
+            Customer customer, BigDecimal paymentAmount, Wallet wallet, UUID adminUuid) {
         return OrderPayment.builder()
                 .customerUuid(customer.getCustomerUuid())
-                .walletUuid(wallet.getWalletUuid())
-                .orderUuid(order.getOrderUuid())
                 .paymentType(PaymentType.SHIPPING_PAYMENT)
+                .walletUuid(wallet.getWalletUuid())
+                .orderPaymentStatus(OrderPaymentStatus.PENDING)
                 .paymentAmount(paymentAmount)
                 .createdByAdminUuid(adminUuid)
                 .build();

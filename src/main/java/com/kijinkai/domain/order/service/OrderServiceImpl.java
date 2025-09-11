@@ -15,6 +15,7 @@ import com.kijinkai.domain.order.factory.OrderFactory;
 import com.kijinkai.domain.order.mapper.OrderMapper;
 import com.kijinkai.domain.order.repository.OrderRepository;
 import com.kijinkai.domain.order.validator.OrderValidator;
+import com.kijinkai.domain.orderitem.dto.OrderItemRequestDto;
 import com.kijinkai.domain.orderitem.dto.OrderItemUpdateDto;
 import com.kijinkai.domain.orderitem.entity.OrderItem;
 import com.kijinkai.domain.orderitem.exception.OrderItemNotFoundException;
@@ -78,16 +79,19 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponseDto createOrderProcess(UUID userUuid, OrderRequestDto requestDto) {
         log.info("Crating order for user uuid:{}", userUuid);
 
-        try {
+        Customer customer = findCustomerByUserUuid(userUuid);
 
-            Customer customer = findCustomerByUserUuid(userUuid);
-            Order order = orderFactory.createOrder(customer, requestDto.getMemo());
+        try {
+            BigDecimal totalPrice = requestDto.getOrderItems().stream()
+                    .map(OrderItemRequestDto::getPriceOriginal)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            Order order = orderFactory.createOrder(customer, requestDto.getMemo(), totalPrice);
             Order savedOrder = orderRepository.save(order);
 
             List<OrderItem> orderItems = requestDto.getOrderItems().stream()
-                    .map(item -> orderItemService.createOrderItem(customer, savedOrder, item))
+                    .map(item -> orderItemService.createOrderItem(customer, savedOrder,  item))
                     .collect(Collectors.toList());
-
             orderItemRepository.saveAll(orderItems);
 
             log.info("Crated order for order uuid:{}", savedOrder.getOrderUuid());
@@ -134,7 +138,7 @@ public class OrderServiceImpl implements OrderService {
                 calculateTotalAmountOriginal = calculateTotalAmountOriginal.add(orderItem.getPriceOriginal());
             }
 
-            BigDecimal convertedTotalAmount = priceCalculationService.calculateTotalPrice(calculateTotalAmountOriginal, updateDto.getConvertedCurrency(), BigDecimal.ZERO);
+            BigDecimal convertedTotalAmount = priceCalculationService.calculateTotalPrice(calculateTotalAmountOriginal);
 
             updateOrderEstimate(order, calculateTotalAmountOriginal, convertedTotalAmount, updateDto);
             Order savedOrder = orderRepository.save(order);

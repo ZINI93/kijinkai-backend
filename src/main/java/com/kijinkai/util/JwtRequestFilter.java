@@ -29,6 +29,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         final String authorizationHearer = request.getHeader("Authorization");
 
+        System.out.println("=== JWT 필터 실행 시작 ===");
+        System.out.println("요청 URI: " + request.getRequestURI());
+        System.out.println("요청 METHOD: " + request.getMethod());
+
+        final String authorizationHeader = request.getHeader("Authorization");
+        System.out.println("Authorization 헤더: " + authorizationHeader);
+
         String email = null;
         String jwt = null;
 
@@ -51,6 +58,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
+        System.out.println("=== JWT 필터 실행 종료 ===");
+
+
         filterChain.doFilter(request,response);
     }
 }

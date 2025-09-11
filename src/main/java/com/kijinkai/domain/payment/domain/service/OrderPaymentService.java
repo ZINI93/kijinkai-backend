@@ -4,36 +4,36 @@ import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.payment.domain.entity.OrderPayment;
 import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
-import com.kijinkai.domain.payment.domain.validator.PaymentValidator;
 import com.kijinkai.domain.user.entity.User;
 import com.kijinkai.domain.user.validator.UserValidator;
 import com.kijinkai.domain.wallet.entity.Wallet;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
 
 public class OrderPaymentService {
 
     private final PaymentFactory paymentFactory;
     private final UserValidator userValidator;
 
-    public OrderPaymentService(PaymentFactory paymentFactory, UserValidator userValidator ) {
+    public OrderPaymentService(PaymentFactory paymentFactory, UserValidator userValidator) {
         this.paymentFactory = paymentFactory;
         this.userValidator = userValidator;
     }
 
 
-    // 관리자가 결제 생성
+    // 1차 결제 생성
     public OrderPayment crateOrderPayment(
-            Customer customer, Wallet wallet,
-            Order order, BigDecimal paymentAmount, User admin
+            Customer customer, Wallet wallet
     ) {
-        userValidator.requireAdminRole(admin);
         OrderPayment orderPayment = paymentFactory.createOrderFirstPayment(
-                customer, wallet, order, paymentAmount, admin.getUserUuid()
+                customer, wallet
         );
 
         return orderPayment;
     }
+
 
     /**
      * 1차 상품에 대한 상품대금 결제
@@ -46,13 +46,24 @@ public class OrderPaymentService {
         return orderPayment;
     }
 
+
+
+//    // 유저가 결제 2차 결제 생성
+//    public OrderPayment crateSecuondOrderPayment(
+//            Customer customer, Wallet wallet
+//    ) {
+//        OrderPayment orderPayment = paymentFactory.createOrderSecondPayment(
+//                customer, wallet
+//        );
+//
+//        return orderPayment;
+//    }
+
     // 배송비 지불 결제 생성
 
-    public OrderPayment createSecondOrderPayment(Customer customer, Wallet wallet,
-                                           Order order, BigDecimal paymentAmount, User admin) {
-
+    public OrderPayment createSecondOrderPayment(Customer customer, BigDecimal paymentAmount, User admin, Wallet wallet) {
         userValidator.requireAdminRole(admin);
-        OrderPayment orderPayment = paymentFactory.createOrderSecondPayment(customer, wallet, order, paymentAmount, admin.getUserUuid());
+        OrderPayment orderPayment = paymentFactory.createOrderSecondPayment(customer, paymentAmount, wallet, admin.getUserUuid());
 
         return orderPayment;
     }
@@ -67,11 +78,12 @@ public class OrderPaymentService {
 
     /**
      * 관리자의 결제정보 확인
+     *
      * @param admin
      * @param orderPayment
      * @return
      */
-    public OrderPayment getOrderPaymentInfoByAdmin(User admin, OrderPayment orderPayment){
+    public OrderPayment getOrderPaymentInfoByAdmin(User admin, OrderPayment orderPayment) {
         userValidator.requireAdminRole(admin);
         return orderPayment;
     }
@@ -83,9 +95,8 @@ public class OrderPaymentService {
     }
 
 
-
-    public OrderPayment markAsFailed(OrderPayment orderPayment, String reason) {
-        orderPayment.markAsFailed(reason);
-        return orderPayment;
-    }
+    public void markAsFailed(List<OrderPayment> orderPayments, String reason) {
+        orderPayments.forEach(orderPayment ->
+                orderPayment.markAsFailed(reason));
+    };
 }

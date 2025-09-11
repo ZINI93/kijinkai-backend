@@ -10,7 +10,7 @@ import java.util.UUID;
 public interface AddressService {
 
     AddressResponseDto createAddressWithValidate(UUID userUuid, AddressRequestDto requestDto);
-    AddressResponseDto updateAddressWithValidate(UUID userUuid, UUID addressUuid, AddressUpdateDto updateDto);
-    AddressResponseDto getAddressInfo(UUID userUuid, UUID addressUuid);
+    AddressResponseDto updateAddressWithValidate(UUID userUuid, AddressUpdateDto updateDto);
+    AddressResponseDto getAddressInfo(UUID userUuid);
     void deleteAddress(UUID userUuid, UUID addressUuid);
 }

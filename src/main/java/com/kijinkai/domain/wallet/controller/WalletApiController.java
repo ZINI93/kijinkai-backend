@@ -2,6 +2,7 @@ package com.kijinkai.domain.wallet.controller;
 
 import com.kijinkai.domain.common.BasicResponseDto;
 import com.kijinkai.domain.user.service.CustomUserDetails;
+import com.kijinkai.domain.wallet.dto.WalletBalanceResponseDto;
 import com.kijinkai.domain.wallet.dto.WalletResponseDto;
 import com.kijinkai.domain.wallet.service.WalletService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -28,24 +29,39 @@ public class WalletApiController {
 
     private final WalletService walletService;
 
+//
+//    @GetMapping("/me")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "200", description = "월렛 정보 조회 성공"),
+//            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+//            @ApiResponse(responseCode = "404", description = "월렛을 찾을 수 없음"),
+//            @ApiResponse(responseCode = "500", description = "서버오류")
+//    })
+//    public ResponseEntity<BasicResponseDto<WalletResponseDto>> getWalletInfo(Authentication authentication){
+//
+//        UUID userUuid = getUserUuid(authentication);
+//        WalletResponseDto wallet = walletService.getWalletBalance(userUuid);
+//        return ResponseEntity.ok(BasicResponseDto.success("고객 정보 조회 성공", wallet));
+//    }
 
-    @GetMapping("/me")
+    @GetMapping("/balance")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "월렛 정보 조회 성공"),
+            @ApiResponse(responseCode = "200", description = "월렛 잔액 정보 조회 성공"),
             @ApiResponse(responseCode = "404", description = "잘못된 요청"),
             @ApiResponse(responseCode = "404", description = "월렛을 찾을 수 없음"),
             @ApiResponse(responseCode = "500", description = "서버오류")
     })
-    public ResponseEntity<BasicResponseDto<WalletResponseDto>> getWalletInfo(Authentication authentication){
+    public ResponseEntity<BasicResponseDto<WalletBalanceResponseDto>> getWalletBalance(Authentication authentication){
 
         UUID userUuid = getUserUuid(authentication);
-        WalletResponseDto wallet = walletService.getWalletBalance(userUuid);
-        return ResponseEntity.ok(BasicResponseDto.success("고객 정보 조회 성공", wallet));
+        WalletBalanceResponseDto response = walletService.getWalletBalance(userUuid);
+        return ResponseEntity.ok(BasicResponseDto.success("고객 정보 조회 성공", response));
     }
 
     private static UUID getUserUuid(Authentication authentication) {
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
         return customUserDetails.getUserUuid();
     }
+
 
 }

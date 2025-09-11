@@ -5,6 +5,8 @@ import com.kijinkai.domain.payment.domain.entity.RefundRequest;
 import com.kijinkai.domain.payment.domain.repository.RefundRequestRepository;
 import com.kijinkai.domain.payment.infrastructure.adapter.persistence.SpringDataRefundRequestRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -29,5 +31,10 @@ public class JpaRefundRequestRepository implements RefundRequestRepository {
     @Override
     public RefundRequest save(RefundRequest request) {
         return springDataRefundRequestRepository.save(request);
+    }
+
+    @Override
+    public Page<RefundRequest> findAllByCustomerUuid(UUID customerUuid, Pageable pageable) {
+        return springDataRefundRequestRepository.findAllByCustomerUuid(customerUuid, pageable);
     }
 }

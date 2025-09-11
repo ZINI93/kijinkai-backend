@@ -1,35 +1,35 @@
 package com.kijinkai.domain.orderitem.dto;
 
 import com.kijinkai.domain.exchange.doamin.Currency;
+import com.kijinkai.domain.orderitem.entity.OrderItemStatus;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
-
-@Getter
-@Builder
+@Value
 public class OrderItemResponseDto {
 
-    private UUID orderItemUuid;
-    private UUID customerUuid;
-    private UUID platformUuid;
-    private UUID orderUuid;
-    private String productLink;
-    private int quantity;
-    private String memo;
-    private BigDecimal priceOriginal;
-    private BigDecimal priceConverted;
-    private String currencyOriginal;
-    private Currency currencyConverted;
-    private BigDecimal exchangeRate;
+    UUID orderItemUuid;
+    UUID customerUuid;
+    UUID orderUuid;
+    String productLink;
+    int quantity;
+    String memo;
+    BigDecimal priceOriginal;
+    BigDecimal priceConverted;
+    String currencyOriginal;
+    Currency currencyConverted;
+    OrderItemStatus orderItemStatus;
+    LocalDateTime createdAt;
+
 
     @Builder
-    public OrderItemResponseDto(UUID orderItemUuid, UUID customerUuid, UUID platformUuid, UUID orderUuid, String productLink, int quantity, String memo, BigDecimal priceOriginal, BigDecimal priceConverted, String currencyOriginal, Currency currencyConverted, BigDecimal exchangeRate) {
+    public OrderItemResponseDto(UUID orderItemUuid, UUID customerUuid, UUID orderUuid, String productLink, int quantity, String memo, BigDecimal priceOriginal, BigDecimal priceConverted, String currencyOriginal, Currency currencyConverted, LocalDateTime createdAt, OrderItemStatus orderItemStatus) {
         this.orderItemUuid = orderItemUuid;
         this.customerUuid = customerUuid;
-        this.platformUuid = platformUuid;
         this.orderUuid = orderUuid;
         this.productLink = productLink;
         this.quantity = quantity;
@@ -38,6 +38,8 @@ public class OrderItemResponseDto {
         this.priceConverted = priceConverted;
         this.currencyOriginal = currencyOriginal;
         this.currencyConverted = currencyConverted;
-        this.exchangeRate = exchangeRate;
+        this.createdAt = createdAt;
+        this.orderItemStatus = orderItemStatus;
+
     }
 }

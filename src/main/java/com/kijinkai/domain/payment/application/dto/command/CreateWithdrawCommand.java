@@ -29,7 +29,7 @@ public class CreateWithdrawCommand {
                 .customerUuid(customer.getCustomerUuid())
                 .walletUuid(wallet.getWalletUuid())
                 .requestAmount(requestDto.getRequestAmount())
-                .targetCurrency(requestDto.getTargetCurrency())
+                .targetCurrency(requestDto.getCurrency())
                 .bankName(requestDto.getBankName())
                 .accountHolder(requestDto.getAccountHolder())
                 .build();

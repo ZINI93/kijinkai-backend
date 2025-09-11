@@ -6,8 +6,10 @@ import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.wallet.dto.WalletFreezeRequest;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -15,6 +17,7 @@ import java.util.UUID;
 
 @Getter
 @Table(name = "wallets")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 public class Wallet extends BaseEntity {
 

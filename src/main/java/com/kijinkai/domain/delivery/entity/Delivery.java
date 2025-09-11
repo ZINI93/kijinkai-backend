@@ -5,6 +5,7 @@ import com.kijinkai.domain.common.BaseEntity;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.delivery.dto.DeliveryUpdateDto;
 import com.kijinkai.domain.order.entity.Order;
+import com.kijinkai.domain.payment.domain.entity.OrderPayment;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -29,9 +30,12 @@ public class Delivery extends BaseEntity {
     @Column(name = "delivery_uuid", nullable = false, updatable = false, unique = true)
     private UUID deliveryUuid;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false, updatable = false)
-    private Order order;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "order_id", nullable = false, updatable = false)
+//    private Order order;  // 필요 없음 // order_payment를 참조
+
+    @Column(name = "order_payment_uuid", nullable = false, updatable = false)
+    private UUID orderPaymentUuid;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false, updatable = false)
@@ -63,8 +67,7 @@ public class Delivery extends BaseEntity {
     @Column(nullable = false)
     private String street;
 
-    // ------------------------------------
-
+    // ------------------------------------  관리자 작성
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50) // 택배사 이름
     private Carrier carrier;
@@ -92,9 +95,9 @@ public class Delivery extends BaseEntity {
 
 
     @Builder
-    public Delivery(UUID deliveryUuid, Order order, Customer customer, DeliveryStatus deliveryStatus, String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, Carrier carrier, String trackingNumber, BigDecimal deliveryFee, LocalDateTime estimatedDeliveryAt, LocalDateTime shippedAt, LocalDateTime deliveredAt, String deliveryRequest, String cancelReason) {
+    public Delivery(UUID deliveryUuid, UUID orderPaymentUuid, Customer customer, DeliveryStatus deliveryStatus, String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, Carrier carrier, String trackingNumber, BigDecimal deliveryFee, LocalDateTime estimatedDeliveryAt, LocalDateTime shippedAt, LocalDateTime deliveredAt, String deliveryRequest, String cancelReason) {
         this.deliveryUuid = deliveryUuid != null ? deliveryUuid : UUID.randomUUID();
-        this.order = order;
+        this.orderPaymentUuid = orderPaymentUuid;
         this.customer = customer;
         this.deliveryStatus = deliveryStatus != null ? deliveryStatus : DeliveryStatus.PENDING;
         this.recipientName = recipientName;
@@ -104,7 +107,7 @@ public class Delivery extends BaseEntity {
         this.state = state;
         this.city = city;
         this.street = street;
-        this.carrier = carrier != null ? carrier : Carrier.YAMATO;
+        this.carrier = carrier;
         this.trackingNumber = trackingNumber;
         this.deliveryFee = deliveryFee;
         this.estimatedDeliveryAt = estimatedDeliveryAt;

@@ -15,7 +15,6 @@ public class OrderItemUpdateDto {
 
     private UUID orderItemUuid;
     private Order order;
-    private String platformUuid;
     private String productLink;
     private int quantity;
     private String memo;

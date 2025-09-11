@@ -2,6 +2,7 @@ package com.kijinkai.domain.customer.contorller;
 
 
 import com.kijinkai.domain.common.BasicResponseDto;
+import com.kijinkai.domain.customer.dto.CustomerCreateResponse;
 import com.kijinkai.domain.customer.dto.CustomerRequestDto;
 import com.kijinkai.domain.customer.dto.CustomerResponseDto;
 import com.kijinkai.domain.customer.dto.CustomerUpdateDto;
@@ -45,12 +46,12 @@ public class CustomerApiController {
             @ApiResponse(responseCode = "404", description = "고객을 찾을 수 없음"),
             @ApiResponse(responseCode = "500", description = "서버오류")
     })
-    public ResponseEntity<BasicResponseDto<CustomerResponseDto>> createCustomer(Authentication authentication,
-                                                                               @Valid @RequestBody CustomerRequestDto customerRequestDto){
+    public ResponseEntity<BasicResponseDto<CustomerCreateResponse>> createCustomer(Authentication authentication,
+                                                                                   @Valid @RequestBody CustomerRequestDto requestDto){
         UUID userUuid = getUserUuid(authentication);
         log.info("고객 등록 요청 - 사용자 UUID: {}", userUuid);
 
-        CustomerResponseDto customer = customerService.createCustomerWithValidate(userUuid, customerRequestDto);
+        CustomerCreateResponse customer = customerService.createCustomerWithValidate(userUuid, requestDto);
         log.info("고객 등록 완료 - 고객 UUID: {}", customer.getCustomerUuid());
 
         URI location = ServletUriComponentsBuilder
@@ -62,7 +63,7 @@ public class CustomerApiController {
         return ResponseEntity.created(location).body(BasicResponseDto.success("일반유저에서 고객으로 가입 성공",customer));
     }
 
-    @PutMapping("/{customerUuid}")
+    @PostMapping("/update-info")
     @Operation(summary = "고객 정보 수정", description = "유저 본인의 정보를 수정합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "고객으로 정보 수정 성공"),
@@ -70,28 +71,20 @@ public class CustomerApiController {
             @ApiResponse(responseCode = "404", description = "고객을 찾을 수 없음"),
             @ApiResponse(responseCode = "500", description = "서버오류")
     })
-    public ResponseEntity<BasicResponseDto<CustomerResponseDto>> updateCustomer(@PathVariable String customerUuid,
+    public ResponseEntity<BasicResponseDto<CustomerResponseDto>> updateCustomer(
                                                               Authentication authentication,
                                                               @Valid @RequestBody CustomerUpdateDto customerUpdateDto){
         UUID userUuid = getUserUuid(authentication);
         log.info("고객 업데이트 요청 - 사용자 UUID: {}", userUuid);
 
-        UUID parsedCustomerUuid;
-
-        try{
-            parsedCustomerUuid = UUID.fromString(customerUuid);
-        }catch (IllegalArgumentException e){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-
         CustomerResponseDto customer = customerService.updateCustomerWithValidate(
-                userUuid, customerUuid, customerUpdateDto);
+                userUuid, customerUpdateDto);
         log.info("고객 업데이트 완료 - 고객 UUID: {}", customer.getCustomerUuid());
 
         return ResponseEntity.ok(BasicResponseDto.success("고객 정보 변경 성공", customer));
     }
 
-    @GetMapping("/me")
+    @GetMapping("/profile/me")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "고객으로 정보 조회 성공"),
             @ApiResponse(responseCode = "404", description = "잘못된 요청"),

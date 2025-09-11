@@ -62,7 +62,7 @@ public class AddressApiController {
     }
 
 
-    @PutMapping("/{addressUuid}")
+    @PostMapping("/update")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "주소 업데이트 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청"),
@@ -71,21 +71,20 @@ public class AddressApiController {
     })
     public ResponseEntity<BasicResponseDto<AddressResponseDto>> updateAddress(
             Authentication authentication,
-            @PathVariable UUID addressUuid,
             @Valid @RequestBody AddressUpdateDto updateDto
     ) {
 
         UUID userUuid = getUserUuid(authentication);
         log.info("User: {} requests address update", userUuid);
 
-        AddressResponseDto address = addressService.updateAddressWithValidate(userUuid, addressUuid, updateDto);
+        AddressResponseDto address = addressService.updateAddressWithValidate(userUuid, updateDto);
         log.info("Address: {}, successfully updated by user {}", address.getAddressUuid(), userUuid);
 
 
         return ResponseEntity.ok(BasicResponseDto.success("Successful update address", address));
     }
 
-    @GetMapping("/{addressUuid}")
+    @GetMapping("/info")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "주소정보 조회 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청"),
@@ -93,13 +92,12 @@ public class AddressApiController {
             @ApiResponse(responseCode = "500", description = "서버오류")
     })
     public ResponseEntity<BasicResponseDto<AddressResponseDto>> getAddressInfo(
-            Authentication authentication,
-            @PathVariable UUID addressUuid
+            Authentication authentication
     ) {
         UUID userUuid = getUserUuid(authentication);
         log.info("User: {} requests address retrieved", userUuid);
 
-        AddressResponseDto address = addressService.getAddressInfo(userUuid, addressUuid);
+        AddressResponseDto address = addressService.getAddressInfo(userUuid);
         log.info("Address: {} successfully retrieved by user {}", address.getAddressUuid(), userUuid);
 
 

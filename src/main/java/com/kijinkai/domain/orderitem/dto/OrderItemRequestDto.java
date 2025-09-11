@@ -5,11 +5,12 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Getter
 public class OrderItemRequestDto {
 
-    private String platformUuid;
+    private UUID orderItemUuid;
     private String productLink;
     private int quantity;
     private String memo;
@@ -18,8 +19,8 @@ public class OrderItemRequestDto {
 
 
     @Builder
-    public OrderItemRequestDto(String platformUuid, String productLink, int quantity, String memo, BigDecimal priceOriginal, Currency currencyConverted) {
-        this.platformUuid = platformUuid;
+    public OrderItemRequestDto(UUID orderItemUuid, String productLink, int quantity, String memo, BigDecimal priceOriginal, Currency currencyConverted) {
+        this.orderItemUuid = orderItemUuid;
         this.productLink = productLink;
         this.quantity = quantity;
         this.memo = memo;

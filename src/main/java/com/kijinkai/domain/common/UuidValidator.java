@@ -9,9 +9,9 @@ import java.util.UUID;
 @Component
 public class UuidValidator {
 
-    public UUID parseUuid(String uuidString) {
+    public UUID parseUuid(UUID uuidString) {
         try {
-            return UUID.fromString(uuidString);
+            return uuidString;
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,

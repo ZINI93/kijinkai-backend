@@ -4,7 +4,9 @@ package com.kijinkai.domain.payment.domain.entity;
 import com.kijinkai.domain.common.BaseEntity;
 
 import com.kijinkai.domain.exchange.doamin.Currency;
+import com.kijinkai.domain.payment.domain.enums.BankType;
 import com.kijinkai.domain.payment.domain.enums.DepositStatus;
+import com.kijinkai.domain.payment.domain.enums.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -54,7 +56,7 @@ public class DepositRequest extends BaseEntity {
     @Column(name = "depositor_name", nullable = false)
     private String depositorName;
 
-    @Column(name = "bank_account", nullable = false)
+    @Column(name = "bank_account")
     private String bankAccount;
 
     // 상태 관리
@@ -78,13 +80,20 @@ public class DepositRequest extends BaseEntity {
     @Column(name = "rejection_reason")
     private String rejectionReason;
 
+    @Column(name = "payment_method")
+    private PaymentMethod paymentMethod;
+
+    @Column(name = "bank_type", nullable = false)
+    private BankType bankType;
+
     @Version
     private Long version;
 
     @Builder
     public DepositRequest(UUID customerUuid, UUID walletUuid, BigDecimal amountOriginal,
                           Currency currencyOriginal, BigDecimal amountConverted,
-                          BigDecimal exchangeRate, String depositorName, String bankAccount) {
+                          BigDecimal exchangeRate, String depositorName,
+                          BankType bankType) {
         this.requestUuid = UUID.randomUUID();
         this.customerUuid = customerUuid;
         this.walletUuid = walletUuid;
@@ -93,13 +102,14 @@ public class DepositRequest extends BaseEntity {
         this.amountConverted = amountConverted;
         this.exchangeRate = exchangeRate;
         this.depositorName = depositorName;
-        this.bankAccount = bankAccount;
+        this.bankType = bankType;
         this.status = DepositStatus.PENDING_ADMIN_APPROVAL;
         this.expiresAt = LocalDateTime.now().plusDays(7); // 7일 후 만료
     }
 
     @Builder
-    public DepositRequest(UUID requestUuid, UUID customerUuid, UUID walletUuid, BigDecimal amountOriginal, Currency currencyOriginal, BigDecimal amountConverted, BigDecimal exchangeRate, String depositorName, String bankAccount, DepositStatus status, LocalDateTime expiresAt, UUID processedByAdmin, LocalDateTime processedAt, String adminMemo, String rejectionReason) {
+    public DepositRequest(UUID requestUuid, UUID customerUuid, UUID walletUuid, BigDecimal amountOriginal, Currency currencyOriginal, BigDecimal amountConverted, BigDecimal exchangeRate, String depositorName, String bankAccount, DepositStatus status, LocalDateTime expiresAt, UUID processedByAdmin, LocalDateTime processedAt,
+                          String adminMemo, String rejectionReason, BankType bankType) {
         this.requestUuid = requestUuid;
         this.customerUuid = customerUuid;
         this.walletUuid = walletUuid;
@@ -115,6 +125,7 @@ public class DepositRequest extends BaseEntity {
         this.processedAt = processedAt;
         this.adminMemo = adminMemo;
         this.rejectionReason = rejectionReason;
+        this.bankType = bankType;
     }
 
     // 도메인 로직: 승인

@@ -26,8 +26,8 @@ public class WalletValidator {
     }
 
     public void validateMinimumExchangeAmount(Wallet wallet){
-        if (wallet.getBalance().compareTo(new BigDecimal(20000)) < 0) {
-            throw new IllegalArgumentException("20,000엔 이상 환전이 가능합니다.");
+        if (wallet.getBalance().compareTo(new BigDecimal(8000)) < 0) {
+            throw new IllegalArgumentException("8,000엔 이상 환전이 가능합니다.");
         }
     }
 }

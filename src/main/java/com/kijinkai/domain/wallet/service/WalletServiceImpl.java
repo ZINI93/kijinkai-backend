@@ -8,8 +8,10 @@ import com.kijinkai.domain.user.entity.User;
 import com.kijinkai.domain.user.exception.UserNotFoundException;
 import com.kijinkai.domain.user.repository.UserRepository;
 import com.kijinkai.domain.user.validator.UserValidator;
+import com.kijinkai.domain.wallet.dto.WalletBalanceResponseDto;
 import com.kijinkai.domain.wallet.dto.WalletFreezeRequest;
 import com.kijinkai.domain.wallet.dto.WalletResponseDto;
+import com.kijinkai.domain.wallet.entity.QWallet;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import com.kijinkai.domain.wallet.entity.WalletStatus;
 import com.kijinkai.domain.wallet.exception.InsufficientBalanceException;
@@ -25,6 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.UUID;
+
+import static com.kijinkai.domain.wallet.entity.QWallet.wallet;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -142,12 +146,12 @@ public class WalletServiceImpl implements WalletService {
      * @return
      */
     @Override
-    public WalletResponseDto getWalletBalance(UUID userUuid) {
+    public WalletBalanceResponseDto getWalletBalance(UUID userUuid) {
 
         Customer customer = findCustomerByUserUuid(userUuid);
         Wallet wallet = findWalletByCustomerUuid(customer.getCustomerUuid());
 
-        return walletMapper.toResponse(wallet);
+        return walletMapper.balanceMapper(wallet.getBalance());
     }
 
 
@@ -218,6 +222,7 @@ public class WalletServiceImpl implements WalletService {
 
         return wallet;
     }
+
 
 
     //helper method

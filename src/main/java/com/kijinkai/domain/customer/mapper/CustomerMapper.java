@@ -1,8 +1,12 @@
 package com.kijinkai.domain.customer.mapper;
 
+import com.kijinkai.domain.address.entity.Address;
+import com.kijinkai.domain.customer.dto.CustomerCreateResponse;
 import com.kijinkai.domain.customer.dto.CustomerResponseDto;
 import com.kijinkai.domain.customer.entity.Customer;
 import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 @Component
 public class CustomerMapper {
@@ -16,6 +20,26 @@ public class CustomerMapper {
                 .phoneNumber(customer.getPhoneNumber())
                 .customerTier(customer.getCustomerTier())
                 .userUuid(customer.getUser().getUserUuid())
+                .build();
+    }
+
+    public CustomerCreateResponse createCustomerWithAddressResponse(Customer customer, Address address){
+
+        return CustomerCreateResponse.builder()
+                .customerUuid(customer.getCustomerUuid())
+                .firstName(customer.getFirstName())
+                .lastName(customer.getLastName())
+                .phoneNumber(customer.getPhoneNumber())
+                .customerTier(customer.getCustomerTier())
+                .userUuid(customer.getUser().getUserUuid())
+                .addressUuid(address.getAddressUuid())
+                .recipientName(address.getRecipientName())
+                .recipientPhoneNumber(address.getRecipientName())
+                .country(address.getCountry())
+                .zipcode(address.getZipcode())
+                .state(address.getState())
+                .city(address.getCity())
+                .street(address.getStreet())
                 .build();
     }
 }

@@ -1,19 +1,23 @@
 package com.kijinkai.domain.platform.entity;
 
 
+import com.kijinkai.domain.common.BaseEntity;
 import com.kijinkai.domain.common.TimeBaseEntity;
 import com.kijinkai.domain.platform.dto.PlatformUpdateDto;
 import com.kijinkai.domain.user.entity.User;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 @Getter
 @Table(name = "platforms")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-public class Platform extends TimeBaseEntity {
+public class Platform extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +31,8 @@ public class Platform extends TimeBaseEntity {
     @JoinColumn(name = "user_id", nullable = false, updatable = false)
     private User user;
 
-    @Column(name = "base_url", nullable = false)
+    @Column(name = "base_url", nullable
+            = false)
     private String baseUrl;
 
 

@@ -33,4 +33,8 @@ public class DepositRequestResponseDto {
     private LocalDateTime processedAt;
     private String adminMemo;
     private String rejectionReason;
+
+    private LocalDateTime createAt;
+    private BigDecimal afterBalance;
+    private String type;
 }

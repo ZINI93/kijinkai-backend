@@ -6,6 +6,7 @@ import com.kijinkai.domain.address.repository.AddressRepository;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.customer.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.repository.CustomerRepository;
+import com.kijinkai.domain.delivery.dto.DeliveryCountResponseDto;
 import com.kijinkai.domain.delivery.dto.DeliveryRequestDto;
 import com.kijinkai.domain.delivery.dto.DeliveryResponseDto;
 import com.kijinkai.domain.delivery.dto.DeliveryUpdateDto;
@@ -18,14 +19,18 @@ import com.kijinkai.domain.delivery.factory.DeliveryFactory;
 import com.kijinkai.domain.delivery.mapper.DeliveryMapper;
 import com.kijinkai.domain.delivery.repository.DeliveryRepository;
 import com.kijinkai.domain.delivery.validator.DeliveryValidator;
-import com.kijinkai.domain.order.entity.Order;
-import com.kijinkai.domain.order.entity.OrderStatus;
-import com.kijinkai.domain.order.exception.OrderNotFoundException;
-import com.kijinkai.domain.order.repository.OrderRepository;
 import com.kijinkai.domain.order.validator.OrderValidator;
+import com.kijinkai.domain.payment.domain.entity.OrderPayment;
+import com.kijinkai.domain.payment.domain.exception.OrderPaymentNotFoundException;
+import com.kijinkai.domain.payment.domain.repository.OrderPaymentRepository;
+import com.kijinkai.domain.user.entity.User;
+import com.kijinkai.domain.user.exception.UserNotFoundException;
+import com.kijinkai.domain.user.repository.UserRepository;
 import com.kijinkai.domain.user.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,9 +43,11 @@ import java.util.UUID;
 public class DeliveryServiceImpl implements DeliveryService {
 
     private final CustomerRepository customerRepository;
+    private final UserRepository userRepository;
     private final DeliveryRepository deliveryRepository;
-    private final OrderRepository orderRepository;
     private final AddressRepository addressRepository;
+    private final OrderPaymentRepository orderPaymentRepository;
+
 
     private final DeliveryFactory factory;
     private final DeliveryMapper deliveryMapper;
@@ -49,29 +56,39 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final UserValidator userValidator;
     private final OrderValidator orderValidator;
 
+    // 유저가 작성할 것인가?? // 관리자가 작성할 것인가??
+    // 완료된 결제에 관리자가 작성하는게 좋을것 같은데, 주소 확인 표시
+    // 한 결제에 여러가지 배송이 들어갈 수 있다.
+    // orderPayment 배송을 list로 생성해야 한다.
 
     /**
-     * 결제가 완료된 견적서에 상품을 구매 후 배송을 준비하는 프로세스
      *
      * @param userUuid
-     * @param orderUuid
+     * @param orderPaymentUuid - 2차 결제 orderPayment
      * @param requestDto
-     * @return 주문생성 응답 DTO
+     * @return
      */
     @Override @Transactional
-    public DeliveryResponseDto createDeliveryWithValidate(UUID userUuid, UUID orderUuid, DeliveryRequestDto requestDto) {
+    public DeliveryResponseDto createDeliveryWithValidate(UUID userUuid, UUID orderPaymentUuid, DeliveryRequestDto requestDto) {
 
         log.info("Creating delivery for user uuid: {}", userUuid);
 
+        User user = userRepository.findByUserUuid(userUuid)
+                .orElseThrow(() -> new UserNotFoundException(String.format("User not found exception for userUuid: %s", userUuid)));
+        userValidator.requireAdminRole(user);
+
+        OrderPayment secondOrderPayment = orderPaymentRepository.findByPaymentUuid(orderPaymentUuid)
+                .orElseThrow(() -> new OrderPaymentNotFoundException(String.format("Order payment not found exception for orderPaymentUuid: %s", orderPaymentUuid)));
+        //orderpayment 상태 validator 필요함
+
+        Customer customer = customerRepository.findByCustomerUuid(secondOrderPayment.getCustomerUuid())
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found exception for customer uuid: %s", secondOrderPayment.getCustomerUuid())));
+
+        Address address = findAddressByCustomerOrder(customer.getCustomerUuid());
+
         try {
-            Order order = findOrderByOrderUuid(orderUuid);
-            orderValidator.requirePaidStatusForConfirmation(order);
-
-            Address address = findAddressByCustomerOrder(order);
-            Delivery delivery = factory.createDelivery(order, address, requestDto);
-
+            Delivery delivery = factory.createDelivery(orderPaymentUuid, customer, address, secondOrderPayment.getPaymentAmount() , requestDto);
             Delivery savedDelivery = deliveryRepository.save(delivery);
-            order.prepareDeliveryOrder();
 
             log.info("Created delivery for delivery uuid:{}", savedDelivery.getDeliveryUuid());
             return deliveryMapper.toResponse(savedDelivery);
@@ -97,14 +114,10 @@ public class DeliveryServiceImpl implements DeliveryService {
         userValidator.requireAdminRole(customer.getUser());
         deliveryValidator.requirePendingStatus(delivery);
 
-
-        Order order = delivery.getOrder();
-        order.updateOrderStatus(OrderStatus.SHIPPING);
         delivery.updateDeliveryStatus(DeliveryStatus.SHIPPED);
 
         return deliveryMapper.toResponse(delivery);
     }
-
 
     /**
      * 배송 준비중에서 물품이 배송업체로 인도되기 전에 구매자가 급히 주소변경 등 배송정보를 변경요청사항이 있으면 관리자가 수동으로 수정해는 프로세스
@@ -123,8 +136,6 @@ public class DeliveryServiceImpl implements DeliveryService {
             userValidator.requireAdminRole(customer.getUser());
 
             Delivery delivery = findDeliveryByCustomerAndDeliveryUuid(customer, deliveryUuid);
-            orderValidator.requirePaidStatusForConfirmation(delivery.getOrder());
-
             delivery.updateDelivery(updateDto);
 
             log.info("Updated delivery for delivery uuid:{}", delivery.getDeliveryUuid());
@@ -168,6 +179,32 @@ public class DeliveryServiceImpl implements DeliveryService {
         return deliveryMapper.toResponse(delivery);
     }
 
+    /**
+     * 유저가 상태에 따른 결제정보 확인
+     * @param userUuid
+     * @param deliveryStatus
+     * @param pageable
+     * @return
+     */
+    @Override
+    public Page<DeliveryResponseDto> getDeliveriesByStatus(UUID userUuid, DeliveryStatus deliveryStatus, Pageable pageable) {
+        Customer customer = findCustomerByUserUuid(userUuid);
+
+        Page<Delivery> deliveries = deliveryRepository.findByCustomerUuidByStatus(customer.getCustomerUuid(), deliveryStatus, pageable);
+
+        return deliveries.map(deliveryMapper::searchResponse);
+    }
+
+    @Override
+    public DeliveryCountResponseDto getDeliveryDashboardCount(UUID userUuid) {
+        Customer customer = findCustomerByUserUuid(userUuid);
+
+        int shippedCount = deliveryRepository.findByDeliveryStatusCount(customer.getCustomerUuid(), DeliveryStatus.SHIPPED);
+        int deliveredCount = deliveryRepository.findByDeliveryStatusCount(customer.getCustomerUuid(), DeliveryStatus.DELIVERED);
+
+        return deliveryMapper.deliveryCount(shippedCount, deliveredCount);
+    }
+
     private Customer findCustomerByUserUuid(UUID userUuid) {
         return customerRepository.findByUserUserUuid(userUuid)
                 .orElseThrow(() -> new CustomerNotFoundException("userUuid: customer not found"));
@@ -178,14 +215,9 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .orElseThrow(() -> new DeliveryNotFoundException("CustomerUuidAndDeliveryUuid: delivery not found"));
     }
 
-    private Address findAddressByCustomerOrder(Order order
-    ) {
-        return addressRepository.findByCustomerCustomerUuid(order.getCustomer().getCustomerUuid())
+    private Address findAddressByCustomerOrder(UUID customerUuid) {
+        return addressRepository.findByCustomerCustomerUuid(customerUuid)
                 .orElseThrow(() -> new CustomerNotFoundException("CustomerUuid: Address not found"));
     }
 
-    private Order findOrderByOrderUuid(UUID orderUuid) {
-        return orderRepository.findByOrderUuid(orderUuid)
-                .orElseThrow(() -> new OrderNotFoundException("OrderUuid: Order not found"));
-    }
 }

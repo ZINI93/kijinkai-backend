@@ -8,7 +8,7 @@ CREATE TABLE `users` (
     `nick_name` VARCHAR(50) NOT NULL UNIQUE COMMENT '사용자 닉네임',
     `user_role` VARCHAR(20) NOT NULL COMMENT '사용자 역할 (예: USER, ADMIN)',
     `email_verified` BOOLEAN NOT NULL COMMENT '사용자 메일 등록 확인 여부',
-    `email_verifiedAt` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '이메일 등록 시간',
+    `email_verified_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '이메일 등록 시간',
     `user_status` VARCHAR(20) NOT NULL COMMENT '사용자 계정 상태',
 
     `created_by` VARCHAR(50) COMMENT '생성자',
@@ -59,6 +59,7 @@ CREATE TABLE `wallets` (
 
     `created_by` VARCHAR(50) COMMENT '생성자',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시간',
+
 
     `updated_by` VARCHAR(50) COMMENT '최종 수정자',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
@@ -144,8 +145,9 @@ CREATE TABLE `order_items` (
     `order_item_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '주문 상품 ID',
     `order_item_uuid` BINARY(16) NOT NULL UNIQUE COMMENT '주문 상품 고유 UUID',
     `customer_uuid` BINARY(16) NOT NULL COMMENT '고객 UUID',
-    `platform_id` BIGINT NOT NULL COMMENT '플랫폼 ID',
-    `order_id` BIGINT NOT NULL UNIQUE COMMENT '주문 ID', -- UNIQUE 제약 조건은 OrderItem이 Order에 대해 1:1 관계일 때 사용 (제공된 엔티티 정의에 따름)
+    `order_id` BIGINT NOT NULL COMMENT '주문 ID',
+    `product_payment_uuid` BINARY(16) COMMENT '상품 대금 결제 UUID',
+    `delivery_fee_payment_uuid` BINARY(16) COMMENT '상품 배송비 결제 UUID',
     `product_link` VARCHAR(255) NOT NULL COMMENT '상품 링크',
     `quantity` INT NOT NULL COMMENT '수량',
     `price_original` DECIMAL(19, 4) NOT NULL COMMENT '원본 통화(엔화) 기준 상품 단가',
@@ -154,18 +156,20 @@ CREATE TABLE `order_items` (
     `order_item_currency_converted` VARCHAR(20) NOT NULL COMMENT '변환된 통화 코드 (ISO 4217)',
     `exchange_rate` DECIMAL(10, 6) NOT NULL COMMENT '환율',
     `memo` TEXT COMMENT '상품 항목 관련 메모',
+    `order_item_status` VARCHAR(20) NOT NULL COMMENT '상품의 상태',
+
 
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시간',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
 
+    CONSTRAINT `chk_delivery_status` CHECK (`delivery_status` IN ('PENDING', 'PENDING_APPROVAL', 'PRODUCT_PURCHASE', 'PRODUCT_PURCHASE_COMPLETE', 'PRODUCT_PAYMENT_COMPLETED'
+    , 'DELIVERY_FEE_PAYMENT_REQUEST', 'DELIVERY_FEE_PAYMENT_COMPLETED', 'COMPLETED', 'CANCELLED', 'REJECTED')),
     CONSTRAINT `chk_order_item_currency_original` CHECK (`order_item_currency_original` IN ('JPY', 'KRW', 'CLP', 'USD')),
     CONSTRAINT `chk_order_item_currency_converted` CHECK (`order_item_currency_converted` IN ('JPY', 'KRW', 'CLP', 'USD')),
-    CONSTRAINT `fk_order_items_platform_id` FOREIGN KEY (`platform_id`) REFERENCES `platforms` (`platform_id`),
     CONSTRAINT `fk_order_items_order_id` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 인덱스 추가 (성능 고려)
-CREATE INDEX `idx_order_items_platform_id` ON `order_items` (`platform_id`);
 CREATE INDEX `idx_order_items_order_id` ON `order_items` (`order_id`);
 CREATE INDEX `idx_order_items_order_item_uuid` ON `order_items` (`order_item_uuid`);
 
@@ -362,21 +366,20 @@ CREATE TABLE `order_payments` (
     `payment_uuid` BINARY(16) NOT NULL UNIQUE COMMENT '결제 고유 UUID',
     `customer_uuid` BINARY(16) NOT NULL COMMENT '고객 UUID',
     `wallet_uuid` BINARY(16) NOT NULL COMMENT '지갑 UUID',
-    `order_uuid` BINARY(16) NOT NULL COMMENT '주문 UUID',
+    `order_uuid` BINARY(16) COMMENT '주문 UUID',
 
     -- 결제 정보
     `payment_amount` DECIMAL(19, 4) NOT NULL COMMENT '결제 금액',
-    `payment_currency` VARCHAR(10) NOT NULL DEFAULT 'JPY' COMMENT '결제 통화', -- 누락된 컬럼 추가
     `payment_order` VARCHAR(20) NOT NULL COMMENT '결제 순서 (FIRST, SECOND)', -- 누락된 컬럼 추가
 
     -- 상태 관리
-    `status` VARCHAR(30) NOT NULL COMMENT '결제 상태',
+    `order_payment_status` VARCHAR(30) NOT NULL COMMENT '결제 상태',
     `payment_type` VARCHAR(30) NOT NULL COMMENT '결제 유형 (PRODUCT_PAYMENT, SHIPPING_PAYMENT)',
 
     -- 처리 정보
     `rejection_reason` TEXT COMMENT '거절 사유',
-    `paid_at` DATETIME COMMENT '지불 일시',
-    `created_by_admin` BINARY(16) NOT NULL COMMENT '생성한 관리자 UUID', -- 컬럼명 수정
+    `paid_at` DATETIME COMMENT NOT NULL '지불 일시',
+    `created_by_admin_uuid` BINARY(16) COMMENT '생성한 관리자 UUID', -- 컬럼명 수정
 
     -- 낙관적 잠금
     `version` BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
@@ -388,11 +391,9 @@ CREATE TABLE `order_payments` (
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
 
     -- 제약조건 (수정됨)
-    CONSTRAINT `chk_order_payment_status` CHECK (`status` IN ('PENDING_USER_PAYMENT', 'COMPLETED', 'FAILED', 'CANCELLED')),
+    CONSTRAINT `chk_order_payment_status` CHECK (`status` IN ('PENDING', 'COMPLETED', 'FAILED')),
     CONSTRAINT `chk_order_payment_type` CHECK (`payment_type` IN ('PRODUCT_PAYMENT', 'SHIPPING_PAYMENT')),
-    CONSTRAINT `chk_order_payment_currency` CHECK (`payment_currency` IN ('JPY', 'KRW', 'CLP', 'USD')),
     CONSTRAINT `chk_order_payment_order` CHECK (`payment_order` IN ('FIRST', 'SECOND')),
-    CONSTRAINT `chk_order_payment_amount_positive` CHECK (`payment_amount` > 0),
     CONSTRAINT `chk_order_payment_version_non_negative` CHECK (`version` >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -401,10 +402,10 @@ CREATE INDEX `idx_order_payments_payment_uuid` ON `order_payments` (`payment_uui
 CREATE INDEX `idx_order_payments_customer_uuid` ON `order_payments` (`customer_uuid`);
 CREATE INDEX `idx_order_payments_wallet_uuid` ON `order_payments` (`wallet_uuid`);
 CREATE INDEX `idx_order_payments_order_uuid` ON `order_payments` (`order_uuid`);
-CREATE INDEX `idx_order_payments_status` ON `order_payments` (`status`);
+CREATE INDEX `idx_order_payments_status` ON `order_payments` (`order_payment_status`);
 CREATE INDEX `idx_order_payments_payment_order` ON `order_payments` (`payment_order`);
 CREATE INDEX `idx_order_payments_payment_type` ON `order_payments` (`payment_type`);
-CREATE INDEX `idx_order_payments_created_by_admin` ON `order_payments` (`created_by_admin`);
+CREATE INDEX `idx_order_payments_created_by_admin_uuid` ON `order_payments` (`created_by_admin_uuid`);
 CREATE INDEX `idx_order_payments_customer_payment` ON `order_payments` (`customer_uuid`, `payment_uuid`);
 CREATE INDEX `idx_order_payments_order_payment_order` ON `order_payments` (`order_uuid`, `payment_order`);
 
@@ -448,19 +449,17 @@ CREATE INDEX `idx_transactions_currency` ON `transactions` (`currency`);
 
 
 CREATE TABLE `exchange_rates` (
-    `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '환율 ID',
-    `from_currency` VARCHAR(10) NOT NULL COMMENT '기준 통화 (예: USD)',
-    `to_currency` VARCHAR(10) NOT NULL COMMENT '대상 통화 (예: KRW)',
+    `exchange_rate_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '환율 ID',
+    `currency` VARCHAR(10) NOT NULL COMMENT '기준 통화 (예: USD)',
     `rate` DECIMAL(18, 8) NOT NULL COMMENT '환율',
     `fetched_at` DATETIME NOT NULL COMMENT '환율 조회 일시',
 
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시간',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
 
-    CONSTRAINT `uq_exchange_rates_currency_pair_fetched_at` UNIQUE (`from_currency`, `to_currency`, `fetched_at`)
+    CONSTRAINT `uq_exchange_rates_currency_pair_fetched_at` UNIQUE (`currency`, `fetched_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 인덱스 추가 (성능 고려)
-CREATE INDEX `idx_exchange_rates_from_currency` ON `exchange_rates` (`from_currency`);
-CREATE INDEX `idx_exchange_rates_to_currency` ON `exchange_rates` (`to_currency`);
+CREATE INDEX `idx_exchange_rates_currency` ON `exchange_rates` (`currency`);
 CREATE INDEX `idx_exchange_rates_fetched_at` ON `exchange_rates` (`fetched_at`);

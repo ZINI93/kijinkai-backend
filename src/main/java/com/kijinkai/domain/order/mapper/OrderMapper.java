@@ -1,6 +1,5 @@
 package com.kijinkai.domain.order.mapper;
 
-import com.kijinkai.domain.order.dto.OrderRequestDto;
 import com.kijinkai.domain.order.dto.OrderResponseDto;
 import com.kijinkai.domain.order.entity.Order;
 import org.springframework.stereotype.Component;
@@ -13,9 +12,11 @@ public class OrderMapper {
 
         return OrderResponseDto.builder()
                 .orderUuid(order.getOrderUuid())
-                .customer(order.getCustomer())
+                .customerUuid(order.getCustomer().getCustomerUuid())
+                .totalPriceOriginal(order.getTotalPriceOriginal())
                 .finalPriceOriginal(order.getFinalPriceOriginal())
                 .memo(order.getMemo())
                 .build();
     }
+
 }

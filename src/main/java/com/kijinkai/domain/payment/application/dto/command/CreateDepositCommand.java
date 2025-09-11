@@ -4,6 +4,7 @@ package com.kijinkai.domain.payment.application.dto.command;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.payment.application.dto.request.DepositRequestDto;
+import com.kijinkai.domain.payment.domain.enums.BankType;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import lombok.Builder;
 import lombok.Value;
@@ -19,7 +20,7 @@ public class CreateDepositCommand {
     BigDecimal amountOriginal;
     Currency originalCurrency;
     String depositorName;
-    String bankAccount;
+    BankType bankType;
     String memo;
 
     public static CreateDepositCommand from(Wallet wallet, Customer customer, DepositRequestDto requestDto){
@@ -30,8 +31,7 @@ public class CreateDepositCommand {
                 .amountOriginal(requestDto.getAmountOriginal())
                 .originalCurrency(requestDto.getOriginalCurrency())
                 .depositorName(requestDto.getDepositorName())
-                .bankAccount(requestDto.getBankAccount())
-                .memo(requestDto.getMemo())
+                .bankType(requestDto.getBankType())
                 .build();
     }
 }

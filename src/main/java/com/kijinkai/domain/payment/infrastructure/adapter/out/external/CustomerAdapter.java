@@ -16,11 +16,11 @@ public class CustomerAdapter implements CustomerPort {
 
     @Override
     public Customer findByUserUuid(UUID userUuid) {
-        return findByUserUuid(userUuid);
+        return customerService.findByUserUuid(userUuid);
     }
 
     @Override
     public Customer findByCustomerUuid(UUID customerUuid) {
-        return findByCustomerUuid(customerUuid);
+        return customerService.findByCustomerUuid(customerUuid);
     }
 }

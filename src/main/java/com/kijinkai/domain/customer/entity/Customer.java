@@ -4,14 +4,17 @@ import com.kijinkai.domain.common.BaseEntity;
 import com.kijinkai.domain.customer.dto.CustomerUpdateDto;
 import com.kijinkai.domain.user.entity.User;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 
 @Getter
 @Table(name = "customers")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 public class Customer extends BaseEntity {
 

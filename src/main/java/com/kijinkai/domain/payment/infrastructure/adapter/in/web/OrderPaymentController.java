@@ -2,16 +2,26 @@ package com.kijinkai.domain.payment.infrastructure.adapter.in.web;
 
 
 import com.kijinkai.domain.common.BasicResponseDto;
+import com.kijinkai.domain.orderitem.dto.OrderItemResponseDto;
+import com.kijinkai.domain.orderitem.entity.OrderItemStatus;
+import com.kijinkai.domain.payment.application.dto.request.OrderPaymentDeliveryRequestDto;
 import com.kijinkai.domain.payment.application.dto.request.OrderPaymentRequestDto;
 import com.kijinkai.domain.payment.application.dto.response.DepositRequestResponseDto;
+import com.kijinkai.domain.payment.application.dto.response.OrderPaymentCountResponseDto;
 import com.kijinkai.domain.payment.application.dto.response.OrderPaymentResponseDto;
 import com.kijinkai.domain.payment.application.port.in.PaymentUseCase;
+import com.kijinkai.domain.payment.domain.enums.OrderPaymentStatus;
+import com.kijinkai.domain.payment.domain.enums.PaymentType;
 import com.kijinkai.domain.user.service.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +32,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.ConcurrentModificationException;
+import java.util.List;
 import java.util.UUID;
 
 import static com.kijinkai.domain.payment.infrastructure.adapter.in.messaging.PaymentMassage.*;
@@ -37,15 +48,15 @@ public class OrderPaymentController {
 
     private final PaymentUseCase paymentUseCase;
 
-    // ----  1차 결제   ----
+
+    //----  1차 결제   ----
 
     @Operation(
             summary = "1차 결제요청 생성",
             description = "관리자가 상품에 대한 1차 결제 요청을 생성 합니다.",
             tags = {"결제관리"}
     )
-    @PostMapping("/admin/first-payment/{orderUuid}")
-    @PreAuthorize("hasRole('Admin')")
+    @PostMapping("/first-payment")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "결제 생성 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청"),
@@ -54,49 +65,21 @@ public class OrderPaymentController {
     })
     public ResponseEntity<BasicResponseDto<OrderPaymentResponseDto>> createFirstOrderPayment(
             Authentication authentication,
-            @PathVariable UUID orderUuid
-    ) {
-        UUID adminUuid = getUserUuid(authentication);
-        log.info("First order payment created - Admin: {}, Order: {}", adminUuid, orderUuid);
-
-        try {
-            OrderPaymentResponseDto response = paymentUseCase.createFirstPayment(adminUuid, orderUuid);
-            return createCreatedResponse(ORDER_PAYMENT_CREATE_SUCCESS, response,
-                    "/api/v1/payments/order-payment/{paymentUuid}", response.getPaymentUuid());
-        } catch (Exception e) {
-            log.error("Failed to create first order payment - admin: {}, order: {}", adminUuid, orderUuid, e);
-            throw e;
-        }
-    }
-
-    @Operation(
-            summary = "1차 결제 지불",
-            description = "관리자가 생성한 1차 결제 요청서를 유저가 지불합니다",
-            tags = {"결제관리"}
-    )
-    @PutMapping("/first-payment/{paymentUuid}/complete")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "결제 요청 처리 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
-            @ApiResponse(responseCode = "404", description = "결제내역을 찾을 수 없음"),
-            @ApiResponse(responseCode = "409", description = "동시 처리 중"),
-            @ApiResponse(responseCode = "500", description = "서버오류")
-    })
-    public ResponseEntity<BasicResponseDto<OrderPaymentResponseDto>> completeFirstOrderPayment(
-            Authentication authentication,
-            @PathVariable UUID paymentUuid
+            @RequestBody OrderPaymentRequestDto requestDto
     ) {
         UUID userUuid = getUserUuid(authentication);
-        log.info("Completing first order payment - User: {}, Payment: {}", userUuid, paymentUuid);
+        log.info("First order payment created - user: {}", userUuid);
 
         try {
-            OrderPaymentResponseDto response = paymentUseCase.completeFirstPayment(userUuid, paymentUuid);
-            return createSuccessResponse(ORDER_PAYMENT_COMPLETE_SUCCESS, response);
+            OrderPaymentResponseDto response = paymentUseCase.completeFirstPayment(userUuid, requestDto);
+            return createCreatedResponse(ORDER_PAYMENT_CREATE_SUCCESS, response,
+                    "/api/v1/payments/first-payment/{orderPaymentUuid}", response.getPaymentUuid());
         } catch (Exception e) {
-            log.error("Failed to complete first order payment - user: {}, payment: {}", userUuid, paymentUuid, e);
+            log.error("Failed to create first order payment - admin: {}", userUuid, e);
             throw e;
         }
     }
+
 
     // ----  2차 결제   ----
 
@@ -105,7 +88,7 @@ public class OrderPaymentController {
             description = "관리자가 배송비에 대한 2차 결제 요청을 생성 합니다.",
             tags = {"결제관리"}
     )
-    @PostMapping("/admin/second-payment/{orderUuid}")
+    @PostMapping("/admin/second-payment")
     @PreAuthorize("hasRole('Admin')")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "결제 생성 성공"),
@@ -115,18 +98,17 @@ public class OrderPaymentController {
     })
     public ResponseEntity<BasicResponseDto<OrderPaymentResponseDto>> createSecondOrderPayment(
             Authentication authentication,
-            @PathVariable UUID orderUuid,
             @RequestBody OrderPaymentRequestDto requestDto
     ) {
         UUID adminUuid = getUserUuid(authentication);
-        log.info("Second order payment created - Admin: {}, Order: {}", adminUuid, orderUuid);
+        log.info("Second order payment created - Admin: {}", adminUuid);
 
         try {
-            OrderPaymentResponseDto response = paymentUseCase.createSecondPayment(adminUuid, orderUuid, requestDto);
+            OrderPaymentResponseDto response = paymentUseCase.createSecondPayment(adminUuid, requestDto);
             return createCreatedResponse(ORDER_PAYMENT_CREATE_SUCCESS, response,
                     "/api/v1/payments/order-payment/{paymentUuid}", response.getPaymentUuid());
         } catch (Exception e) {
-            log.error("Failed to create second order payment - admin: {}, order: {}", adminUuid, orderUuid, e);
+            log.error("Failed to create second order payment - admin: {}", adminUuid, e);
             throw e;
         }
     }
@@ -136,7 +118,7 @@ public class OrderPaymentController {
             description = "관리자가 생성한 2차 결제 요청서를 유저가 지불합니다",
             tags = {"결제관리"}
     )
-    @PutMapping("/second-payment/{paymentUuid}/complete")
+    @PostMapping("/second-payment/complete")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "결제 요청 처리 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청"),
@@ -146,21 +128,78 @@ public class OrderPaymentController {
     })
     public ResponseEntity<BasicResponseDto<OrderPaymentResponseDto>> completeSecondOrderPayment(
             Authentication authentication,
-            @PathVariable UUID paymentUuid
-    ) {
+            @RequestBody OrderPaymentDeliveryRequestDto requestDto
+            ) {
         UUID userUuid = getUserUuid(authentication);
-        log.info("Completing second order payment - User: {}, Payment: {}", userUuid, paymentUuid);
+        log.info("Completing second order payment - User: {}, Payment: {}", userUuid, requestDto.getOrderPaymentUuids());
 
         try {
-            OrderPaymentResponseDto response = paymentUseCase.completeSecondPayment(userUuid, paymentUuid);
+            OrderPaymentResponseDto response = paymentUseCase.completeSecondPayment(userUuid, requestDto);
             return createSuccessResponse(ORDER_PAYMENT_COMPLETE_SUCCESS, response);
         } catch (Exception e) {
-            log.error("Failed to complete second order payment - user: {}, payment: {}", userUuid, paymentUuid, e);
+            log.error("Failed to complete second order payment - user: {}", userUuid,  e);
             throw e;
         }
     }
 
+
     // -- 조회
+    @GetMapping("/list/shipping-payment-pending")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "배송 결제 정보 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "배송 결제를 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<Page<OrderPaymentResponseDto>>> getSecondOrderPaymentByPending(
+            Authentication authentication,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        UUID user = getUserUuid(authentication);
+        Page<OrderPaymentResponseDto> orderPayments = paymentUseCase.getOrderPaymentsByStatusAndType(user, OrderPaymentStatus.PENDING, PaymentType.SHIPPING_PAYMENT, pageable);
+
+        return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved order payment information", orderPayments));
+    }
+
+    @GetMapping("/list/shipping-payment-complete")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "배송 결제 정보 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "배송 결제를 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<Page<OrderPaymentResponseDto>>> getSecondOrderPaymentByComplete(
+            Authentication authentication,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        UUID user = getUserUuid(authentication);
+        Page<OrderPaymentResponseDto> orderPayments = paymentUseCase.getOrderPaymentsByStatusAndType(user, OrderPaymentStatus.COMPLETED, PaymentType.SHIPPING_PAYMENT, pageable);
+
+        return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved order payment information", orderPayments));
+    }
+
+
+    @GetMapping("/list/order-payments")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "배송 결제 정보 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "배송 결제를 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<Page<OrderPaymentResponseDto>>> getShippingPayments(
+            Authentication authentication,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        UUID user = getUserUuid(authentication);
+        Page<OrderPaymentResponseDto> response = paymentUseCase.getOrderPayments(user, pageable);
+
+        return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved order payment information", response));
+    }
+
+
+
+
+
 
     @Operation(
             summary = "관리자가 유저의 거래내역을 조회",
@@ -217,6 +256,35 @@ public class OrderPaymentController {
             return createSuccessResponse(ORDER_PAYMENT_RETRIEVED_SUCCESS, response);
         } catch (Exception e) {
             log.error("Failed to retrieve order payment info - user: {}, payment: {}", userUuid, paymentUuid, e);
+            throw e;
+        }
+    }
+
+    @Operation(
+            summary = "유저가 본인 거래 내역을 조회",
+            description = "유저 본인 거래 내역을 조회합니다.",
+            tags = {"결제관리"}
+    )
+    @GetMapping("/dashboard")
+    @PreAuthorize("@paymentSecurityService.canAccessOrderPayment(#paymentUuid, authentication.principal)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "거래 카운드 조회 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "403", description = "접근 권한 없음"),
+            @ApiResponse(responseCode = "404", description = "거래 내역을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<OrderPaymentCountResponseDto>> getOrderPaymentDashboardCount(
+            Authentication authentication
+    ) {
+        UUID userUuid = getUserUuid(authentication);
+        log.info("Order payment retrieved - User: {}", userUuid);
+
+        try {
+            OrderPaymentCountResponseDto response = paymentUseCase.getOrderPaymentDashboardCount(userUuid);
+            return createSuccessResponse(ORDER_PAYMENT_RETRIEVED_SUCCESS, response);
+        } catch (Exception e) {
+            log.error("Failed to retrieve order payment info - user: {}", userUuid, e);
             throw e;
         }
     }

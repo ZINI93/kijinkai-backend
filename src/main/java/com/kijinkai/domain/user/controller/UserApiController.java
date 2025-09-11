@@ -103,6 +103,29 @@ public class UserApiController {
         return ResponseEntity.ok(BasicResponseDto.success("사용자 정보를 성공적으로 업데이트 했습니다.",user));
     }
 
+    @PostMapping("/update-password")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "Update user", description = "Update user password, nickname")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Successful user info update"),
+            @ApiResponse(responseCode = "404", description = "Failed user info update"),
+            @ApiResponse(responseCode = "500", description = "Server Error")
+    })
+    public ResponseEntity<BasicResponseDto<UserResponseDto>> updateUserPassword(
+            @Valid @RequestBody UserUpdateDto updateDto,
+                                                        Authentication authentication){
+        UUID userUuid = extractUserUuid(authentication);
+        log.info("사용자 비밀번호 업데이트 요청 - 사용자 UUID: {}", userUuid);
+
+        log.info("받은 currentPassword: [{}]", updateDto.getCurrentPassword() );
+        log.info("받은 newPassword: [{}]", updateDto.getNewPassword());
+
+        UserResponseDto user = userService.updateUserPassword(userUuid, updateDto);
+        log.info("사용자 비밀번호 업데이트 완료 - 고객 UUID: {}", user.getUserUuid());
+
+        return ResponseEntity.ok(BasicResponseDto.success("사용자 정보를 성공적으로 업데이트 했습니다.",user));
+    }
+
     @DeleteMapping("/me")
     @Operation(summary = "delete user", description = "delete user")
     @ApiResponses({

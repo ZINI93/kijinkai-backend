@@ -35,7 +35,7 @@ public class PlatformApiController {
      * @param pageable
      * @return
      */
-    @GetMapping()
+    @GetMapping("/list")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "플렛폼 리스트 조회 성공"),
             @ApiResponse(responseCode = "404", description = "잘못된 요청"),
@@ -43,7 +43,7 @@ public class PlatformApiController {
             @ApiResponse(responseCode = "500", description = "서버오류")
     })
     public ResponseEntity<BasicResponseDto<Page<PlatformResponseDto>>> getPlatforms(
-            @PageableDefault(size = 10, sort = "createAt", direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ){
         Page<PlatformResponseDto> platforms = platformService.getPlatforms(pageable);
 

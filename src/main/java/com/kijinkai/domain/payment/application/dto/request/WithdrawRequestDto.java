@@ -12,9 +12,12 @@ import java.math.BigDecimal;
 public class WithdrawRequestDto {
 
     BigDecimal requestAmount;
-    Currency targetCurrency;
+    Currency currency;
     String bankName;
+    String accountNumber;
     String accountHolder;
+
+    String memo;
 
 
 }

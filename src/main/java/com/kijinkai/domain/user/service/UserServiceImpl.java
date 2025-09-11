@@ -25,7 +25,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -39,6 +38,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     private final PasswordEncoder passwordEncoder;
+
 
     private final UserMapper userMapper;
     private final UserFactory factory;
@@ -121,7 +121,7 @@ public class UserServiceImpl implements UserService {
         try {
             log.info("Updating user for user uuid:{}", userUuid);
 
-            String encodedPassword = passwordEncoding(updateDto.getPassword());
+            String encodedPassword = passwordEncoding(updateDto.getNewPassword());
 
             User user = findUserByUserUuid(userUuid);
             user.updateUser(encodedPassword, updateDto);
@@ -132,6 +132,22 @@ public class UserServiceImpl implements UserService {
             log.error("Failed to update for user uuid: {}", userUuid, e);
             throw new UserUpdateException("Failed to update user", e);
         }
+    }
+
+    @Override
+    @Transactional
+    public UserResponseDto updateUserPassword(UUID userUuid, UserUpdateDto updateDto) {
+
+        User user = findUserByUserUuid(userUuid);
+
+        if (!passwordEncoder.matches(updateDto.getCurrentPassword(), user.getPassword())){
+            throw new UserUpdateException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        String newEncodedPassword = passwordEncoding(updateDto.getNewPassword());
+        user.updatePasswordForUser(newEncodedPassword);
+
+        return userMapper.toResponse(user);
     }
 
     private String passwordEncoding(String password) {

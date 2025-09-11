@@ -19,13 +19,12 @@ public class ExchangeRate extends TimeBaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "exchange_rate_id")
+    private Long exchangeRateId;
 
-    @Column(name = "from_currency", nullable = false)
-    private Currency fromCurrency;
-
-    @Column(name = "to_currency", nullable = false)
-    private Currency toCurrency;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "currency", nullable = false)
+    private Currency currency;
 
     @Column(nullable = false)
     private BigDecimal rate;
@@ -34,35 +33,14 @@ public class ExchangeRate extends TimeBaseEntity{
     private LocalDateTime fetchedAt;
 
     @Builder
-    public ExchangeRate(Currency fromCurrency, Currency toCurrency, BigDecimal rate, LocalDateTime fetchedAt) {
-        if (rate == null || rate.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Exchange rate must be a positive value.");
-        }
-        if (fetchedAt == null) {
-            throw new IllegalArgumentException("Fetched date cannot be null.");
-        }
-
+    public ExchangeRate(Currency currency, Currency toCurrency, BigDecimal rate, LocalDateTime fetchedAt) {
+        this.currency = currency;
         this.rate = rate;
         this.fetchedAt = fetchedAt;
     }
 
-    // 환율 비교 로직 (만약 필요하다면 도메인 로직을 엔티티 안에 넣을 수 있음)
-    public boolean isSignificantlyDifferent(BigDecimal newRate, BigDecimal threshold) {
-        if (newRate == null) return false;
-        BigDecimal diff = this.rate.subtract(newRate).abs();
-        return diff.compareTo(threshold) > 0;
+    public void updateExchangeRate(BigDecimal rate) {
+        this.rate = rate;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ExchangeRate that = (ExchangeRate) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
 }

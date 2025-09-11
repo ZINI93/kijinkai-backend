@@ -14,6 +14,8 @@ public interface UserService {
 
     UserResponseDto createUserWithValidate(UserRequestDto requestDto);
     UserResponseDto updateUserWithValidate(UUID userUuid, UserUpdateDto updateDto);
+    UserResponseDto updateUserPassword(UUID userUuid, UserUpdateDto updateDto);
+
     void deleteUser(UUID userUuid);
     User findUserByUserUuid(UUID userUuid);
 

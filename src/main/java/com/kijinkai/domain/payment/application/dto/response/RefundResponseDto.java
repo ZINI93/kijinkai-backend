@@ -28,4 +28,8 @@ public class RefundResponseDto {
     LocalDateTime processedAt;
     String adminMemo;
 
+    LocalDateTime createAt;
+    BigDecimal afterBalance;
+    String type;
+
 }

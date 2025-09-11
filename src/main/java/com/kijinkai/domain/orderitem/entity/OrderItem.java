@@ -3,13 +3,13 @@ package com.kijinkai.domain.orderitem.entity;
 import com.kijinkai.domain.common.TimeBaseEntity;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.order.entity.Order;
-import com.kijinkai.domain.order.entity.OrderStatus;
 import com.kijinkai.domain.orderitem.dto.OrderItemUpdateDto;
 import com.kijinkai.domain.orderitem.exception.OrderItemValidateException;
-import com.kijinkai.domain.platform.entity.Platform;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.Objects;
@@ -17,6 +17,7 @@ import java.util.UUID;
 
 @Getter
 @Table(name = "order_items")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 public class OrderItem extends TimeBaseEntity {
 
@@ -32,12 +33,14 @@ public class OrderItem extends TimeBaseEntity {
     private UUID customerUuid;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "platform_id", nullable = false)
-    private Platform platform;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", updatable = false, nullable = false, unique = true)
+    @JoinColumn(name = "order_id", updatable = false, nullable = false)
     private Order order;
+
+    @Column(name = "product_payment_uuid")
+    private UUID productPaymentUuid;
+
+    @Column(name = "delivery_fee_payment_uuid")
+    private UUID deliveryFeePaymentUuid;
 
     @Column(name = "product_link", nullable = false)
     private String productLink;
@@ -65,14 +68,16 @@ public class OrderItem extends TimeBaseEntity {
     @Column(columnDefinition = "TEXT")
     private String memo;
 
-    @Column(name = "orderItem_status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "order_item_status", nullable = false)
     private OrderItemStatus orderItemStatus;
 
     @Builder
-    public OrderItem(UUID orderItemUuid, Platform platform, Order order, String productLink, int quantity, BigDecimal priceOriginal, BigDecimal priceConverted, Currency currencyOriginal, Currency currencyConverted, BigDecimal exchangeRate, String memo, OrderItemStatus orderItemStatus) {
+    public OrderItem(UUID orderItemUuid, UUID customerUuid, Order order, UUID  productPaymentUuid, String productLink, int quantity, BigDecimal priceOriginal, BigDecimal priceConverted, Currency currencyOriginal, Currency currencyConverted, BigDecimal exchangeRate, String memo, OrderItemStatus orderItemStatus) {
         this.orderItemUuid = orderItemUuid != null ? orderItemUuid : UUID.randomUUID();
-        this.platform = platform;
+        this.customerUuid = customerUuid != null ? customerUuid : UUID.randomUUID();
         this.order = order;
+        this.productPaymentUuid = productPaymentUuid;
         this.productLink = productLink;
         this.quantity = quantity;
         this.priceOriginal = priceOriginal;
@@ -84,17 +89,13 @@ public class OrderItem extends TimeBaseEntity {
         this.orderItemStatus = orderItemStatus != null ? orderItemStatus : OrderItemStatus.PENDING;
     }
 
-
-    public void updateOrderItem(OrderItemUpdateDto updateDto, Platform platform) {
-        this.platform = platform;
+    public void updateOrderItem(OrderItemUpdateDto updateDto) {
         this.productLink = updateDto.getProductLink();
         this.quantity = updateDto.getQuantity();
         this.memo = updateDto.getMemo();
         this.priceOriginal = updateDto.getPriceOriginal();
         this.currencyConverted = updateDto.getCurrencyConverted();
     }
-
-
 
 
     public void validateOrderAndOrderItem(Order order) {
@@ -112,5 +113,15 @@ public class OrderItem extends TimeBaseEntity {
 
     public void isCancel(){
         orderItemStatus = OrderItemStatus.CANCELLED;
+    }
+
+    public void markAsPaymentCompleted(UUID fristproductPaymentUuid){
+        this.productPaymentUuid = fristproductPaymentUuid;
+        orderItemStatus = OrderItemStatus.PRODUCT_PAYMENT_COMPLETED;
+    }
+
+    public void markAsDeliveryPaymentRequest(UUID deliveryFeePaymentUuid){
+        this.deliveryFeePaymentUuid = deliveryFeePaymentUuid;
+        this.orderItemStatus = OrderItemStatus.DELIVERY_FEE_PAYMENT_REQUEST;
     }
 }

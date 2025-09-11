@@ -4,8 +4,8 @@ import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.payment.domain.entity.DepositRequest;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.exchange.service.PriceCalculationService;
+import com.kijinkai.domain.payment.domain.enums.BankType;
 import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
-import com.kijinkai.domain.payment.domain.util.PaymentContents;
 import com.kijinkai.domain.payment.domain.validator.PaymentValidator;
 import com.kijinkai.domain.user.entity.User;
 import com.kijinkai.domain.user.validator.UserValidator;
@@ -45,14 +45,11 @@ public class DepositRequestService {
      * @return
      */
     public DepositRequest createDepositRequest(
-            Customer customer, Wallet wallet, BigDecimal originalAmount, Currency originalCurrency, BigDecimal exchangeRate, String depositorName, String bankAccount
+            Customer customer, Wallet wallet, BigDecimal originalAmount, Currency originalCurrency, BigDecimal exchangeRate, String depositorName, BankType bankType,
+            BigDecimal convertedAmount
     ) {
         paymentValidator.validateDepositEligibility(originalAmount, wallet);
-
-        BigDecimal depositFee = PaymentContents.DEPOSIT_FEE;
-        BigDecimal convertedAmount = priceCalculationService.convertAndCalculateTotalInJpy(originalAmount, Currency.JPY, depositFee);
-
-        return paymentFactory.createDepositRequest(customer, wallet, originalAmount, originalCurrency, convertedAmount, exchangeRate, depositorName, bankAccount);
+        return paymentFactory.createDepositRequest(customer, wallet, originalAmount, originalCurrency, convertedAmount, exchangeRate, depositorName, bankType);
     }
 
     /**
@@ -79,6 +76,12 @@ public class DepositRequestService {
 
         return depositRequest;
     }
+
+    public DepositRequest getDepositsByStatus(DepositRequest depositRequest, User user){
+        userValidator.requireAdminRole(user);
+        return depositRequest;
+    }
+
 
     public DepositRequest getDepositInfo(DepositRequest depositRequest, Customer customer) {
         return depositRequest;

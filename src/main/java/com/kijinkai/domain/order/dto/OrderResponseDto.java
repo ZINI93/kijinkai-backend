@@ -14,7 +14,7 @@ import java.util.UUID;
 public class OrderResponseDto {
 
     private UUID orderUuid;
-    private Customer customer;
+    private UUID customerUuid;
     private BigDecimal deliveryFee;
     private BigDecimal totalPriceOriginal;   // 엔화의 상품전체가격
     private BigDecimal totalPriceConverted;   // 해당 통화의 전체가격
@@ -27,9 +27,9 @@ public class OrderResponseDto {
 
 
     @Builder
-    public OrderResponseDto(UUID orderUuid, Customer customer, BigDecimal deliveryFee, BigDecimal totalPriceOriginal, BigDecimal totalPriceConverted, BigDecimal finalPriceOriginal, String convertedCurrency, OrderStatus orderstate, String memo, String rejectedReason, PaymentStatus paymentStatus) {
+    public OrderResponseDto(UUID orderUuid, UUID customerUuid, BigDecimal deliveryFee, BigDecimal totalPriceOriginal, BigDecimal totalPriceConverted, BigDecimal finalPriceOriginal, String convertedCurrency, OrderStatus orderstate, String memo, String rejectedReason, PaymentStatus paymentStatus) {
         this.orderUuid = orderUuid;
-        this.customer = customer;
+        this.customerUuid = customerUuid;
         this.deliveryFee = deliveryFee;
         this.totalPriceOriginal = totalPriceOriginal;
         this.totalPriceConverted = totalPriceConverted;

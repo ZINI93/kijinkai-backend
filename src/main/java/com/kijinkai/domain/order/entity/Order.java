@@ -32,11 +32,11 @@ public class Order extends BaseEntity {
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
-    @Column(name = "total_price_original")
+    @Column(name = "total_price_original", nullable = false)
     private BigDecimal totalPriceOriginal;   // 엔화의 상품전체가격
 
     @Column(name = "total_price_converted")
-    private BigDecimal totalPriceConverted;   // 해당 통화의 전체가격
+    private BigDecimal totalPriceConverted;   // 해당 통화의 전체가격  // 현재 필요 없으나, 일단 필드 자체만 유지
 
     @Column(name = "final_price_original")
     private BigDecimal finalPriceOriginal;   // 엔화의 배송비 포함된 전체 금액
@@ -55,7 +55,7 @@ public class Order extends BaseEntity {
     @Column(name = "reject_reason")
     private String rejectedReason;
 
-    private PaymentType paymentType;
+    private PaymentType paymentType;  // 필요없을거 같음
 
     @Builder
     public Order(UUID orderUuid, Customer customer, BigDecimal totalPriceOriginal, BigDecimal totalPriceConverted, BigDecimal finalPriceOriginal, Currency convertedCurrency, OrderStatus orderStatus, String memo, String rejectedReason, PaymentStatus paymentStatus, PaymentType paymentType) {

@@ -2,15 +2,21 @@ package com.kijinkai.domain.delivery.controller;
 
 import com.kijinkai.domain.common.BaseController;
 import com.kijinkai.domain.common.BasicResponseDto;
+import com.kijinkai.domain.delivery.dto.DeliveryCountResponseDto;
 import com.kijinkai.domain.delivery.dto.DeliveryRequestDto;
 import com.kijinkai.domain.delivery.dto.DeliveryResponseDto;
 import com.kijinkai.domain.delivery.dto.DeliveryUpdateDto;
+import com.kijinkai.domain.delivery.entity.DeliveryStatus;
 import com.kijinkai.domain.delivery.service.DeliveryService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,7 +41,7 @@ public class DeliveryAdminApiController extends BaseController {
     /**
      * 관리자에 의해서 배송작성
      */
-    @PostMapping("/{orderUuid}")
+    @PostMapping("/{orderPaymentUuid}/create")
     @PreAuthorize("hasRole('ADMIN')")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "관리자가 배송 등록 성공"),
@@ -46,14 +52,14 @@ public class DeliveryAdminApiController extends BaseController {
     })
     public ResponseEntity<BasicResponseDto<DeliveryResponseDto>> createDelivery(
             Authentication authentication,
-            @PathVariable UUID orderUuid,
+            @PathVariable("orderPaymentUuid") UUID orderPaymentUuid,
             @Valid @RequestBody DeliveryRequestDto requestDto
     ) {
         UUID userUuid = getUserUuid(authentication);
-        log.info("Creating delivery for order: {} by admin: {}", orderUuid, userUuid);
+        log.info("Creating delivery for orderPayment: {} by admin: {}", orderPaymentUuid, userUuid);
 
         try {
-            DeliveryResponseDto delivery = deliveryService.createDeliveryWithValidate(userUuid, orderUuid, requestDto);
+            DeliveryResponseDto delivery = deliveryService.createDeliveryWithValidate(userUuid, orderPaymentUuid, requestDto);
 
             URI location = ServletUriComponentsBuilder
                     .fromCurrentContextPath()
@@ -64,7 +70,7 @@ public class DeliveryAdminApiController extends BaseController {
             return ResponseEntity.created(location)
                     .body(BasicResponseDto.success("배송이 성공적으로 등록되었습니다", delivery));
         } catch (Exception e) {
-            log.error("Failed to create delivery for order: {} by admin: {}", orderUuid, userUuid, e);
+            log.error("Failed to create delivery for order: {} by admin: {}", orderPaymentUuid, userUuid, e);
             throw e;
         }
     }
@@ -156,4 +162,58 @@ public class DeliveryAdminApiController extends BaseController {
             throw e;
         }
     }
+
+
+    @GetMapping("/list/shipping")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "배송 정보 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "배송을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<Page<DeliveryResponseDto>>> getDeliveriesByShipping(
+            Authentication authentication,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        UUID userUuid = getUserUuid(authentication);
+        Page<DeliveryResponseDto> response = deliveryService.getDeliveriesByStatus(userUuid, DeliveryStatus.SHIPPED, pageable);
+
+        return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved order payment information", response));
+    }
+
+    @GetMapping("/list/delivered")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "배송 정보 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "배송을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<Page<DeliveryResponseDto>>> getDeliveriesByDelivered(
+            Authentication authentication,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        UUID userUuid = getUserUuid(authentication);
+        Page<DeliveryResponseDto> response = deliveryService.getDeliveriesByStatus(userUuid, DeliveryStatus.DELIVERED, pageable);
+
+        return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved order payment information", response));
+    }
+
+
+    @GetMapping("/dashboard/statistics")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "배송 count 정보 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "배송을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<DeliveryCountResponseDto>> getDeliveriesCountByStatus(
+            Authentication authentication
+    ) {
+        UUID userUuid = getUserUuid(authentication);
+        DeliveryCountResponseDto response = deliveryService.getDeliveryDashboardCount(userUuid);
+
+
+        return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved order payment information", response));
+    }
+
 }

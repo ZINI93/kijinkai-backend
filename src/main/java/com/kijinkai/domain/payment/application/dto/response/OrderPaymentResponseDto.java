@@ -20,4 +20,8 @@ public class OrderPaymentResponseDto {
     BigDecimal paymentAmount;
     OrderPaymentStatus status;
     LocalDateTime paidAt;
+
+    LocalDateTime createAt;
+    BigDecimal afterBalance;
+    String type;
 }

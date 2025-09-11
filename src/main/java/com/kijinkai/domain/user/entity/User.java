@@ -39,10 +39,10 @@ public class User extends BaseEntity {
     @Column(name = "user_role", nullable = false)
     private UserRole userRole;
 
-    @Column(name = "email_verified", nullable = false)
+    @Column(name = "email_verified")
     private boolean emailVerified = false;
 
-    @Column(name = "email_verifiedAt", nullable = false)
+    @Column(name = "email_verified_at")
     private LocalDateTime emailVerifiedAt;
 
     @Enumerated(EnumType.STRING)
@@ -63,6 +63,10 @@ public class User extends BaseEntity {
     public void updateUser(String password, UserUpdateDto updateDto) {
         this.password = password;
         this.nickname = updateDto.getNickname();
+    }
+
+    public void updatePasswordForUser(String password) {
+        this.password = password;
     }
 
     /*
