@@ -12,7 +12,7 @@ import com.kijinkai.domain.transaction.exception.TransactionNotFoundException;
 import com.kijinkai.domain.transaction.factory.TransactionFactory;
 import com.kijinkai.domain.transaction.mapper.TransactionMapper;
 import com.kijinkai.domain.transaction.repository.TransactionRepository;
-import com.kijinkai.domain.user.validator.UserValidator;
+import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +35,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionMapper transactionMapper;
     private final TransactionFactory transactionFactory;
 
-    private final UserValidator userValidator;
+    private final UserApplicationValidator userValidator;
 
     /**
      * 주문 완료시 거래 내역저장
@@ -87,7 +87,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public TransactionResponseDto getTransactionInfoByAdmin(UUID userUuid, UUID transactionUuid) {
         Customer customer = findCustomerByUserUuid(userUuid);
-        userValidator.requireAdminRole(customer.getUser());
+        userValidator.requireJpaAdminRole(customer.getUser());
 
         Transaction transaction = findTransactionByTransactionUuid(transactionUuid);
 

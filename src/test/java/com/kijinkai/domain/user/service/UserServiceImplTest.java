@@ -1,15 +1,15 @@
 package com.kijinkai.domain.user.service;
 
 import com.kijinkai.domain.mail.service.EmailService;
-import com.kijinkai.domain.user.dto.UserRequestDto;
-import com.kijinkai.domain.user.dto.UserResponseDto;
-import com.kijinkai.domain.user.dto.UserUpdateDto;
-import com.kijinkai.domain.user.entity.User;
-import com.kijinkai.domain.user.entity.UserRole;
-import com.kijinkai.domain.user.entity.UserStatus;
-import com.kijinkai.domain.user.factory.UserFactory;
-import com.kijinkai.domain.user.mapper.UserMapper;
-import com.kijinkai.domain.user.repository.UserRepository;
+import com.kijinkai.domain.user.application.dto.UserRequestDto;
+import com.kijinkai.domain.user.application.dto.UserResponseDto;
+import com.kijinkai.domain.user.application.dto.UserUpdateDto;
+import com.kijinkai.domain.user.domain.model.UserRole;
+import com.kijinkai.domain.user.domain.model.UserStatus;
+import com.kijinkai.domain.user.application.service.UserApplicationServiceImpl;
+import com.kijinkai.domain.user.domain.factory.UserFactory;
+import com.kijinkai.domain.user.application.mapper.UserMapper;
+import com.kijinkai.domain.user.adapter.out.persistence.repository.UserRepository;
 import com.kijinkai.util.EmailRandomCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,7 +39,8 @@ class UserServiceImplTest {
     @Mock EmailService emailService;
     @Mock EmailRandomCode emailRandomCode;
     @Mock RedisTemplate<String, String> redisTemplate;
-    @InjectMocks UserServiceImpl userService;
+    @InjectMocks
+    UserApplicationServiceImpl userService;
 
     UserRequestDto requestDto;
     UserResponseDto response;

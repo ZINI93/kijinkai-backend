@@ -1,6 +1,6 @@
 package com.kijinkai.domain.common;
 
-import com.kijinkai.domain.user.service.CustomUserDetails;
+import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RestController;
 

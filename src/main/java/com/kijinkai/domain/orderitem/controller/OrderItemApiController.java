@@ -6,7 +6,7 @@ import com.kijinkai.domain.orderitem.dto.OrderItemCountResponseDto;
 import com.kijinkai.domain.orderitem.dto.OrderItemResponseDto;
 import com.kijinkai.domain.orderitem.entity.OrderItemStatus;
 import com.kijinkai.domain.orderitem.service.OrderItemService;
-import com.kijinkai.domain.user.service.CustomUserDetails;
+import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -21,7 +21,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.awt.*;
 import java.util.UUID;
 
 @Slf4j

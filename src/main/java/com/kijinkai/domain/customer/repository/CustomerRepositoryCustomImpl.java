@@ -79,11 +79,11 @@ public class CustomerRepositoryCustomImpl implements CustomerRepositoryCustom {
         return predicate;
     }
 
-    private BooleanExpression filterByUser(UUID userUuid) {
-        if (userUuid == null) {
+    private BooleanExpression filterByUser(UUID customerUuid) {
+        if (customerUuid == null) {
             return null;
         }
-        return customer.user.userUuid.eq(userUuid);
+        return customer.customerUuid.eq(customerUuid);
     }
 
     private BooleanExpression filterByFirstName(String firstName) {

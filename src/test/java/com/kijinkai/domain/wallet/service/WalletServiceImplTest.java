@@ -1,10 +1,9 @@
 package com.kijinkai.domain.wallet.service;
 
 import com.kijinkai.domain.customer.entity.Customer;
-import com.kijinkai.domain.user.entity.User;
-import com.kijinkai.domain.user.entity.UserRole;
-import com.kijinkai.domain.user.repository.UserRepository;
-import com.kijinkai.domain.user.validator.UserValidator;
+import com.kijinkai.domain.user.domain.model.UserRole;
+import com.kijinkai.domain.user.adapter.out.persistence.repository.UserRepository;
+import com.kijinkai.domain.user.adapter.in.web.validator.UserValidator;
 import com.kijinkai.domain.wallet.dto.WalletFreezeRequest;
 import com.kijinkai.domain.wallet.dto.WalletResponseDto;
 import com.kijinkai.domain.wallet.entity.Wallet;

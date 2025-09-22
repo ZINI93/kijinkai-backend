@@ -26,7 +26,7 @@ import com.kijinkai.domain.payment.domain.exception.PaymentProcessingException;
 import com.kijinkai.domain.transaction.entity.TransactionStatus;
 import com.kijinkai.domain.transaction.entity.TransactionType;
 import com.kijinkai.domain.transaction.service.TransactionService;
-import com.kijinkai.domain.user.validator.UserValidator;
+import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import com.kijinkai.domain.wallet.exception.WalletNotFoundException;
 import com.kijinkai.domain.wallet.exception.WalletUpdateFailedException;
@@ -61,7 +61,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderFactory orderFactory;
 
     private final WalletValidator walletValidator;
-    private final UserValidator userValidator;
+    private final UserApplicationValidator userApplicationValidator;
     private final OrderValidator orderValidator;
 
     private final OrderItemService orderItemService;
@@ -119,7 +119,7 @@ public class OrderServiceImpl implements OrderService {
         try {
 
             Customer customer = findCustomerByUserUuid(userUuid);
-            userValidator.requireAdminRole(customer.getUser());
+            userApplicationValidator.requireJpaAdminRole(customer.getUser());
 
             Order order = findOrderByOrderUuid(orderUuid);
             orderValidator.requireDraftOrderStatus(order);
@@ -211,7 +211,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("Confirming order for user uuid:{}", userUuid);
 
         Customer customer = findCustomerByUserUuid(userUuid);
-        userValidator.requireAdminRole(customer.getUser());
+        userApplicationValidator.requireJpaAdminRole(customer.getUser());
 
         Order order = findOrderByCustomerUuidAndOrderUuid(customer, orderUuid);
         orderValidator.requirePaidStatusForConfirmation(order);
@@ -270,7 +270,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("Deleting order for user uuid:{}", userUuid);
 
         Customer customer = findCustomerByUserUuid(userUuid);
-        userValidator.requireAdminRole(customer.getUser());
+        userApplicationValidator.requireJpaAdminRole(customer.getUser());
 
         Order order = findOrderByCustomerUuidAndOrderUuid(customer, orderUuid);
         orderValidator.requireCancellableStatus(order);

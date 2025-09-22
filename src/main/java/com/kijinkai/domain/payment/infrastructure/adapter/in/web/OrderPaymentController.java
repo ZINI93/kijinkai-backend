@@ -2,17 +2,14 @@ package com.kijinkai.domain.payment.infrastructure.adapter.in.web;
 
 
 import com.kijinkai.domain.common.BasicResponseDto;
-import com.kijinkai.domain.orderitem.dto.OrderItemResponseDto;
-import com.kijinkai.domain.orderitem.entity.OrderItemStatus;
 import com.kijinkai.domain.payment.application.dto.request.OrderPaymentDeliveryRequestDto;
 import com.kijinkai.domain.payment.application.dto.request.OrderPaymentRequestDto;
-import com.kijinkai.domain.payment.application.dto.response.DepositRequestResponseDto;
 import com.kijinkai.domain.payment.application.dto.response.OrderPaymentCountResponseDto;
 import com.kijinkai.domain.payment.application.dto.response.OrderPaymentResponseDto;
 import com.kijinkai.domain.payment.application.port.in.PaymentUseCase;
 import com.kijinkai.domain.payment.domain.enums.OrderPaymentStatus;
 import com.kijinkai.domain.payment.domain.enums.PaymentType;
-import com.kijinkai.domain.user.service.CustomUserDetails;
+import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -22,7 +19,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,8 +27,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.ConcurrentModificationException;
-import java.util.List;
 import java.util.UUID;
 
 import static com.kijinkai.domain.payment.infrastructure.adapter.in.messaging.PaymentMassage.*;

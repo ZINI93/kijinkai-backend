@@ -1,9 +1,8 @@
 package com.kijinkai.domain.wallet.controller;
 
 import com.kijinkai.domain.common.BasicResponseDto;
-import com.kijinkai.domain.user.service.CustomUserDetails;
+import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
 import com.kijinkai.domain.wallet.dto.WalletBalanceResponseDto;
-import com.kijinkai.domain.wallet.dto.WalletResponseDto;
 import com.kijinkai.domain.wallet.service.WalletService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

@@ -6,8 +6,8 @@ import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.payment.domain.entity.WithdrawRequest;
 import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
 import com.kijinkai.domain.payment.domain.validator.PaymentValidator;
-import com.kijinkai.domain.user.entity.User;
-import com.kijinkai.domain.user.validator.UserValidator;
+import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
+import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.wallet.entity.Wallet;
 
 import java.math.BigDecimal;
@@ -17,10 +17,10 @@ import java.util.UUID;
 public class WithdrawRequestService {
 
     private final PaymentValidator paymentValidator;
-    private final UserValidator userValidator;
+    private final UserApplicationValidator userValidator;
     private final PaymentFactory paymentFactory;
 
-    public WithdrawRequestService(PaymentValidator paymentValidator, UserValidator userValidator, PaymentFactory paymentFactory) {
+    public WithdrawRequestService(PaymentValidator paymentValidator, UserApplicationValidator userValidator, PaymentFactory paymentFactory) {
         this.paymentValidator = paymentValidator;
         this.userValidator = userValidator;
         this.paymentFactory = paymentFactory;

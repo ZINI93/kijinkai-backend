@@ -6,7 +6,7 @@ import com.kijinkai.domain.exchange.dto.ExchangeRateRequestDto;
 import com.kijinkai.domain.exchange.dto.ExchangeRateResponseDto;
 import com.kijinkai.domain.exchange.dto.ExchangeRateUpdateDto;
 import com.kijinkai.domain.exchange.service.ExchangeRateService;
-import com.kijinkai.domain.user.service.CustomUserDetails;
+import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

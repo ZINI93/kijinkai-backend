@@ -4,8 +4,7 @@ import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.payment.domain.entity.OrderPayment;
 import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
-import com.kijinkai.domain.user.entity.User;
-import com.kijinkai.domain.user.validator.UserValidator;
+import com.kijinkai.domain.user.adapter.in.web.validator.UserValidator;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import org.junit.jupiter.api.BeforeEach;
 

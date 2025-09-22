@@ -30,7 +30,7 @@ import com.kijinkai.domain.payment.domain.service.RefundRequestService;
 import com.kijinkai.domain.payment.domain.service.WithdrawRequestService;
 import com.kijinkai.domain.payment.application.mapper.PaymentMapper;
 import com.kijinkai.domain.payment.domain.util.PaymentContents;
-import com.kijinkai.domain.user.entity.User;
+import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.wallet.dto.WalletResponseDto;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import com.kijinkai.domain.wallet.exception.InsufficientBalanceException;

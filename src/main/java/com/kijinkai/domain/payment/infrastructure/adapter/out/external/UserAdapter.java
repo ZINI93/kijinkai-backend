@@ -1,8 +1,9 @@
 package com.kijinkai.domain.payment.infrastructure.adapter.out.external;
 
 import com.kijinkai.domain.payment.application.port.out.UserPort;
-import com.kijinkai.domain.user.entity.User;
-import com.kijinkai.domain.user.service.UserService;
+import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
+import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
+import com.kijinkai.domain.user.domain.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -12,10 +13,11 @@ import java.util.UUID;
 @Component
 public class UserAdapter implements UserPort {
 
-    private final UserService userService;
+    private final UserPersistencePort userPersistencePort;
 
     @Override
     public User findUserByUserUuid(UUID userUuid) {
-        return userService.findUserByUserUuid(userUuid);
+        return userPersistencePort.findByUserUuid(userUuid)
+                .orElseThrow( () -> new UserNotFoundException(String.format("User not found for user uuid: %s", userUuid)));
     }
 }

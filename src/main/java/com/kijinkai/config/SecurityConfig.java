@@ -1,7 +1,7 @@
 package com.kijinkai.config;
 
 
-import com.kijinkai.domain.user.entity.UserRole;
+import com.kijinkai.domain.user.domain.model.UserRole;
 import com.kijinkai.util.JwtRequestFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

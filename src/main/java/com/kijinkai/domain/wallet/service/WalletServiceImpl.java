@@ -4,16 +4,14 @@ package com.kijinkai.domain.wallet.service;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.customer.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.repository.CustomerRepository;
-import com.kijinkai.domain.user.entity.User;
-import com.kijinkai.domain.user.exception.UserNotFoundException;
-import com.kijinkai.domain.user.repository.UserRepository;
-import com.kijinkai.domain.user.validator.UserValidator;
+import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
+import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
+import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
+import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.wallet.dto.WalletBalanceResponseDto;
 import com.kijinkai.domain.wallet.dto.WalletFreezeRequest;
 import com.kijinkai.domain.wallet.dto.WalletResponseDto;
-import com.kijinkai.domain.wallet.entity.QWallet;
 import com.kijinkai.domain.wallet.entity.Wallet;
-import com.kijinkai.domain.wallet.entity.WalletStatus;
 import com.kijinkai.domain.wallet.exception.InsufficientBalanceException;
 import com.kijinkai.domain.wallet.exception.WalletNotFoundException;
 import com.kijinkai.domain.wallet.fectory.WalletFactory;
@@ -28,15 +26,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-import static com.kijinkai.domain.wallet.entity.QWallet.wallet;
-
 @Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
 public class WalletServiceImpl implements WalletService {
 
-    private final UserRepository userRepository;
+    private final UserPersistencePort UserPersistencePort;
     private final WalletRepository walletRepository;
     private final CustomerRepository customerRepository;
     private final WalletMapper walletMapper;
@@ -44,7 +40,7 @@ public class WalletServiceImpl implements WalletService {
     private final WalletFactory walletFactory;
 
     private final WalletValidator walletValidator;
-    private final UserValidator userValidator;
+    private final UserApplicationValidator userValidator;
 
     /**
      * 지갑 생성
@@ -228,7 +224,7 @@ public class WalletServiceImpl implements WalletService {
     //helper method
 
     private User findUserByUserUUid(UUID userUuid) {
-        return userRepository.findByUserUuid(userUuid)
+        return UserPersistencePort.findByUserUuid(userUuid)
                 .orElseThrow(() -> new UserNotFoundException(String.format("User not found for user uuid: %s", userUuid)));
     }
     private Wallet findWalletByWalletUuid(UUID walletUuid) {

@@ -1,27 +1,13 @@
 package com.kijinkai.domain.payment.domain.service;
 
 import com.kijinkai.domain.customer.entity.Customer;
-import com.kijinkai.domain.customer.exception.CustomerNotFoundException;
-import com.kijinkai.domain.customer.repository.CustomerRepository;
 import com.kijinkai.domain.orderitem.entity.OrderItem;
-import com.kijinkai.domain.orderitem.exception.OrderItemNotFoundException;
-import com.kijinkai.domain.orderitem.repository.OrderItemRepository;
 import com.kijinkai.domain.payment.domain.entity.RefundRequest;
 import com.kijinkai.domain.payment.domain.enums.RefundType;
-import com.kijinkai.domain.payment.domain.repository.RefundRequestRepository;
-import com.kijinkai.domain.payment.application.dto.command.CreateRefundCommand;
-import com.kijinkai.domain.payment.domain.exception.RefundNotFoundException;
 import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
-import com.kijinkai.domain.payment.domain.validator.PaymentValidator;
-import com.kijinkai.domain.user.entity.User;
-import com.kijinkai.domain.user.exception.UserNotFoundException;
-import com.kijinkai.domain.user.repository.UserRepository;
-import com.kijinkai.domain.user.validator.UserValidator;
+import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
+import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.wallet.entity.Wallet;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -31,9 +17,9 @@ public class RefundRequestService {
 
 
     private final PaymentFactory paymentFactory;
-    private final UserValidator userValidator;
+    private final UserApplicationValidator userValidator;
 
-    public RefundRequestService(PaymentFactory paymentFactory, UserValidator userValidator) {
+    public RefundRequestService(PaymentFactory paymentFactory, UserApplicationValidator userValidator) {
         this.paymentFactory = paymentFactory;
         this.userValidator = userValidator;
     }

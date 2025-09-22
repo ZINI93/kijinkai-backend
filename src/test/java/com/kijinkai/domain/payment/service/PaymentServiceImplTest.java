@@ -18,7 +18,7 @@
 //import com.kijinkai.domain.user.entity.User;
 //import com.kijinkai.domain.user.entity.UserRole;
 //import com.kijinkai.domain.user.exception.UserRoleValidateException;
-//import com.kijinkai.domain.user.repository.UserRepository;
+//import com.kijinkai.domain.user.adapter.out.persistence.repository.UserRepository;
 //import com.kijinkai.domain.user.validator.UserValidator;
 //import com.kijinkai.domain.wallet.entity.Wallet;
 //import com.kijinkai.domain.wallet.entity.WalletStatus;

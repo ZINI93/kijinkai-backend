@@ -5,7 +5,7 @@ import com.kijinkai.domain.address.dto.AddressResponseDto;
 import com.kijinkai.domain.address.dto.AddressUpdateDto;
 import com.kijinkai.domain.address.service.AddressService;
 import com.kijinkai.domain.common.BasicResponseDto;
-import com.kijinkai.domain.user.service.CustomUserDetails;
+import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;

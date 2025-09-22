@@ -9,7 +9,7 @@ import com.kijinkai.domain.payment.application.dto.request.WithdrawRequestDto;
 import com.kijinkai.domain.payment.application.dto.response.DepositRequestResponseDto;
 import com.kijinkai.domain.payment.application.dto.response.RefundResponseDto;
 import com.kijinkai.domain.payment.application.dto.response.WithdrawResponseDto;
-import com.kijinkai.domain.user.service.CustomUserDetails;
+import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

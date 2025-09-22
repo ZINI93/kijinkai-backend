@@ -7,7 +7,7 @@ CREATE TABLE `users` (
     `password` VARCHAR(255) NOT NULL COMMENT '사용자 비밀번호 (해시값 저장 권장)',
     `nick_name` VARCHAR(50) NOT NULL UNIQUE COMMENT '사용자 닉네임',
     `user_role` VARCHAR(20) NOT NULL COMMENT '사용자 역할 (예: USER, ADMIN)',
-    `email_verified` BOOLEAN NOT NULL COMMENT '사용자 메일 등록 확인 여부',
+    `email_verified` BOOLEAN NOT NULL COMMENT '사용자 메일 등록 확인 여부',\
     `email_verified_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '이메일 등록 시간',
     `user_status` VARCHAR(20) NOT NULL COMMENT '사용자 계정 상태',
 
@@ -65,6 +65,7 @@ CREATE TABLE `wallets` (
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
 
     CONSTRAINT `chk_currency` CHECK (`currency` IN ('JPY', 'KRW', 'CLP', 'USD')),
+    CONSTRAINT `chk_wallet_status` CHECK (`wallet_status` IN ('ACTIVE', 'FROZEN', 'CLOSED')),
     CONSTRAINT `fk_wallets_customer_id` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -73,6 +74,8 @@ CREATE INDEX `idx_wallets_customer_id` ON `wallets` (`customer_id`);
 CREATE INDEX `idx_wallets_wallet_uuid` ON `wallets` (`wallet_uuid`);
 CREATE INDEX `idx_wallets_currency` ON `wallets` (`currency`);
 
+
+ -- 플렛폼 삭제
 CREATE TABLE `platforms` (
     `platform_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '플랫폼 ID',
     `platform_uuid` BINARY(16) UNIQUE COMMENT '플랫폼 고유 UUID',
@@ -111,6 +114,7 @@ CREATE TABLE `addresses` (
 CREATE INDEX `idx_addresses_customer_id` ON `addresses` (`customer_id`);
 CREATE INDEX `idx_addresses_address_uuid` ON `addresses` (`address_uuid`);
 CREATE INDEX `idx_addresses_zipcode` ON `addresses` (`zipcode`);
+
 
 CREATE TABLE `orders` (
     `order_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '주문 ID',
@@ -162,8 +166,8 @@ CREATE TABLE `order_items` (
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시간',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
 
-    CONSTRAINT `chk_delivery_status` CHECK (`delivery_status` IN ('PENDING', 'PENDING_APPROVAL', 'PRODUCT_PURCHASE', 'PRODUCT_PURCHASE_COMPLETE', 'PRODUCT_PAYMENT_COMPLETED'
-    , 'DELIVERY_FEE_PAYMENT_REQUEST', 'DELIVERY_FEE_PAYMENT_COMPLETED', 'COMPLETED', 'CANCELLED', 'REJECTED')),
+    CONSTRAINT `chk_order_item_status` CHECK (`order_item_status` IN ('PENDING', 'PENDING_APPROVAL', 'PRODUCT_PURCHASE', 'PRODUCT_PURCHASE_COMPLETE', 'PRODUCT_PAYMENT_COMPLETED'
+   , 'DELIVERY_FEE_PAYMENT_REQUEST', 'DELIVERY_FEE_PAYMENT_COMPLETED', 'COMPLETED', 'CANCELLED', 'REJECTED')),
     CONSTRAINT `chk_order_item_currency_original` CHECK (`order_item_currency_original` IN ('JPY', 'KRW', 'CLP', 'USD')),
     CONSTRAINT `chk_order_item_currency_converted` CHECK (`order_item_currency_converted` IN ('JPY', 'KRW', 'CLP', 'USD')),
     CONSTRAINT `fk_order_items_order_id` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`)

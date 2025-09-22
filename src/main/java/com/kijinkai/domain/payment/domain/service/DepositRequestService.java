@@ -7,8 +7,8 @@ import com.kijinkai.domain.exchange.service.PriceCalculationService;
 import com.kijinkai.domain.payment.domain.enums.BankType;
 import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
 import com.kijinkai.domain.payment.domain.validator.PaymentValidator;
-import com.kijinkai.domain.user.entity.User;
-import com.kijinkai.domain.user.validator.UserValidator;
+import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
+import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.wallet.entity.Wallet;
 
 import java.math.BigDecimal;
@@ -20,11 +20,11 @@ public class DepositRequestService {
 
     private final PriceCalculationService priceCalculationService;
 
-    private final UserValidator userValidator;
+    private final UserApplicationValidator userValidator;
     private final PaymentValidator paymentValidator;
     private final PaymentFactory paymentFactory;
 
-    public DepositRequestService(PriceCalculationService priceCalculationService, UserValidator userValidator, PaymentValidator paymentValidator, PaymentFactory paymentFactory) {
+    public DepositRequestService(PriceCalculationService priceCalculationService, UserApplicationValidator userValidator, PaymentValidator paymentValidator, PaymentFactory paymentFactory) {
         this.priceCalculationService = priceCalculationService;
         this.userValidator = userValidator;
         this.paymentValidator = paymentValidator;

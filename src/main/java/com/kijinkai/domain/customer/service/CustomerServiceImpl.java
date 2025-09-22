@@ -4,7 +4,6 @@ package com.kijinkai.domain.customer.service;
 import com.kijinkai.domain.address.entity.Address;
 import com.kijinkai.domain.address.factory.AddressFactory;
 import com.kijinkai.domain.address.repository.AddressRepository;
-import com.kijinkai.domain.common.UuidValidator;
 import com.kijinkai.domain.customer.dto.CustomerCreateResponse;
 import com.kijinkai.domain.customer.dto.CustomerRequestDto;
 import com.kijinkai.domain.customer.dto.CustomerResponseDto;
@@ -15,10 +14,11 @@ import com.kijinkai.domain.customer.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.factory.CustomerFactory;
 import com.kijinkai.domain.customer.mapper.CustomerMapper;
 import com.kijinkai.domain.customer.repository.CustomerRepository;
-import com.kijinkai.domain.user.entity.User;
-import com.kijinkai.domain.user.exception.UserNotFoundException;
-import com.kijinkai.domain.user.repository.UserRepository;
-import com.kijinkai.domain.user.validator.UserValidator;
+import com.kijinkai.domain.user.adapter.out.persistence.entity.UserJpaEntity;
+import com.kijinkai.domain.user.adapter.out.persistence.repository.UserRepository;
+import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
+import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
+import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,8 +47,8 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerFactory customerFactory;
     private final AddressFactory addressFactory;
 
-    private final UserValidator userValidator;
-    private final UuidValidator uuidValidator;
+    private final UserApplicationValidator userValidator;
+
 
     /**
      * 회원 가입 후 유저에서 고객으로 등록 후 정확한 배송정보를 얻기 위한 프로세스
@@ -62,7 +62,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     public CustomerCreateResponse createCustomerWithValidate(UUID userUuid, CustomerRequestDto requestDto) {
 
-        User user = findUserByUserUuid(userUuid, "UserUuid : User not found exception");
+        UserJpaEntity user = findUserByUserUuid(userUuid, "UserUuid : User not found exception");
 
 //        if (!user.isEmailVerified()){
 //            throw new EmailNotFoundException("이메일 인증이 필요 합니다.");
@@ -96,9 +96,7 @@ public class CustomerServiceImpl implements CustomerService {
 
         Customer findBycustomer = findByUserUuid(userUuid);
 
-        UUID customerUuid = uuidValidator.parseUuid(findBycustomer.getCustomerUuid());
-
-        Customer customer = findCustomerByUserUuidAndCustomerUuid(userUuid, customerUuid);
+        Customer customer = findCustomerByUserUuidAndCustomerUuid(userUuid, findBycustomer.getCustomerUuid());
         customer.updateCustomer(updateDto);
         return customerMapper.toResponse(customer);
     }
@@ -136,8 +134,8 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public Page<CustomerResponseDto> getAllByCustomers(UUID userUuid, String firstName, String lastName, String phoneNumber, CustomerTier customerTier, Pageable pageable) {
 
-        User user = findUserByUserUuid(userUuid, String.format("User not found for user uuid: %s", userUuid));
-        userValidator.requireAdminRole(user);
+        UserJpaEntity user = findUserByUserUuid(userUuid, String.format("User not found for user uuid: %s", userUuid));
+        userValidator.requireJpaAdminRole(user);
 
         return customerRepository.findAllByCustomers(userUuid, firstName, lastName, phoneNumber, customerTier, pageable);
     }
@@ -157,7 +155,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for customer uuid: %s", customerUuid)));
     }
 
-    private User findUserByUserUuid(UUID userUuid, String userUuid1) {
+    private UserJpaEntity findUserByUserUuid(UUID userUuid, String userUuid1) {
         return userRepository.findByUserUuid(userUuid)
                 .orElseThrow(() -> new UserNotFoundException(userUuid1));
     }

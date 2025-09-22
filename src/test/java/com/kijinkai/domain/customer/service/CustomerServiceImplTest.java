@@ -9,10 +9,9 @@ import com.kijinkai.domain.customer.entity.CustomerTier;
 import com.kijinkai.domain.customer.factory.CustomerFactory;
 import com.kijinkai.domain.customer.mapper.CustomerMapper;
 import com.kijinkai.domain.customer.repository.CustomerRepository;
-import com.kijinkai.domain.user.entity.User;
 
-import com.kijinkai.domain.user.entity.UserStatus;
-import com.kijinkai.domain.user.repository.UserRepository;
+import com.kijinkai.domain.user.domain.model.UserStatus;
+import com.kijinkai.domain.user.adapter.out.persistence.repository.UserRepository;
 import com.kijinkai.domain.wallet.dto.WalletResponseDto;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import com.kijinkai.domain.wallet.service.WalletService;
@@ -23,11 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 

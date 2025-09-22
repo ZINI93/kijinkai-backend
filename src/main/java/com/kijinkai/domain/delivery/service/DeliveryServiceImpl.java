@@ -23,10 +23,11 @@ import com.kijinkai.domain.order.validator.OrderValidator;
 import com.kijinkai.domain.payment.domain.entity.OrderPayment;
 import com.kijinkai.domain.payment.domain.exception.OrderPaymentNotFoundException;
 import com.kijinkai.domain.payment.domain.repository.OrderPaymentRepository;
-import com.kijinkai.domain.user.entity.User;
-import com.kijinkai.domain.user.exception.UserNotFoundException;
-import com.kijinkai.domain.user.repository.UserRepository;
-import com.kijinkai.domain.user.validator.UserValidator;
+import com.kijinkai.domain.user.adapter.out.persistence.entity.UserJpaEntity;
+import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
+import com.kijinkai.domain.user.adapter.out.persistence.repository.UserRepository;
+import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
+import com.kijinkai.domain.user.domain.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -53,7 +54,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final DeliveryMapper deliveryMapper;
 
     private final DeliveryValidator deliveryValidator;
-    private final UserValidator userValidator;
+    private final UserApplicationValidator userValidator;
     private final OrderValidator orderValidator;
 
     // 유저가 작성할 것인가?? // 관리자가 작성할 것인가??
@@ -73,9 +74,9 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         log.info("Creating delivery for user uuid: {}", userUuid);
 
-        User user = userRepository.findByUserUuid(userUuid)
+        UserJpaEntity user = userRepository.findByUserUuid(userUuid)
                 .orElseThrow(() -> new UserNotFoundException(String.format("User not found exception for userUuid: %s", userUuid)));
-        userValidator.requireAdminRole(user);
+        userValidator.requireJpaAdminRole(user);
 
         OrderPayment secondOrderPayment = orderPaymentRepository.findByPaymentUuid(orderPaymentUuid)
                 .orElseThrow(() -> new OrderPaymentNotFoundException(String.format("Order payment not found exception for orderPaymentUuid: %s", orderPaymentUuid)));
@@ -111,7 +112,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         Customer customer = findCustomerByUserUuid(userUuid);
         Delivery delivery = findDeliveryByCustomerAndDeliveryUuid(customer, deliveryUuid);
 
-        userValidator.requireAdminRole(customer.getUser());
+        userValidator.requireJpaAdminRole(customer.getUser());
         deliveryValidator.requirePendingStatus(delivery);
 
         delivery.updateDeliveryStatus(DeliveryStatus.SHIPPED);
@@ -133,7 +134,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         try {
             log.info("Updating delivery for delivery uuid:{}", deliveryUuid);
             Customer customer = findCustomerByUserUuid(userUuid);
-            userValidator.requireAdminRole(customer.getUser());
+            userValidator.requireJpaAdminRole(customer.getUser());
 
             Delivery delivery = findDeliveryByCustomerAndDeliveryUuid(customer, deliveryUuid);
             delivery.updateDelivery(updateDto);
@@ -157,7 +158,7 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         log.info("Deleting delivery for delivery uuid:{}", deliveryUuid);
         Customer customer = findCustomerByUserUuid(userUuid);
-        userValidator.requireAdminRole(customer.getUser());
+        userValidator.requireJpaAdminRole(customer.getUser());
         Delivery delivery = findDeliveryByCustomerAndDeliveryUuid(customer, deliveryUuid);
 
         deliveryRepository.delete(delivery);

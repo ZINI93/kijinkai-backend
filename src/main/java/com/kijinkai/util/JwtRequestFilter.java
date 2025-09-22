@@ -1,7 +1,7 @@
 package com.kijinkai.util;
 
-import com.kijinkai.domain.user.exception.EmailNotFoundException;
-import com.kijinkai.domain.user.service.CustomUserDetailsService;
+import com.kijinkai.domain.user.domain.exception.EmailNotFoundException;
+import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

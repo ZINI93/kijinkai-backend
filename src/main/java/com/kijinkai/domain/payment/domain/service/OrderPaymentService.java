@@ -1,23 +1,21 @@
 package com.kijinkai.domain.payment.domain.service;
 
 import com.kijinkai.domain.customer.entity.Customer;
-import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.payment.domain.entity.OrderPayment;
 import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
-import com.kijinkai.domain.user.entity.User;
-import com.kijinkai.domain.user.validator.UserValidator;
+import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
+import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.wallet.entity.Wallet;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.UUID;
 
 public class OrderPaymentService {
 
     private final PaymentFactory paymentFactory;
-    private final UserValidator userValidator;
+    private final UserApplicationValidator userValidator;
 
-    public OrderPaymentService(PaymentFactory paymentFactory, UserValidator userValidator) {
+    public OrderPaymentService(PaymentFactory paymentFactory, UserApplicationValidator userValidator) {
         this.paymentFactory = paymentFactory;
         this.userValidator = userValidator;
     }

@@ -4,7 +4,6 @@ package com.kijinkai.domain.orderitem.service;
 import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.customer.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.repository.CustomerRepository;
-import com.kijinkai.domain.exchange.dto.ExchangeRateResponseDto;
 import com.kijinkai.domain.exchange.service.ExchangeRateService;
 import com.kijinkai.domain.exchange.service.PriceCalculationService;
 import com.kijinkai.domain.order.entity.Order;
@@ -21,7 +20,7 @@ import com.kijinkai.domain.orderitem.mapper.OrderItemMapper;
 import com.kijinkai.domain.orderitem.repository.OrderItemRepository;
 import com.kijinkai.domain.orderitem.validator.OrderItemValidator;
 import com.kijinkai.domain.payment.application.dto.request.OrderPaymentRequestDto;
-import com.kijinkai.domain.user.validator.UserValidator;
+import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -47,7 +46,7 @@ public class OrderItemServiceImpl implements OrderItemService {
 
     private final OrderItemValidator orderItemValidator;
     private final OrderValidator orderValidator;
-    private final UserValidator userValidator;
+    private final UserApplicationValidator userValidator;
     private final OrderItemFactory orderItemFactory;
     private final OrderItemMapper orderItemMapper;
 
@@ -109,7 +108,7 @@ public class OrderItemServiceImpl implements OrderItemService {
     @Transactional
     public OrderItem updateOrderItemByAdmin(UUID userUuid, String orderItemUuid, OrderItemUpdateDto updateDto) {
         Customer customer = findCustomerByUserUuid(userUuid);
-        userValidator.requireAdminRole(customer.getUser());
+        userValidator.requireJpaAdminRole(customer.getUser());
 
         OrderItem orderItem = findOrderItemByOrderItemUuid(orderItemUuid);
 

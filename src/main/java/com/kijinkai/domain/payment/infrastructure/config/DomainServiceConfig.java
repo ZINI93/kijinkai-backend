@@ -7,7 +7,7 @@ import com.kijinkai.domain.payment.domain.service.OrderPaymentService;
 import com.kijinkai.domain.payment.domain.service.RefundRequestService;
 import com.kijinkai.domain.payment.domain.service.WithdrawRequestService;
 import com.kijinkai.domain.payment.domain.validator.PaymentValidator;
-import com.kijinkai.domain.user.validator.UserValidator;
+import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,7 +17,7 @@ public class DomainServiceConfig {
     @Bean
     public DepositRequestService depositRequestService(
             PriceCalculationService priceCalculationService,
-            UserValidator userValidator,
+            UserApplicationValidator userValidator,
             PaymentValidator paymentValidator,
             PaymentFactory paymentFactory
     ) {
@@ -32,7 +32,7 @@ public class DomainServiceConfig {
     @Bean
     public WithdrawRequestService withdrawRequestService(
             PaymentValidator paymentValidator,
-            UserValidator userValidator,
+            UserApplicationValidator userValidator,
             PaymentFactory paymentFactory
             ) {
         return new WithdrawRequestService(
@@ -45,7 +45,7 @@ public class DomainServiceConfig {
     @Bean
     public RefundRequestService refundRequestService(
             PaymentFactory paymentFactory,
-            UserValidator userValidator
+            UserApplicationValidator userValidator
     ) {
         return new RefundRequestService(
                 paymentFactory,
@@ -56,7 +56,7 @@ public class DomainServiceConfig {
     @Bean
     public OrderPaymentService orderPaymentService(
             PaymentFactory paymentFactory,
-            UserValidator userValidator
+            UserApplicationValidator userValidator
     ) {
         return new OrderPaymentService(
                 paymentFactory,

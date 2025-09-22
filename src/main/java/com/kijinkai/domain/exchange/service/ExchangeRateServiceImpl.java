@@ -9,10 +9,11 @@ import com.kijinkai.domain.exchange.exception.ExchangeRateNotFoundException;
 import com.kijinkai.domain.exchange.factory.ExchangeRateFactory;
 import com.kijinkai.domain.exchange.mapper.ExchangeRateMapper;
 import com.kijinkai.domain.exchange.repository.ExchangeRateRepository;
-import com.kijinkai.domain.user.entity.User;
-import com.kijinkai.domain.user.exception.UserNotFoundException;
-import com.kijinkai.domain.user.repository.UserRepository;
-import com.kijinkai.domain.user.validator.UserValidator;
+import com.kijinkai.domain.user.adapter.out.persistence.entity.UserJpaEntity;
+import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
+import com.kijinkai.domain.user.adapter.out.persistence.repository.UserRepository;
+import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
+import com.kijinkai.domain.user.domain.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,7 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
     private final ExchangeRateMapper exchangeRateMapper;
 
     private final UserRepository userRepository;
-    private final UserValidator userValidator;
+    private final UserApplicationValidator userValidator;
 
     @Override
     @Transactional
@@ -96,9 +97,9 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
     }
 
     private void findUserByUserUuidAndValidate(UUID adminUuid) {
-        User admin = userRepository.findByUserUuid(adminUuid)
+        UserJpaEntity admin = userRepository.findByUserUuid(adminUuid)
                 .orElseThrow(() -> new UserNotFoundException(String.format("User not found for admin uuid: %s", adminUuid)));
 
-        userValidator.requireAdminRole(admin);
+        userValidator.requireJpaAdminRole(admin);
     }
 }

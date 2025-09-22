@@ -1,22 +1,13 @@
 package com.kijinkai.domain.order.controller;
 
 
-import com.kijinkai.domain.address.dto.AddressRequestDto;
-import com.kijinkai.domain.address.dto.AddressResponseDto;
 import com.kijinkai.domain.common.BasicResponseDto;
 import com.kijinkai.domain.order.dto.OrderRequestDto;
 import com.kijinkai.domain.order.dto.OrderResponseDto;
-import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.order.service.OrderService;
-import com.kijinkai.domain.user.dto.UserRequestDto;
-import com.kijinkai.domain.user.dto.UserResponseDto;
-import com.kijinkai.domain.user.service.CustomUserDetails;
-import com.kijinkai.domain.user.service.UserService;
-import io.swagger.v3.oas.annotations.Operation;
+import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
