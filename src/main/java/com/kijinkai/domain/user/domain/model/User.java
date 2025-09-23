@@ -1,6 +1,7 @@
 package com.kijinkai.domain.user.domain.model;
 
 import com.kijinkai.domain.user.application.dto.UserUpdateDto;
+import com.kijinkai.domain.user.domain.exception.InvalidUserDataException;
 import com.kijinkai.domain.user.domain.exception.UserRoleValidateException;
 import lombok.*;
 
@@ -62,8 +63,8 @@ public class User {
      * @param encodedPassword
      */
     public void updateUser(String nickName, String encodedPassword){
-        this.password = encodedPassword;
-        this.nickname = nickname;
+           this.password = encodedPassword;
+        this.nickname = nickName;
     }
 
     public void updatePassword(String password){
@@ -81,4 +82,5 @@ public class User {
             );
         }
     }
+
 }
