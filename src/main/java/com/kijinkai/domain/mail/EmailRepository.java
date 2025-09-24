@@ -1,9 +1,11 @@
 package com.kijinkai.domain.mail;
 
-import com.kijinkai.domain.mail.config.EmailConfig;
-import jakarta.validation.constraints.Email;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -19,5 +21,21 @@ public interface EmailRepository extends JpaRepository<EmailVerification, Long> 
 
     // 만료된 인증 코드를 삭제하는 메서드 (스케줄링용)
     void deleteByExpiresAtBefore(LocalDateTime now);
+
+    void deleteByEmailAndIsVerifiedFalse(String email);
+
+    @Query("SELECT e FROM EmailVerification e WHERE e.email = :email " +
+            "AND e.verificationCode = :code " +
+            "AND e.expiresAt > :now")
+    Optional<EmailVerification> findValidVerification(
+            @Param("email") String email,
+            @Param("code") String code,
+            @Param("now") LocalDateTime now
+    );
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM EmailVerification e WHERE e.email = :email")
+    void deleteByEmail(@Param("email") String email);
 
 }

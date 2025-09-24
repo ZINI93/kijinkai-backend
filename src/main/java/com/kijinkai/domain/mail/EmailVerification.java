@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@Builder
 @NoArgsConstructor
 public class EmailVerification {
 
@@ -23,12 +22,25 @@ public class EmailVerification {
     private String email;
     private String verificationCode;
     private LocalDateTime expiresAt;
-
+    private boolean isUsed = false;
 
     @Builder
-    public EmailVerification(String email, String verificationCode, LocalDateTime expiresAt) {
+    public EmailVerification(String email, String verificationCode, LocalDateTime expiresAt, boolean isUsed) {
         this.email = email;
         this.verificationCode = verificationCode;
         this.expiresAt = expiresAt;
+        this.isUsed = isUsed;
+    }
+
+    public boolean isValid() {
+        return !isUsed && LocalDateTime.now().isBefore(expiresAt);
+    }
+
+    public void markAsUsed() {
+        this.isUsed = true;
+    }
+
+    public boolean isExpired() {
+        return LocalDateTime.now().isAfter(expiresAt);
     }
 }

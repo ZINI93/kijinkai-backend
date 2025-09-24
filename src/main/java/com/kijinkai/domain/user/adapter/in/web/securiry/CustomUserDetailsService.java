@@ -27,11 +27,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .map(userJpaEntity -> {
                     log.info("Searching userEmail:{}",userJpaEntity.getEmail());
 
-                    log.warn("Email not verified for user: {}", email);
-                    if (!userJpaEntity.isEmailVerified()){
-                        throw new EmailNotFoundException("이메일 인증이 필요합니다.");
-                    }
-
                     UserSecurityDto userSecurityDto = UserSecurityDto.builder()
                             .userId(userJpaEntity.getUserId())
                             .userUuid(userJpaEntity.getUserUuid())

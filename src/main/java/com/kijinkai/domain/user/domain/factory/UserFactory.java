@@ -16,7 +16,7 @@ public class UserFactory {
                 .password(encodedPassword)
                 .nickname(requestDto.getNickname())
                 .userRole(UserRole.USER)
-                .userStatus(UserStatus.PENDING)
+                .userStatus(UserStatus.ACTIVE)
                 .build();
     }
 }

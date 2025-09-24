@@ -5,11 +5,11 @@ package com.kijinkai.domain.mail.service;
 
 import com.kijinkai.domain.mail.EmailRepository;
 import com.kijinkai.domain.mail.EmailVerification;
+import com.kijinkai.domain.mail.exception.InvalidVerificationCodeException;
 import com.kijinkai.util.EmailRandomCode;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
@@ -58,6 +58,9 @@ public class EmailService {
 
 
      public void sendVerificationCode(String email) {
+
+        emailRepository.deleteByEmail(email);
+
         String code = emailRandomCode.generateVerificationCode();
 
         // 이메일 내용 구성
@@ -75,25 +78,32 @@ public class EmailService {
         EmailVerification verification = EmailVerification.builder()
                 .email(email)
                 .verificationCode(code)
-                .expiresAt(LocalDateTime.now().plusMinutes(5)) // 5분 후 만료 설정
+                .expiresAt(LocalDateTime.now().plusMinutes(10)) // 10분 후 만료 설정
                 .build();
         emailRepository.save(verification);
 
         try {
             sendEmail(email, title, content);
+            log.info("인증 이메일 발송 성공: {}", email);
         } catch (MessagingException e) {
             log.error("인증 이메일 전송 실패: {}", email, e);
+            emailRepository.deleteByEmail(email);  // 실패된 이메일 삭제
             throw new IllegalStateException("인증 이메일 전송에 실패했습니다.", e);
         }
     }
 
 
+    @Transactional
     public boolean verifyCode(String email, String code) {
-        return emailRepository.findByEmailAndVerificationCode(email, code)
-                .filter(verification -> verification.getExpiresAt().isAfter(LocalDateTime.now()))
-                .isPresent();
+        return emailRepository.findValidVerification(email, code, LocalDateTime.now())
+                .map(verification -> {
+                    // 사용된 코드 표시하여 재사용 방지
+                    verification.markAsUsed();
+                    emailRepository.save(verification);
+                    return true;
+                })
+                .orElseThrow(() -> new InvalidVerificationCodeException("유효하지 않은 인증코드입니다"));
     }
-
 
     @Transactional
     @Scheduled(cron = "0 0 12 * * ?") // 매일 정오(12:00)에 실행
