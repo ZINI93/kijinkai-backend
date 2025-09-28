@@ -1,10 +1,12 @@
 package com.kijinkai.domain.payment.application.port.out;
 
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
+import com.kijinkai.domain.customer.domain.model.Customer;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public interface CustomerPort {
-    Customer findByUserUuid(UUID userUuid);
-    Customer findByCustomerUuid(UUID customerUuid);
+    Optional<Customer> findByUserUuid(UUID userUuid);
+    Optional<Customer> findByCustomerUuid(UUID customerUuid);
 }

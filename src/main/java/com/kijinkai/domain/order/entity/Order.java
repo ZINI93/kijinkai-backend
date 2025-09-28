@@ -1,7 +1,8 @@
 package com.kijinkai.domain.order.entity;
 
 import com.kijinkai.domain.common.BaseEntity;
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
+import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.payment.domain.enums.PaymentStatus;
 import com.kijinkai.domain.payment.domain.enums.PaymentType;
@@ -13,6 +14,8 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.UUID;
+
+import static com.kijinkai.domain.customer.adapter.out.persistence.entity.QCustomerJpaEntity.customerJpaEntity;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -28,9 +31,13 @@ public class Order extends BaseEntity {
     @Column(name = "order_uuid", nullable = false, updatable = false , unique = true)
     private UUID orderUuid;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false)
-    private Customer customer;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "customer_id", nullable = false)
+//    private Customer customer;
+
+
+    @Column(name = "customer_uuid")
+    private UUID customerUuid;
 
     @Column(name = "total_price_original", nullable = false)
     private BigDecimal totalPriceOriginal;   // 엔화의 상품전체가격
@@ -58,9 +65,9 @@ public class Order extends BaseEntity {
     private PaymentType paymentType;  // 필요없을거 같음
 
     @Builder
-    public Order(UUID orderUuid, Customer customer, BigDecimal totalPriceOriginal, BigDecimal totalPriceConverted, BigDecimal finalPriceOriginal, Currency convertedCurrency, OrderStatus orderStatus, String memo, String rejectedReason, PaymentStatus paymentStatus, PaymentType paymentType) {
+    public Order(UUID orderUuid, UUID customerUuid, BigDecimal totalPriceOriginal, BigDecimal totalPriceConverted, BigDecimal finalPriceOriginal, Currency convertedCurrency, OrderStatus orderStatus, String memo, String rejectedReason, PaymentStatus paymentStatus, PaymentType paymentType) {
         this.orderUuid = orderUuid != null ? orderUuid:UUID.randomUUID();
-        this.customer = customer;
+        this.customerUuid = customerUuid;
         this.totalPriceOriginal = totalPriceOriginal;
         this.totalPriceConverted = totalPriceConverted;
         this.finalPriceOriginal = finalPriceOriginal;
@@ -71,8 +78,8 @@ public class Order extends BaseEntity {
         this.paymentType = paymentType;
     }
 
-    public Order(Customer customer, String memo) {
-        this.customer = customer;
+    public Order(UUID customerUuid, String memo) {
+        this.customerUuid = customerUuid;
         this.memo = memo;
     }
 

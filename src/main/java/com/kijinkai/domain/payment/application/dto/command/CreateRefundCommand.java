@@ -1,7 +1,7 @@
 package com.kijinkai.domain.payment.application.dto.command;
 
 
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
 import com.kijinkai.domain.orderitem.entity.OrderItem;
 import com.kijinkai.domain.payment.domain.enums.RefundType;
 import com.kijinkai.domain.payment.application.dto.request.RefundRequestDto;
@@ -21,10 +21,10 @@ public class CreateRefundCommand {
     String reason;
     RefundType refundType;
 
-    public static CreateRefundCommand from(Wallet wallet, Customer customer, OrderItem orderItem, RefundRequestDto requestDto){
+    public static CreateRefundCommand from(Wallet wallet, CustomerJpaEntity customerJpaEntity, OrderItem orderItem, RefundRequestDto requestDto){
 
         return CreateRefundCommand.builder()
-                .customerUuid(customer.getCustomerUuid())
+                .customerUuid(customerJpaEntity.getCustomerUuid())
                 .walletUuid(wallet.getWalletUuid())
                 .orderItemUuid(orderItem.getOrderItemUuid())
                 .reason(requestDto.getRefundReason())

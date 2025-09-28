@@ -13,12 +13,12 @@ import java.util.UUID;
 
 public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
 
-    Optional<Delivery> findByCustomerCustomerUuidAndDeliveryUuid(UUID customerUuid, UUID deliveryUuid);
+    Optional<Delivery> findByCustomerUuidAndDeliveryUuid(UUID customerUuid, UUID deliveryUuid);
 
-    @Query("SELECT dv FROM Delivery dv WHERE dv.customer.customerUuid = :customerUuid AND dv.deliveryStatus = :deliveryStatus")
+    @Query("SELECT dv FROM Delivery dv WHERE dv.customerUuid = :customerUuid AND dv.deliveryStatus = :deliveryStatus")
     Page<Delivery> findByCustomerUuidByStatus(@Param("customerUuid") UUID customerUuid, @Param("deliveryStatus") DeliveryStatus deliveryStatus, Pageable page);
 
 
-    @Query("SELECT COUNT(dv) FROM Delivery dv WHERE dv.customer.customerUuid = :customerUuid AND dv.deliveryStatus = :deliveryStatus")
+    @Query("SELECT COUNT(dv) FROM Delivery dv WHERE dv.customerUuid = :customerUuid AND dv.deliveryStatus = :deliveryStatus")
     int findByDeliveryStatusCount(@Param("customerUuid") UUID customerUuid, @Param("deliveryStatus")  DeliveryStatus deliveryStatus);
 }

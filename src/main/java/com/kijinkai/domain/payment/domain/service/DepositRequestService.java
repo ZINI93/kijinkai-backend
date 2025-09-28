@@ -1,6 +1,7 @@
 package com.kijinkai.domain.payment.domain.service;
 
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
+import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.payment.domain.entity.DepositRequest;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.exchange.service.PriceCalculationService;
@@ -35,7 +36,7 @@ public class DepositRequestService {
 
     /**
      * 입금 요청 생성
-     * @param customer
+     * @param customerJpaEntity
      * @param wallet
      * @param originalAmount
      * @param originalCurrency

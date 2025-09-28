@@ -1,6 +1,7 @@
 package com.kijinkai.domain.order.factory;
 
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
+import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.order.entity.OrderStatus;
 import com.kijinkai.domain.payment.domain.enums.PaymentType;
@@ -15,10 +16,10 @@ import static com.kijinkai.domain.exchange.doamin.Currency.JPY;
 @Component
 public class OrderFactory {
 
-    public Order createOrder(Customer customer, String memo, BigDecimal totalPrice) {
+    public Order createOrder(UUID customerUuid, String memo, BigDecimal totalPrice) {
         return Order.builder()
                 .orderUuid(UUID.randomUUID())
-                .customer(customer)
+                .customerUuid(customerUuid)
                 .totalPriceOriginal(totalPrice)
                 .totalPriceConverted(BigDecimal.ZERO)
                 .convertedCurrency(JPY)

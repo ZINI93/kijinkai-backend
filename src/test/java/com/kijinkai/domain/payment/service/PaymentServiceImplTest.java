@@ -1,7 +1,7 @@
 //package com.kijinkai.domain.payment.service;
 //
-//import com.kijinkai.domain.customer.entity.Customer;
-//import com.kijinkai.domain.customer.repository.CustomerRepository;
+//import com.kijinkai.domain.customer.adapter.out.persistence.entity.Customer;
+//import com.kijinkai.domain.customer.adapter.out.persistence.repository.CustomerRepository;
 //import com.kijinkai.domain.exchange.service.PriceCalculationService;
 //import com.kijinkai.domain.order.entity.Order;
 //import com.kijinkai.domain.orderitem.entity.OrderItem;
@@ -249,7 +249,7 @@
 //    void createWithdrawalPayment_Success() {
 //
 //        // Given
-//        when(customerRepository.findByUserUserUuid(userUuid)).thenReturn(Optional.of(customer));
+//        when(customerRepository.findByUserUuid(userUuid)).thenReturn(Optional.of(customer));
 //        when(walletRepository.findByCustomerCustomerId(any())).thenReturn(Optional.of(wallet));
 //        when(priceCalculationService.convertAndCalculateTotalInLocalCurrency(any(), any(), any())).thenReturn(new BigDecimal("25300"));
 //        when(paymentFactory.createWithWithdrawalPayment(any(), any(), any(), any(), any())).thenReturn(payment);
@@ -276,7 +276,7 @@
 //        Wallet wallet = createMockWallet(UUID.randomUUID(), customer, BigDecimal.ZERO, WalletStatus.FROZEN);
 //
 //        // Given
-//        when(customerRepository.findByUserUserUuid(userUuid)).thenReturn(Optional.of(this.customer));
+//        when(customerRepository.findByUserUuid(userUuid)).thenReturn(Optional.of(this.customer));
 //        when(walletRepository.findByCustomerCustomerId(any())).thenReturn(Optional.of(wallet));
 //
 //        // When & Then
@@ -290,7 +290,7 @@
 //    void cancelPayment_Success() {
 //
 //        // Given
-//        when(customerRepository.findByUserUserUuid(userUuid)).thenReturn(Optional.of(customer));
+//        when(customerRepository.findByUserUuid(userUuid)).thenReturn(Optional.of(customer));
 //        when(paymentRepository.findByCustomerCustomerUuidAndPaymentUuidWithCustomerAndWallet(any(), any())).thenReturn(Optional.of(payment));
 //        when(paymentMapper.toResponse(any())).thenReturn(new PaymentResponseDto());
 //
@@ -337,7 +337,7 @@
 //    @DisplayName("결제 정보 조회 성공")
 //    void getPaymentInfo_Success() {
 //        // Given
-//        when(customerRepository.findByUserUserUuid(userUuid)).thenReturn(Optional.of(customer));
+//        when(customerRepository.findByUserUuid(userUuid)).thenReturn(Optional.of(customer));
 //        when(paymentRepository.findByCustomerCustomerUuidAndPaymentUuidWithCustomerAndWallet(any(), any())).thenReturn(Optional.of(payment));
 //        when(paymentMapper.toResponse(any())).thenReturn(new PaymentResponseDto());
 //
@@ -386,7 +386,7 @@
 //        Wallet wallet = createMockWallet(UUID.randomUUID(), customer, BigDecimal.ZERO, WalletStatus.ACTIVE);
 //        Payment payment = createMockPayment(customer, wallet, UUID.randomUUID(), PaymentStatus.COMPLETED, new BigDecimal(10000.00));
 //
-//        when(customerRepository.findByUserUserUuid(userUuid)).thenReturn(Optional.of(customer));
+//        when(customerRepository.findByUserUuid(userUuid)).thenReturn(Optional.of(customer));
 //        when(paymentRepository.findByCustomerCustomerUuidAndPaymentUuidWithCustomerAndWallet(any(), any())).thenReturn(Optional.of(payment));
 //        doThrow(new PaymentStatusException("Payment is not in pending status")).when(paymentValidator).requiredPendingStatus(payment);
 //

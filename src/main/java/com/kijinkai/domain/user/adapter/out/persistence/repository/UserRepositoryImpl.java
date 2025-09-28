@@ -2,8 +2,6 @@ package com.kijinkai.domain.user.adapter.out.persistence.repository;
 
 import com.kijinkai.domain.user.adapter.out.persistence.entity.QUserJpaEntity;
 import com.kijinkai.domain.user.adapter.out.persistence.entity.UserJpaEntity;
-import com.kijinkai.domain.user.application.dto.QUserResponseDto;
-import com.kijinkai.domain.user.application.dto.UserResponseDto;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.StringPath;
@@ -24,7 +22,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 
 
     @Override
-    public Page<UserJpaEntity> findAllByEmailAndName(String email, String nickname, Pageable pageable) {
+    public Page<UserJpaEntity> findAllByEmailAndNickName(String email, String nickname, Pageable pageable) {
 
 
         JPAQuery<UserJpaEntity> query = queryFactory

@@ -1,8 +1,9 @@
 package com.kijinkai.domain.transaction.service;
 
-import com.kijinkai.domain.customer.entity.Customer;
-import com.kijinkai.domain.customer.exception.CustomerNotFoundException;
-import com.kijinkai.domain.customer.repository.CustomerRepository;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
+import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPersistencePort;
+import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
+import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.transaction.dto.TransactionResponseDto;
 import com.kijinkai.domain.transaction.entity.Transaction;
@@ -13,6 +14,9 @@ import com.kijinkai.domain.transaction.factory.TransactionFactory;
 import com.kijinkai.domain.transaction.mapper.TransactionMapper;
 import com.kijinkai.domain.transaction.repository.TransactionRepository;
 import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
+import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
+import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
+import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +34,8 @@ import java.util.UUID;
 public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
-    private final CustomerRepository customerRepository;
+    private final CustomerPersistencePort customerPersistencePort;
+    private final UserPersistencePort userPersistencePort;
 
     private final TransactionMapper transactionMapper;
     private final TransactionFactory transactionFactory;
@@ -53,7 +58,7 @@ public class TransactionServiceImpl implements TransactionService {
     public Transaction createTransactionWithValidate(UUID userUuid, Wallet wallet, Order order, TransactionType transactionType, BigDecimal amount, BigDecimal balanceBefore, BigDecimal balanceAfter, TransactionStatus transactionStatus) {
         Customer customer = findCustomerByUserUuid(userUuid);
 
-        Transaction transaction = transactionFactory.createTransaction(customer, wallet, order, transactionType, amount, balanceBefore, balanceAfter, transactionStatus);
+        Transaction transaction = transactionFactory.createTransaction(customer.getCustomerUuid(), wallet, order, transactionType, amount, balanceBefore, balanceAfter, transactionStatus);
 
         return transactionRepository.save(transaction);
     }
@@ -86,8 +91,10 @@ public class TransactionServiceImpl implements TransactionService {
      */
     @Override
     public TransactionResponseDto getTransactionInfoByAdmin(UUID userUuid, UUID transactionUuid) {
-        Customer customer = findCustomerByUserUuid(userUuid);
-        userValidator.requireJpaAdminRole(customer.getUser());
+
+        User user = userPersistencePort.findByUserUuid(userUuid)
+                .orElseThrow(() -> new UserNotFoundException(String.format("User not found for userUuid: %s", userUuid)));
+        userValidator.requireAdminRole(user);
 
         Transaction transaction = findTransactionByTransactionUuid(transactionUuid);
 
@@ -95,13 +102,13 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
 
-    private Transaction findTransactionByCustomerAndTransactionUuid(Customer customer,UUID transactionUuid) {
-        return transactionRepository.findByCustomerCustomerUuidAndTransactionUuid(customer.getCustomerUuid(), transactionUuid)
+    private Transaction findTransactionByCustomerAndTransactionUuid(Customer customer, UUID transactionUuid) {
+        return transactionRepository.findByCustomerUuidAndTransactionUuid(customer.getCustomerUuid(), transactionUuid)
                 .orElseThrow(() -> new TransactionNotFoundException(String.format("Transaction not found for customer uuid: %s, transaction uuid: %s", customer.getCustomerUuid(), transactionUuid)));
     }
 
     private Customer findCustomerByUserUuid(UUID userUuid) {
-        return customerRepository.findByUserUserUuid(userUuid)
+        return customerPersistencePort.findByUserUuid(userUuid)
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for user uuid: %s", userUuid)));
     }
 

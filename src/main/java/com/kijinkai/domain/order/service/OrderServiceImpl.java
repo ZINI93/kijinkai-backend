@@ -1,8 +1,10 @@
 package com.kijinkai.domain.order.service;
 
-import com.kijinkai.domain.customer.entity.Customer;
-import com.kijinkai.domain.customer.exception.CustomerNotFoundException;
-import com.kijinkai.domain.customer.repository.CustomerRepository;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
+import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPersistencePort;
+import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
+import com.kijinkai.domain.customer.adapter.out.persistence.repository.CustomerRepository;
+import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.exchange.service.PriceCalculationService;
 import com.kijinkai.domain.order.dto.OrderRequestDto;
 import com.kijinkai.domain.order.dto.OrderResponseDto;
@@ -27,6 +29,9 @@ import com.kijinkai.domain.transaction.entity.TransactionStatus;
 import com.kijinkai.domain.transaction.entity.TransactionType;
 import com.kijinkai.domain.transaction.service.TransactionService;
 import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
+import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
+import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
+import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import com.kijinkai.domain.wallet.exception.WalletNotFoundException;
 import com.kijinkai.domain.wallet.exception.WalletUpdateFailedException;
@@ -54,7 +59,8 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final WalletRepository walletRepository;
-    private final CustomerRepository customerRepository;
+    private final CustomerPersistencePort customerPersistencePort;
+    private final UserPersistencePort userPersistencePort;
 
     private final OrderMapper orderMapper;
 
@@ -86,7 +92,7 @@ public class OrderServiceImpl implements OrderService {
                     .map(OrderItemRequestDto::getPriceOriginal)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            Order order = orderFactory.createOrder(customer, requestDto.getMemo(), totalPrice);
+            Order order = orderFactory.createOrder(customer.getCustomerUuid(), requestDto.getMemo(), totalPrice);
             Order savedOrder = orderRepository.save(order);
 
             List<OrderItem> orderItems = requestDto.getOrderItems().stream()
@@ -118,8 +124,8 @@ public class OrderServiceImpl implements OrderService {
 
         try {
 
-            Customer customer = findCustomerByUserUuid(userUuid);
-            userApplicationValidator.requireJpaAdminRole(customer.getUser());
+            User user = findUserByUserUuid(userUuid);
+            userApplicationValidator.requireAdminRole(user);
 
             Order order = findOrderByOrderUuid(orderUuid);
             orderValidator.requireDraftOrderStatus(order);
@@ -152,6 +158,11 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    private User findUserByUserUuid(UUID userUuid) {
+        return userPersistencePort.findByUserUuid(userUuid)
+                .orElseThrow(() -> new UserNotFoundException(String.format("User not found userUuid: %s", userUuid)));
+    }
+
     /**
      * 유저가 견적을 검토한 후 결제를 진행하는 프로세스
      *   --- 결제 서비스로 이동
@@ -173,7 +184,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = findOrderByCustomerUuidAndOrderUuid(customer, orderUuid);
         orderValidator.requireAwaitingOrderStatus(order);
 
-        Wallet wallet = findWalletByCustomerId(customer);
+        Wallet wallet = findWalletByCustomerUuid(customer.getCustomerUuid());
         walletValidator.requireActiveStatus(wallet);
 
         BigDecimal amountToPay = order.getTotalPriceOriginal();
@@ -211,7 +222,9 @@ public class OrderServiceImpl implements OrderService {
         log.info("Confirming order for user uuid:{}", userUuid);
 
         Customer customer = findCustomerByUserUuid(userUuid);
-        userApplicationValidator.requireJpaAdminRole(customer.getUser());
+
+        User user = findUserByUserUuid(userUuid);
+        userApplicationValidator.requireAdminRole(user);
 
         Order order = findOrderByCustomerUuidAndOrderUuid(customer, orderUuid);
         orderValidator.requirePaidStatusForConfirmation(order);
@@ -270,7 +283,9 @@ public class OrderServiceImpl implements OrderService {
         log.info("Deleting order for user uuid:{}", userUuid);
 
         Customer customer = findCustomerByUserUuid(userUuid);
-        userApplicationValidator.requireJpaAdminRole(customer.getUser());
+
+        User user = findUserByUserUuid(userUuid);
+        userApplicationValidator.requireAdminRole(user);
 
         Order order = findOrderByCustomerUuidAndOrderUuid(customer, orderUuid);
         orderValidator.requireCancellableStatus(order);
@@ -282,9 +297,9 @@ public class OrderServiceImpl implements OrderService {
         order.updateOrderEstimate(totalAmountOriginal, finalAmount, orderUpdateDto.getConvertedCurrency(), orderUpdateDto.getMemo());
     }
 
-    private Wallet findWalletByCustomerId(Customer customer) {
-        return walletRepository.findByCustomerCustomerId(customer.getCustomerId())
-                .orElseThrow(() -> new WalletNotFoundException(String.format("Wallet not found for customer uuid: %s", customer.getCustomerUuid())));
+    private Wallet findWalletByCustomerUuid(UUID customerUuid) {
+        return walletRepository.findByCustomerUuid(customerUuid)
+                .orElseThrow(() -> new WalletNotFoundException(String.format("Wallet not found for customer uuid: %s", customerUuid)));
     }
 
     @Override
@@ -294,12 +309,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private Customer findCustomerByUserUuid(UUID userUuid) {
-        return customerRepository.findByUserUserUuid(userUuid)
+        return customerPersistencePort.findByUserUuid(userUuid)
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for user uuid %s", userUuid)));
     }
 
     private Order findOrderByCustomerUuidAndOrderUuid(Customer customer, UUID orderUuid) {
-        return orderRepository.findByCustomerCustomerUuidAndOrderUuid(customer.getCustomerUuid(), orderUuid)
+        return orderRepository.findByCustomerUuidAndOrderUuid(customer.getCustomerUuid(), orderUuid)
                 .orElseThrow(() -> new OrderNotFoundException(String.format("Order not found for customer uuid: %s and order uuid: %s", customer.getCustomerUuid(), orderUuid)));
     }
 

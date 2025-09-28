@@ -11,6 +11,6 @@ import java.util.UUID;
 @Repository
 public interface AddressRepository extends JpaRepository<Address, Long> {
 
-    Optional<Address> findByCustomerCustomerUuidAndAddressUuid(UUID customerUuid, UUID addressUuid);
-    Optional<Address> findByCustomerCustomerUuid(UUID customerUuid);
+    Optional<Address> findByCustomerUuidAndAddressUuid(UUID customerUuid, UUID addressUuid);
+    Optional<Address> findByCustomerUuid(UUID customerUuid);
 }

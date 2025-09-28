@@ -1,7 +1,8 @@
 package com.kijinkai.domain.wallet.service;
 
 
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
+import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.wallet.dto.WalletBalanceResponseDto;
 import com.kijinkai.domain.wallet.dto.WalletFreezeRequest;
 import com.kijinkai.domain.wallet.dto.WalletResponseDto;

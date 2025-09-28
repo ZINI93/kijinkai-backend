@@ -3,9 +3,9 @@ package com.kijinkai.domain.delivery.service;
 
 import com.kijinkai.domain.address.entity.Address;
 import com.kijinkai.domain.address.repository.AddressRepository;
-import com.kijinkai.domain.customer.entity.Customer;
-import com.kijinkai.domain.customer.exception.CustomerNotFoundException;
-import com.kijinkai.domain.customer.repository.CustomerRepository;
+import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPersistencePort;
+import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
+import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.delivery.dto.DeliveryCountResponseDto;
 import com.kijinkai.domain.delivery.dto.DeliveryRequestDto;
 import com.kijinkai.domain.delivery.dto.DeliveryResponseDto;
@@ -23,9 +23,8 @@ import com.kijinkai.domain.order.validator.OrderValidator;
 import com.kijinkai.domain.payment.domain.entity.OrderPayment;
 import com.kijinkai.domain.payment.domain.exception.OrderPaymentNotFoundException;
 import com.kijinkai.domain.payment.domain.repository.OrderPaymentRepository;
-import com.kijinkai.domain.user.adapter.out.persistence.entity.UserJpaEntity;
+import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
-import com.kijinkai.domain.user.adapter.out.persistence.repository.UserRepository;
 import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
 import com.kijinkai.domain.user.domain.model.User;
 import lombok.RequiredArgsConstructor;
@@ -43,8 +42,9 @@ import java.util.UUID;
 @Service
 public class DeliveryServiceImpl implements DeliveryService {
 
-    private final CustomerRepository customerRepository;
-    private final UserRepository userRepository;
+    private final CustomerPersistencePort customerPersistencePort;
+    private final UserPersistencePort userPersistencePort;
+
     private final DeliveryRepository deliveryRepository;
     private final AddressRepository addressRepository;
     private final OrderPaymentRepository orderPaymentRepository;
@@ -74,21 +74,20 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         log.info("Creating delivery for user uuid: {}", userUuid);
 
-        UserJpaEntity user = userRepository.findByUserUuid(userUuid)
-                .orElseThrow(() -> new UserNotFoundException(String.format("User not found exception for userUuid: %s", userUuid)));
-        userValidator.requireJpaAdminRole(user);
+        User user = findUserByUserUuid(userUuid);
+        userValidator.requireAdminRole(user);
 
         OrderPayment secondOrderPayment = orderPaymentRepository.findByPaymentUuid(orderPaymentUuid)
                 .orElseThrow(() -> new OrderPaymentNotFoundException(String.format("Order payment not found exception for orderPaymentUuid: %s", orderPaymentUuid)));
         //orderpayment 상태 validator 필요함
 
-        Customer customer = customerRepository.findByCustomerUuid(secondOrderPayment.getCustomerUuid())
+        Customer customer = customerPersistencePort.findByCustomerUuid(secondOrderPayment.getCustomerUuid())
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found exception for customer uuid: %s", secondOrderPayment.getCustomerUuid())));
 
         Address address = findAddressByCustomerOrder(customer.getCustomerUuid());
 
         try {
-            Delivery delivery = factory.createDelivery(orderPaymentUuid, customer, address, secondOrderPayment.getPaymentAmount() , requestDto);
+            Delivery delivery = factory.createDelivery(orderPaymentUuid, customer.getCustomerUuid(), address, secondOrderPayment.getPaymentAmount() , requestDto);
             Delivery savedDelivery = deliveryRepository.save(delivery);
 
             log.info("Created delivery for delivery uuid:{}", savedDelivery.getDeliveryUuid());
@@ -97,6 +96,11 @@ public class DeliveryServiceImpl implements DeliveryService {
             log.error("Failed to create delivery for user uuid: {}", userUuid);
             throw new DeliveryCreationException("Failed to create delivery", e);
         }
+    }
+
+    private User findUserByUserUuid(UUID userUuid) {
+        return userPersistencePort.findByUserUuid(userUuid)
+                .orElseThrow(() -> new UserNotFoundException(String.format("User not found exception for userUuid: %s", userUuid)));
     }
 
     /**
@@ -109,10 +113,16 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Override @Transactional // 배송시작 버튼
     public DeliveryResponseDto deliveryShipped(UUID userUuid, UUID deliveryUuid) {
 
+
+
         Customer customer = findCustomerByUserUuid(userUuid);
+
+        User user = userPersistencePort.findByUserUuid(customer.getUserUuid())
+                .orElseThrow(() -> new UserNotFoundException(String.format("User not found for userUuid: %s", userUuid)));
+
         Delivery delivery = findDeliveryByCustomerAndDeliveryUuid(customer, deliveryUuid);
 
-        userValidator.requireJpaAdminRole(customer.getUser());
+        userValidator.requireAdminRole(user);
         deliveryValidator.requirePendingStatus(delivery);
 
         delivery.updateDeliveryStatus(DeliveryStatus.SHIPPED);
@@ -133,10 +143,12 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         try {
             log.info("Updating delivery for delivery uuid:{}", deliveryUuid);
-            Customer customer = findCustomerByUserUuid(userUuid);
-            userValidator.requireJpaAdminRole(customer.getUser());
+            Customer customerJpaEntity = findCustomerByUserUuid(userUuid);
+            User user = findUserByUserUuid(userUuid);
 
-            Delivery delivery = findDeliveryByCustomerAndDeliveryUuid(customer, deliveryUuid);
+            userValidator.requireAdminRole(user);
+
+            Delivery delivery = findDeliveryByCustomerAndDeliveryUuid(customerJpaEntity, deliveryUuid);
             delivery.updateDelivery(updateDto);
 
             log.info("Updated delivery for delivery uuid:{}", delivery.getDeliveryUuid());
@@ -157,9 +169,10 @@ public class DeliveryServiceImpl implements DeliveryService {
     public void deleteDelivery(UUID userUuid, UUID deliveryUuid) {
 
         log.info("Deleting delivery for delivery uuid:{}", deliveryUuid);
-        Customer customer = findCustomerByUserUuid(userUuid);
-        userValidator.requireJpaAdminRole(customer.getUser());
-        Delivery delivery = findDeliveryByCustomerAndDeliveryUuid(customer, deliveryUuid);
+        Customer customerJpaEntity = findCustomerByUserUuid(userUuid);
+        User user = findUserByUserUuid(userUuid);
+        userValidator.requireAdminRole(user);
+        Delivery delivery = findDeliveryByCustomerAndDeliveryUuid(customerJpaEntity, deliveryUuid);
 
         deliveryRepository.delete(delivery);
     }
@@ -174,8 +187,8 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Override
     public DeliveryResponseDto getDeliveryInfo(UUID userUuid, UUID deliveryUuid) {
         log.info("Searching delivery for delivery uuid: {} and delivery uuid: {}", userUuid, deliveryUuid);
-        Customer customer = findCustomerByUserUuid(userUuid);
-        Delivery delivery = findDeliveryByCustomerAndDeliveryUuid(customer, deliveryUuid);
+        Customer customerJpaEntity = findCustomerByUserUuid(userUuid);
+        Delivery delivery = findDeliveryByCustomerAndDeliveryUuid(customerJpaEntity, deliveryUuid);
 
         return deliveryMapper.toResponse(delivery);
     }
@@ -189,35 +202,35 @@ public class DeliveryServiceImpl implements DeliveryService {
      */
     @Override
     public Page<DeliveryResponseDto> getDeliveriesByStatus(UUID userUuid, DeliveryStatus deliveryStatus, Pageable pageable) {
-        Customer customer = findCustomerByUserUuid(userUuid);
+        Customer customerJpaEntity = findCustomerByUserUuid(userUuid);
 
-        Page<Delivery> deliveries = deliveryRepository.findByCustomerUuidByStatus(customer.getCustomerUuid(), deliveryStatus, pageable);
+        Page<Delivery> deliveries = deliveryRepository.findByCustomerUuidByStatus(customerJpaEntity.getCustomerUuid(), deliveryStatus, pageable);
 
         return deliveries.map(deliveryMapper::searchResponse);
     }
 
     @Override
     public DeliveryCountResponseDto getDeliveryDashboardCount(UUID userUuid) {
-        Customer customer = findCustomerByUserUuid(userUuid);
+        Customer customerJpaEntity = findCustomerByUserUuid(userUuid);
 
-        int shippedCount = deliveryRepository.findByDeliveryStatusCount(customer.getCustomerUuid(), DeliveryStatus.SHIPPED);
-        int deliveredCount = deliveryRepository.findByDeliveryStatusCount(customer.getCustomerUuid(), DeliveryStatus.DELIVERED);
+        int shippedCount = deliveryRepository.findByDeliveryStatusCount(customerJpaEntity.getCustomerUuid(), DeliveryStatus.SHIPPED);
+        int deliveredCount = deliveryRepository.findByDeliveryStatusCount(customerJpaEntity.getCustomerUuid(), DeliveryStatus.DELIVERED);
 
         return deliveryMapper.deliveryCount(shippedCount, deliveredCount);
     }
 
     private Customer findCustomerByUserUuid(UUID userUuid) {
-        return customerRepository.findByUserUserUuid(userUuid)
+        return customerPersistencePort.findByUserUuid(userUuid)
                 .orElseThrow(() -> new CustomerNotFoundException("userUuid: customer not found"));
     }
 
     private Delivery findDeliveryByCustomerAndDeliveryUuid(Customer customer, UUID deliveryUuid) {
-        return deliveryRepository.findByCustomerCustomerUuidAndDeliveryUuid(customer.getCustomerUuid(), deliveryUuid)
+        return deliveryRepository.findByCustomerUuidAndDeliveryUuid(customer.getCustomerUuid(), deliveryUuid)
                 .orElseThrow(() -> new DeliveryNotFoundException("CustomerUuidAndDeliveryUuid: delivery not found"));
     }
 
     private Address findAddressByCustomerOrder(UUID customerUuid) {
-        return addressRepository.findByCustomerCustomerUuid(customerUuid)
+        return addressRepository.findByCustomerUuid(customerUuid)
                 .orElseThrow(() -> new CustomerNotFoundException("CustomerUuid: Address not found"));
     }
 

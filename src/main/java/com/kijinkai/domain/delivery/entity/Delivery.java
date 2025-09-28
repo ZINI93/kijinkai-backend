@@ -2,10 +2,8 @@ package com.kijinkai.domain.delivery.entity;
 
 
 import com.kijinkai.domain.common.BaseEntity;
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.delivery.dto.DeliveryUpdateDto;
-import com.kijinkai.domain.order.entity.Order;
-import com.kijinkai.domain.payment.domain.entity.OrderPayment;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -37,9 +35,12 @@ public class Delivery extends BaseEntity {
     @Column(name = "order_payment_uuid", nullable = false, updatable = false)
     private UUID orderPaymentUuid;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false, updatable = false)
-    private Customer customer;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "customer_id", nullable = false, updatable = false)
+//    private Customer customer;
+
+    @Column(name = "customer_uuid", nullable = false)
+    private UUID customerUuid;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "delivery_status", nullable = false)
@@ -95,10 +96,10 @@ public class Delivery extends BaseEntity {
 
 
     @Builder
-    public Delivery(UUID deliveryUuid, UUID orderPaymentUuid, Customer customer, DeliveryStatus deliveryStatus, String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, Carrier carrier, String trackingNumber, BigDecimal deliveryFee, LocalDateTime estimatedDeliveryAt, LocalDateTime shippedAt, LocalDateTime deliveredAt, String deliveryRequest, String cancelReason) {
+    public Delivery(UUID deliveryUuid, UUID orderPaymentUuid, UUID customerUuid, DeliveryStatus deliveryStatus, String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, Carrier carrier, String trackingNumber, BigDecimal deliveryFee, LocalDateTime estimatedDeliveryAt, LocalDateTime shippedAt, LocalDateTime deliveredAt, String deliveryRequest, String cancelReason) {
         this.deliveryUuid = deliveryUuid != null ? deliveryUuid : UUID.randomUUID();
         this.orderPaymentUuid = orderPaymentUuid;
-        this.customer = customer;
+        this.customerUuid = customerUuid;
         this.deliveryStatus = deliveryStatus != null ? deliveryStatus : DeliveryStatus.PENDING;
         this.recipientName = recipientName;
         this.recipientPhoneNumber = recipientPhoneNumber;

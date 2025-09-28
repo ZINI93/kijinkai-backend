@@ -2,7 +2,7 @@ package com.kijinkai.domain.transaction.entity;
 
 
 import com.kijinkai.domain.common.BaseEntity;
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
 import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.wallet.entity.Wallet;
@@ -26,9 +26,13 @@ public class Transaction extends BaseEntity {
     @Column(name = "transaction_uuid", nullable = false)
     public UUID transactionUuid;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false, updatable = false)
-    public Customer customer;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "customer_id", nullable = false, updatable = false)
+//    public CustomerJpaEntity customerJpaEntity;
+
+
+    @Column(name = "customer_uuid")
+    private UUID customerUuid;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "wallet_id", nullable = false, updatable = false)
@@ -64,9 +68,9 @@ public class Transaction extends BaseEntity {
 
 
     @Builder
-    public Transaction(UUID transactionUuid, Customer customer, Wallet wallet, Order order, TransactionType transactionType, BigDecimal amount, BigDecimal balanceBefore, BigDecimal balanceAfter, Currency currency , TransactionStatus transactionStatus, String memo) {
+    public Transaction(UUID transactionUuid, UUID customerUuid, Wallet wallet, Order order, TransactionType transactionType, BigDecimal amount, BigDecimal balanceBefore, BigDecimal balanceAfter, Currency currency , TransactionStatus transactionStatus, String memo) {
         this.transactionUuid = transactionUuid != null ? transactionUuid : UUID.randomUUID();
-        this.customer = customer;
+        this.customerUuid = customerUuid;
         this.wallet = wallet;
         this.order = order;
         this.transactionType = transactionType;

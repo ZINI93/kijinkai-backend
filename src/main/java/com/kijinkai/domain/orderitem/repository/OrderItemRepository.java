@@ -16,12 +16,9 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
 
     Optional<OrderItem> findByOrderItemUuid(UUID orderUuid);
 
-    @Query("SELECT oi FROM OrderItem oi JOIN FETCH oi.order o JOIN FETCH o.customer c WHERE oi.orderItemUuid = :orderItemUuid")
-    Optional<OrderItem> findByOrderItemUuidWithOrderAndCustomer(@Param("orderItemUuid") UUID orderItemUuid);
+    Page<OrderItem> findAllByCustomerUuidOrderByOrderCreatedAtDesc(UUID customerUuid, Pageable pageable);
 
-    Page<OrderItem> findAllByOrderCustomerCustomerUuidOrderByOrderCreatedAtDesc(UUID customerUuid, Pageable pageable);
-
-    Page<OrderItem> findAllByOrderCustomerCustomerUuidAndOrderItemStatusOrderByOrderCreatedAtDesc(UUID customerUuid, OrderItemStatus status, Pageable pageable);
+    Page<OrderItem> findAllByCustomerUuidAndOrderItemStatusOrderByOrderCreatedAtDesc(UUID customerUuid, OrderItemStatus status, Pageable pageable);
 
     List<OrderItem> findByOrderItemUuidInAndCustomerUuid(List<UUID> orderItemUuids, UUID customerUuid);
 
@@ -31,3 +28,4 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     @Query("SELECT COUNT(oi) FROM OrderItem oi WHERE oi.customerUuid = :customerUuid ORDER BY oi.createdAt DESC")
     int findOrderItemCount(@Param("customerUuid") UUID customerUuid);
 }
+

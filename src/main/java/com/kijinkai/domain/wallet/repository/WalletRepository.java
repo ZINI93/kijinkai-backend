@@ -27,26 +27,23 @@ public interface WalletRepository extends JpaRepository<Wallet, Long> {
     @Modifying
     @Query("UPDATE Wallet w SET w.balance = w.balance - :amount WHERE w.walletUuid = :walletUuid AND w.balance >= :amount")
     int decreaseBalanceAtomic(@Param("walletUuid") UUID walletUuid, @Param("amount") BigDecimal amount);
-
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT w FROM Wallet w WHERE w.id = :walletId")
-    Optional<Wallet> findByIdWithPessimisticLock(@Param("walletId") Long walletId);
-
-    @Query("SELECT w FROM Wallet w JOIN FETCH w.customer c JOIN FETCH c.user u WHERE u.userUuid = :userUuid")
-    Optional<Wallet> findByUserUserUuidWithCustomerAndUser(@Param("userUuid") UUID userUuid);
-
-    @Query("SELECT w FROM Wallet w JOIN FETCH w.customer c WHERE c.customerId = :customerId")
-    Optional<Wallet> findByCustomerCustomerIdWithCustomer(@Param("customerId") Long customerId);
-
-    Optional<Wallet> findByCustomerCustomerId(Long customerId);
+//
+//    @Lock(LockModeType.PESSIMISTIC_WRITE)
+//    @Query("SELECT w FROM Wallet w WHERE w.id = :walletId")
+//    Optional<Wallet> findByIdWithPessimisticLock(@Param("walletId") Long walletId);
+//
+//    @Query("SELECT w FROM Wallet w JOIN FETCH w.customer c WHERE c.customerId = :customerId")
+//    Optional<Wallet> findByCustomerCustomerIdWithCustomer(@Param("customerId") Long customerId);
+//
+//    Optional<Wallet> findByCustomerCustomerId(Long customerId);
 
     Optional<Wallet> findByWalletId(Long walletId);
 
     Optional<Wallet> findByWalletUuid(UUID walletUuid);
 
-    Optional<Wallet> findByCustomerCustomerUuidAndWalletUuid(UUID customerUuid, UUID walletUuid);
+    Optional<Wallet> findByCustomerUuidAndWalletUuid(UUID customerUuid, UUID walletUuid);
 
-    Optional<Wallet> findByCustomerCustomerUuid(UUID customerUuid);
+    Optional<Wallet> findByCustomerUuid(UUID customerUuid);
 
 
 

@@ -1,6 +1,6 @@
 package com.kijinkai.domain.payment.application.dto;
 
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.payment.domain.enums.PaymentMethod;
 import com.kijinkai.domain.payment.domain.enums.PaymentStatus;
@@ -15,7 +15,7 @@ import java.util.UUID;
 public class PaymentResponseDto {
 
     private UUID paymentUuid;
-    private Customer customer;
+    private CustomerJpaEntity customerJpaEntity;
     private PaymentStatus paymentStatus;
     private PaymentMethod paymentMethod;
     private BigDecimal amount;
@@ -33,9 +33,9 @@ public class PaymentResponseDto {
 
 
     @Builder
-    public PaymentResponseDto(UUID paymentUuid, Customer customer, BigDecimal balance, PaymentStatus paymentStatus, PaymentMethod paymentMethod, BigDecimal amount, Currency currency, PaymentType paymentType, String description, String externalTransactionId) {
+    public PaymentResponseDto(UUID paymentUuid, CustomerJpaEntity customerJpaEntity, BigDecimal balance, PaymentStatus paymentStatus, PaymentMethod paymentMethod, BigDecimal amount, Currency currency, PaymentType paymentType, String description, String externalTransactionId) {
         this.paymentUuid = paymentUuid;
-        this.customer = customer;
+        this.customerJpaEntity = customerJpaEntity;
         this.paymentStatus = paymentStatus;
         this.paymentMethod = paymentMethod;
         this.amount = amount;

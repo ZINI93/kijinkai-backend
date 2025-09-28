@@ -2,7 +2,8 @@ package com.kijinkai.domain.wallet.entity;
 
 
 import com.kijinkai.domain.common.BaseEntity;
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
+import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.wallet.dto.WalletFreezeRequest;
 import jakarta.persistence.*;
@@ -29,9 +30,12 @@ public class Wallet extends BaseEntity {
     @Column(name = "wallet_uuid", nullable = false, updatable = false, unique = true)
     private UUID walletUuid;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false, updatable = false, unique = true)
-    private Customer customer;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "customer_id", nullable = false, updatable = false, unique = true)
+//    private Customer customer;
+
+    @Column(name = "customer_uuid")
+    private UUID customerUuid;
 
     @Column(nullable = false,  precision = 16 ,scale = 4)
     private BigDecimal balance;
@@ -52,9 +56,9 @@ public class Wallet extends BaseEntity {
 
 
     @Builder
-    public Wallet(UUID walletUuid, Customer customer, BigDecimal balance, Currency currency, WalletStatus walletStatus, String freezeReason, Long version) {
+    public Wallet(UUID walletUuid, UUID customerUuid, BigDecimal balance, Currency currency, WalletStatus walletStatus, String freezeReason, Long version) {
         this.walletUuid = walletUuid != null ? walletUuid : UUID.randomUUID();
-        this.customer = customer;
+        this.customerUuid = customerUuid;
         this.balance = balance;
         this.currency = currency != null ? currency : Currency.JPY;
         this.walletStatus = walletStatus;
@@ -66,7 +70,7 @@ public class Wallet extends BaseEntity {
     public Wallet freeze(WalletFreezeRequest request){
         return Wallet.builder()
                 .walletUuid(this.walletUuid)
-                .customer(this.customer)
+                .customerUuid(this.customerUuid)
                 .balance(this.balance)
                 .walletStatus(WalletStatus.FROZEN)
                 .freezeReason(request.getReason())
@@ -78,7 +82,7 @@ public class Wallet extends BaseEntity {
 
         return Wallet.builder()
                 .walletUuid(this.walletUuid)
-                .customer(this.customer)
+                .customerUuid(this.customerUuid)
                 .balance(this.balance)
                 .walletStatus(WalletStatus.ACTIVE)
                 .build();

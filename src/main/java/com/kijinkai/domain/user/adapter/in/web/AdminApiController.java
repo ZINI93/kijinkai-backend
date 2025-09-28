@@ -50,7 +50,7 @@ public class AdminApiController {
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
         UUID userUuid = customUserDetails.getUserUuid();
 
-        Page<UserResponseDto> allByUsers = getUserUseCase.findAllByEmailAndName(userUuid, email, name, pageable);
+        Page<UserResponseDto> allByUsers = getUserUseCase.findAllByEmailAndNickName(userUuid, email, name, pageable);
 
         return ResponseEntity.ok(BasicResponseDto.success("회원 리스트 조회 성공", allByUsers));
     }

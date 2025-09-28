@@ -12,7 +12,7 @@ public class OrderMapper {
 
         return OrderResponseDto.builder()
                 .orderUuid(order.getOrderUuid())
-                .customerUuid(order.getCustomer().getCustomerUuid())
+                .customerUuid(order.getCustomerUuid())
                 .totalPriceOriginal(order.getTotalPriceOriginal())
                 .finalPriceOriginal(order.getFinalPriceOriginal())
                 .memo(order.getMemo())

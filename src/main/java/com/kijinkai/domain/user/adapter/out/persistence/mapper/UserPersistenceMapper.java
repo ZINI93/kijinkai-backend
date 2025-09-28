@@ -11,12 +11,10 @@ import java.util.List;
 public interface UserPersistenceMapper {
 
     User toUser(UserJpaEntity jpaEntity);
-
     UserJpaEntity toUserJpaEntity(User user);
 
     // 리스트 매핑
     List<User> toUserInList(List<UserJpaEntity> jpaEntities);
-
     List<UserJpaEntity> toUserJpaEntityInList(List<User> users);
 
 }

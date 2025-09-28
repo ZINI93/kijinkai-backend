@@ -11,7 +11,7 @@ public class DeliveryMapper {
     public DeliveryResponseDto toResponse(Delivery delivery) {
         return DeliveryResponseDto.builder()
                 .deliveryUuid(delivery.getDeliveryUuid())
-                .customerUuid(delivery.getCustomer().getCustomerUuid())
+                .customerUuid(delivery.getCustomerUuid())
                 .recipientName(delivery.getRecipientName())
                 .build();
     }
@@ -20,7 +20,7 @@ public class DeliveryMapper {
     public DeliveryResponseDto searchResponse(Delivery delivery) {
         return DeliveryResponseDto.builder()
                 .deliveryUuid(delivery.getDeliveryUuid())
-                .customerUuid(delivery.getCustomer().getCustomerUuid())
+                .customerUuid(delivery.getCustomerUuid())
                 .recipientName(delivery.getRecipientName())
                 .trackingNumber(delivery.getTrackingNumber())
                 .deliveryStatus(delivery.getDeliveryStatus())

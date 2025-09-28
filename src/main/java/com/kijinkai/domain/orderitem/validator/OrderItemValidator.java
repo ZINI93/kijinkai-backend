@@ -1,6 +1,6 @@
 package com.kijinkai.domain.orderitem.validator;
 
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.orderitem.dto.OrderItemRequestDto;
 import com.kijinkai.domain.orderitem.entity.OrderItem;
 import com.kijinkai.domain.orderitem.entity.OrderItemStatus;
@@ -31,7 +31,7 @@ public class OrderItemValidator {
     }
 
     public void validateCustomerOwnershipOfOrderItem(Customer customer, OrderItem orderItem){
-        UUID orderCustomerUuid = orderItem.getOrder().getCustomer().getCustomerUuid();
+        UUID orderCustomerUuid = orderItem.getOrder().getCustomerUuid();
         if (!customer.getCustomerUuid().equals(orderCustomerUuid)) {
             throw new OrderItemValidateException(
                     String.format("Customer UUID mismatch: expected %s, but got %s",

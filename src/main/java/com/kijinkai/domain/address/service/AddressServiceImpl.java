@@ -8,9 +8,9 @@ import com.kijinkai.domain.address.exception.AddressNotFoundException;
 import com.kijinkai.domain.address.factory.AddressFactory;
 import com.kijinkai.domain.address.mapper.AddressMapper;
 import com.kijinkai.domain.address.repository.AddressRepository;
-import com.kijinkai.domain.customer.entity.Customer;
-import com.kijinkai.domain.customer.exception.CustomerNotFoundException;
-import com.kijinkai.domain.customer.repository.CustomerRepository;
+import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPersistencePort;
+import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
+import com.kijinkai.domain.customer.domain.model.Customer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ import java.util.UUID;
 public class AddressServiceImpl implements AddressService {
 
     private final AddressRepository addressRepository;
-    private final CustomerRepository customerRepository;
+    private final CustomerPersistencePort customerPersistencePort;
 
     private final AddressFactory addressFactory;
     private final AddressMapper addressMapper;
@@ -35,7 +35,8 @@ public class AddressServiceImpl implements AddressService {
     public AddressResponseDto createAddressWithValidate(UUID userUuid, AddressRequestDto requestDto) {
 
         Customer customer = findCustomerByUserUuid(userUuid);
-        Address address = addressFactory.createAddress1(customer, requestDto);
+
+        Address address = addressFactory.createAddress1(customer.getCustomerUuid(), requestDto);
         Address savedAddress = addressRepository.save(address);
 
         return addressMapper.toResponse(savedAddress);
@@ -44,10 +45,10 @@ public class AddressServiceImpl implements AddressService {
     @Override @Transactional
     public AddressResponseDto updateAddressWithValidate(UUID userUuid, AddressUpdateDto updateDto) {
 
-        Customer findByCustomer = findCustomerByUserUuid(userUuid);
-        Address findByAddress = findAddressByCustomer(findByCustomer);
+        Customer customer = findCustomerByUserUuid(userUuid);
+        Address findByAddress = findAddressByCustomer(customer);
 
-        Address address = findAddressByCustomerUuidAndAddressUuid(findByAddress.getAddressUuid(), findByCustomer);
+        Address address = findAddressByCustomerUuidAndAddressUuid(findByAddress.getAddressUuid(), customer);
         address.updateAddress(updateDto);
         return addressMapper.toResponse(address);
     }
@@ -63,27 +64,30 @@ public class AddressServiceImpl implements AddressService {
     }
 
     private Address findAddressByCustomer(Customer findBycustomer) {
-        return addressRepository.findByCustomerCustomerUuid(findBycustomer.getCustomerUuid())
+        return addressRepository.findByCustomerUuid(findBycustomer.getCustomerUuid())
                 .orElseThrow(() -> new AddressNotFoundException(String.format("Address not found exception for customer uuid: %s", findBycustomer.getCustomerUuid())));
     }
 
     @Override
     public void deleteAddress(UUID userUuid, UUID addressUuid) {
 
-        Customer customer = findCustomerByUserUuid(userUuid);
-        Address address = findAddressByCustomerUuidAndAddressUuid(addressUuid, customer);
+        Customer customerJpaEntity = findCustomerByUserUuid(userUuid);
+        Address address = findAddressByCustomerUuidAndAddressUuid(addressUuid, customerJpaEntity);
 
         addressRepository.delete(address);
 
     }
 
     private Address findAddressByCustomerUuidAndAddressUuid(UUID addressUuid, Customer customer) {
-        return addressRepository.findByCustomerCustomerUuidAndAddressUuid(customer.getCustomerUuid(), addressUuid)
+        return addressRepository.findByCustomerUuidAndAddressUuid(customer.getCustomerUuid(), addressUuid)
                 .orElseThrow(() -> new AddressNotFoundException("CustomerUuid and AddressUuid : Address not found"));
     }
 
+
+    //helper method
+
     private Customer findCustomerByUserUuid(UUID userUuid) {
-        return customerRepository.findByUserUserUuid(userUuid)
-                .orElseThrow(() -> new CustomerNotFoundException("UserUuid: Customer not found"));
+        return customerPersistencePort.findByUserUuid(userUuid)
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for userUuid: %s", userUuid)));
     }
 }

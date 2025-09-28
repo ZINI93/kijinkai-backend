@@ -1,6 +1,7 @@
 package com.kijinkai.domain.payment.domain.service;
 
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
+import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.payment.domain.entity.OrderPayment;
 import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
 import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;

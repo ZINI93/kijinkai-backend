@@ -1,7 +1,8 @@
 package com.kijinkai.domain.payment.application.service;
 
 
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
+import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.exchange.dto.ExchangeRateResponseDto;
 import com.kijinkai.domain.exchange.service.PriceCalculationService;
 import com.kijinkai.domain.orderitem.entity.OrderItem;
@@ -95,7 +96,8 @@ public class PaymentApplicationService implements PaymentUseCase {
 
         log.info("Creating deposit request for user uuid: {}", userUuid);
 
-        Customer customer = customerPort.findByUserUuid(userUuid);
+        Customer customer = customerPort.findByUserUuid(userUuid)
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", userUuid)));
         Wallet wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
 
         ExchangeRateResponseDto exchangeRate = exchangePort.getExchangeRateInfoByCurrency(requestDto.getOriginalCurrency());
@@ -200,7 +202,8 @@ public class PaymentApplicationService implements PaymentUseCase {
     @Override
     public Page<DepositRequestResponseDto> getDepositsByApprovalPending(UUID adminUuid, String depositorName, Pageable pageable) {
         User user = userPort.findUserByUserUuid(adminUuid);
-        Customer customer = customerPort.findByUserUuid(user.getUserUuid());
+        Customer customer = customerPort.findByUserUuid(user.getUserUuid())
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", user.getUserUuid())));
         Wallet wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
 
         Page<DepositRequest> depositRequests = depositRequestRepository.findByDepositPaymentUuidByStatus(customer.getCustomerUuid(), depositorName, DepositStatus.PENDING_ADMIN_APPROVAL, pageable);
@@ -211,7 +214,8 @@ public class PaymentApplicationService implements PaymentUseCase {
     @Override
     public Page<DepositRequestResponseDto> getDeposits(UUID userUuid, Pageable pageable) {
         User user = userPort.findUserByUserUuid(userUuid);
-        Customer customer = customerPort.findByUserUuid(user.getUserUuid());
+        Customer customer = customerPort.findByUserUuid(user.getUserUuid())
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", userUuid)));
         Page<DepositRequest> depositRequests = depositRequestRepository.findAllByCustomerUuid(customer.getCustomerUuid(), pageable);
 
         return depositRequests.map(paymentMapper::depositInfoResponse);
@@ -227,7 +231,8 @@ public class PaymentApplicationService implements PaymentUseCase {
     @Override
     public DepositRequestResponseDto getDepositRequestInfo(UUID requestUuid, UUID userUuid) {
 
-        Customer customer = customerPort.findByUserUuid(userUuid);
+        Customer customer = customerPort.findByUserUuid(userUuid)
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", userUuid)));
         DepositRequest depositRequest = findDepositRequestByRequest(requestUuid, customer);
 
         DepositRequest deposit = depositRequestService.getDepositInfo(depositRequest, customer);
@@ -265,7 +270,8 @@ public class PaymentApplicationService implements PaymentUseCase {
 
         log.info("Creating withdraw request for user uuid: {}", userUuid);
 
-        Customer customer = customerPort.findByUserUuid(userUuid);
+        Customer customer = customerPort.findByUserUuid(userUuid)
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", userUuid)));
         Wallet wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
         BigDecimal withdrawFee = PaymentContents.WITHDRAWAL_FEE;
         ExchangeRateResponseDto exchangeRate = exchangePort.getExchangeRateInfoByCurrency(requestDto.getCurrency());
@@ -357,7 +363,8 @@ public class PaymentApplicationService implements PaymentUseCase {
     @Override
     public Page<WithdrawResponseDto> getWithdraws(UUID adminUuid, Pageable pageable) {
         User user = userPort.findUserByUserUuid(adminUuid);
-        Customer customer = customerPort.findByUserUuid(user.getUserUuid());
+        Customer customer = customerPort.findByUserUuid(user.getUserUuid())
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", user.getUserUuid())));
         Wallet wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
         Page<WithdrawRequest> withdraws = withdrawRequestRepository.findAllByCustomerUuid(customer.getCustomerUuid(), pageable);
 
@@ -374,7 +381,8 @@ public class PaymentApplicationService implements PaymentUseCase {
     @Override
     public Page<WithdrawResponseDto> getWithdrawByApprovalPending(UUID adminUuid, String depositorName, Pageable pageable) {
         User user = userPort.findUserByUserUuid(adminUuid);
-        Customer customer = customerPort.findByUserUuid(user.getUserUuid());
+        Customer customer= customerPort.findByUserUuid(user.getUserUuid())
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", user.getUserUuid())));
         Page<WithdrawRequest> withdrawRequests = withdrawRequestRepository.findByWithdrawPaymentUuidByStatus(customer.getCustomerUuid(), depositorName, WithdrawStatus.PENDING_ADMIN_APPROVAL, pageable);
         return withdrawRequests.map(paymentMapper::withdrawInfoResponse);
 
@@ -390,7 +398,8 @@ public class PaymentApplicationService implements PaymentUseCase {
     @Override
     public WithdrawResponseDto getWithdrawInfo(UUID requestUuid, UUID userUuid) {
 
-        Customer customer = customerPort.findByUserUuid(userUuid);
+        Customer customer= customerPort.findByUserUuid(userUuid)
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", userUuid)));
         WithdrawRequest withdrawRequest = findWithdrawRequestByRequestUuidAndUserUuid(requestUuid, customer.getCustomerUuid());
         WithdrawRequest request = withdrawRequestService.getWithdrawInfo(withdrawRequest);
 
@@ -417,7 +426,8 @@ public class PaymentApplicationService implements PaymentUseCase {
 
         OrderItem orderItem = orderItemPort.findByOrderItemUuid(orderItemUuid);
         orderItem.isCancel();
-        Customer customer = customerPort.findByCustomerUuid(orderItem.getCustomerUuid());
+        Customer customer = customerPort.findByCustomerUuid(orderItem.getCustomerUuid())
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", adminUuid)));
         Wallet wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
 
         RefundRequest refundRequest = refundRequestService.createRefundRequest(
@@ -496,7 +506,8 @@ public class PaymentApplicationService implements PaymentUseCase {
     @Override
     public RefundResponseDto getRefundInfo(UUID refundUuid, UUID userUuid) {
 
-        Customer customer = customerPort.findByUserUuid(userUuid);
+        Customer customer = customerPort.findByUserUuid(userUuid)
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", userUuid)));
         RefundRequest request = findRefundRequestByRefundUuidAndCustomer(refundUuid, customer.getCustomerUuid());
 
         RefundRequest refund = refundRequestService.getRefundInfo(request);
@@ -508,7 +519,8 @@ public class PaymentApplicationService implements PaymentUseCase {
     @Override
     public Page<RefundResponseDto> getRefunds(UUID adminUuid, Pageable pageable) {
         User user = userPort.findUserByUserUuid(adminUuid);
-        Customer customer = customerPort.findByUserUuid(user.getUserUuid());
+        Customer customer = customerPort.findByUserUuid(user.getUserUuid())
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", user.getUserUuid())));
         Wallet wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
 
         Page<RefundRequest> refunds = refundRequestRepository.findAllByCustomerUuid(customer.getCustomerUuid(), pageable);
@@ -533,7 +545,8 @@ public class PaymentApplicationService implements PaymentUseCase {
     @Transactional
     public OrderPaymentResponseDto completeFirstPayment(UUID userUuid, OrderPaymentRequestDto requestDto) {
 
-        Customer customer = customerPort.findByUserUuid(userUuid);
+        Customer customer = customerPort.findByUserUuid(userUuid)
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", userUuid)));
         Wallet findWallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
 
         OrderPayment orderPayment = orderPaymentService.crateOrderPayment(customer, findWallet);
@@ -594,7 +607,8 @@ public class PaymentApplicationService implements PaymentUseCase {
         UUID secondOrderItemUuid = orderItemUuids.get(1);
         OrderItem orderItem = orderItemPort.findByOrderItemUuid(secondOrderItemUuid);
 
-        Customer customer = customerPort.findByCustomerUuid(orderItem.getCustomerUuid());
+        Customer customer= customerPort.findByCustomerUuid(orderItem.getCustomerUuid())
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", adminUuid)));
         Wallet wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
 
         OrderPayment orderPayment = orderPaymentService.createSecondOrderPayment(customer, requestDto.getDeliveryFee(), admin, wallet);
@@ -619,7 +633,8 @@ public class PaymentApplicationService implements PaymentUseCase {
     public OrderPaymentResponseDto completeSecondPayment(UUID userUuid, OrderPaymentDeliveryRequestDto requestDto) {
 
 
-        Customer customer = customerPort.findByUserUuid(userUuid);
+        Customer customer = customerPort.findByUserUuid(userUuid)
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", userUuid)));
         if (requestDto.getOrderPaymentUuids() == null || requestDto.getOrderPaymentUuids().isEmpty()) {
             throw new IllegalArgumentException("배송비를 지불할 결제를 선택하세요");
         }
@@ -717,7 +732,8 @@ public class PaymentApplicationService implements PaymentUseCase {
      */
     @Override
     public OrderPaymentResponseDto getOrderPaymentInfo(UUID userUuid, UUID paymentUuid) {
-        Customer customer = customerPort.findByUserUuid(userUuid);
+        Customer customer = customerPort.findByUserUuid(userUuid)
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", userUuid)));
         OrderPayment findByOrderPayment = findOrderPaymentByCustomerUuidAndPaymentUuid(customer.getCustomerUuid(), paymentUuid);
         OrderPayment orderPayment = orderPaymentService.getOrderPaymentInfo(findByOrderPayment);
         return paymentMapper.orderPaymentInfo(orderPayment);
@@ -734,7 +750,9 @@ public class PaymentApplicationService implements PaymentUseCase {
      */
     @Override
     public Page<OrderPaymentResponseDto> getOrderPaymentsByStatusAndType(UUID userUuid, OrderPaymentStatus status, PaymentType paymentType, Pageable pageable) {
-        Customer customer = customerPort.findByUserUuid(userUuid);
+        Customer customer = customerPort.findByUserUuid(userUuid)
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", userUuid)));
+
         Page<OrderPayment> orderPaymentsByPending = orderPaymentRepository.findAllByCustomerUuidAndOrderPaymentStatusAndPaymentTypeOrderByCreatedAtDesc(customer.getCustomerUuid(), status, paymentType, pageable);
 
         return orderPaymentsByPending.map(paymentMapper::orderPaymentInfo);
@@ -743,7 +761,8 @@ public class PaymentApplicationService implements PaymentUseCase {
     @Override
     public Page<OrderPaymentResponseDto> getOrderPayments(UUID adminUuid, Pageable pageable) {
         User user = userPort.findUserByUserUuid(adminUuid);
-        Customer customer = customerPort.findByUserUuid(user.getUserUuid());
+        Customer customer = customerPort.findByUserUuid(user.getUserUuid())
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", user.getUserUuid())));
 
         Wallet wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
 
@@ -754,7 +773,8 @@ public class PaymentApplicationService implements PaymentUseCase {
 
     @Override
     public OrderPaymentCountResponseDto getOrderPaymentDashboardCount(UUID userUuid) {
-        Customer customer = customerPort.findByUserUuid(userUuid);
+        Customer customer = customerPort.findByUserUuid(userUuid)
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", userUuid)));
 
         int firstPending = orderPaymentRepository.findByOrderPaymentStatusCount(customer.getCustomerUuid(), OrderPaymentStatus.PENDING, PaymentType.PRODUCT_PAYMENT);
         int firstCompleted = orderPaymentRepository.findByOrderPaymentStatusCount(customer.getCustomerUuid(), OrderPaymentStatus.COMPLETED, PaymentType.PRODUCT_PAYMENT);

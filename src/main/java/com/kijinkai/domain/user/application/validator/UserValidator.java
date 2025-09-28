@@ -3,7 +3,6 @@ package com.kijinkai.domain.user.application.validator;
 import com.kijinkai.domain.user.application.dto.UserRequestDto;
 import com.kijinkai.domain.user.application.dto.UserUpdateDto;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
-import com.kijinkai.domain.user.domain.exception.DuplicateEmailException;
 import com.kijinkai.domain.user.domain.exception.InvalidUserDataException;
 import com.kijinkai.domain.user.domain.exception.UserUpdateException;
 import com.kijinkai.domain.user.domain.model.User;
@@ -40,10 +39,6 @@ public class UserValidator {
     private void validateEmail(String email){
         if (email == null || email.trim().isEmpty()){
             throw new InvalidUserDataException("Email is required");
-        }
-
-        if (userPersistencePort.existsByEmail(email)){
-            throw new DuplicateEmailException("Email already exists");
         }
 
     }

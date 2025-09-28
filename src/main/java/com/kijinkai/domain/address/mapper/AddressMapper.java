@@ -11,7 +11,7 @@ public class AddressMapper {
 
         return AddressResponseDto.builder().
                 addressUuid(address.getAddressUuid()).
-                customerUuid(address.getCustomer().getCustomerUuid()).
+                customerUuid(address.getCustomerUuid()).
                 zipcode(address.getZipcode()).
                 state(address.getState()).
                 city(address.getCity()).

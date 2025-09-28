@@ -1,6 +1,7 @@
 package com.kijinkai.domain.user.adapter.out.persistence.entity;
 
 
+import com.kijinkai.domain.common.BaseEntity;
 import com.kijinkai.domain.user.domain.model.UserRole;
 import com.kijinkai.domain.user.domain.model.UserStatus;
 import jakarta.persistence.*;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "users")
 @Entity
-public class UserJpaEntity {
+public class UserJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

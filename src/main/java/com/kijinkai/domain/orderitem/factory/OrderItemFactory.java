@@ -1,7 +1,8 @@
 package com.kijinkai.domain.orderitem.factory;
 
 
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
+import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.orderitem.dto.OrderItemRequestDto;
 import com.kijinkai.domain.exchange.doamin.Currency;

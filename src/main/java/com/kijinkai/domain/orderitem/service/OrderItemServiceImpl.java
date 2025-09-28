@@ -1,9 +1,10 @@
 package com.kijinkai.domain.orderitem.service;
 
 
-import com.kijinkai.domain.customer.entity.Customer;
-import com.kijinkai.domain.customer.exception.CustomerNotFoundException;
-import com.kijinkai.domain.customer.repository.CustomerRepository;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
+import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPersistencePort;
+import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
+import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.exchange.service.ExchangeRateService;
 import com.kijinkai.domain.exchange.service.PriceCalculationService;
 import com.kijinkai.domain.order.entity.Order;
@@ -21,6 +22,8 @@ import com.kijinkai.domain.orderitem.repository.OrderItemRepository;
 import com.kijinkai.domain.orderitem.validator.OrderItemValidator;
 import com.kijinkai.domain.payment.application.dto.request.OrderPaymentRequestDto;
 import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
+import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
+import com.kijinkai.domain.user.domain.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -39,7 +42,9 @@ import java.util.UUID;
 @Service
 public class OrderItemServiceImpl implements OrderItemService {
 
-    private final CustomerRepository customerRepository;
+    private final CustomerPersistencePort customerPersistencePort;
+    private final UserPersistencePort userPersistencePort;
+
     private final OrderItemRepository orderItemRepository;
 
     private final PriceCalculationService priceCalculationService;
@@ -57,7 +62,7 @@ public class OrderItemServiceImpl implements OrderItemService {
     /**
      * 유저로 부터 상품 url, quantity 를 입력 받고, 확인 후 관리자가 가격 수정
      *
-     * @param customer
+     * @param customerJpaEntity
      * @param order
      * @param requestDto
      * @return orderItem
@@ -108,7 +113,10 @@ public class OrderItemServiceImpl implements OrderItemService {
     @Transactional
     public OrderItem updateOrderItemByAdmin(UUID userUuid, String orderItemUuid, OrderItemUpdateDto updateDto) {
         Customer customer = findCustomerByUserUuid(userUuid);
-        userValidator.requireJpaAdminRole(customer.getUser());
+        User user = userPersistencePort.findByUserUuid(customer.getUserUuid())
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("User not found for user uuid: %s")));
+
+        userValidator.requireAdminRole(user);
 
         OrderItem orderItem = findOrderItemByOrderItemUuid(orderItemUuid);
 
@@ -144,8 +152,8 @@ public class OrderItemServiceImpl implements OrderItemService {
     @Override
     public Page<OrderItemResponseDto> getOrderItems(UUID userUuid, Pageable pageable) {
 
-        Customer customer = findCustomerByUserUuid(userUuid);
-        Page<OrderItem> orderItems = orderItemRepository.findAllByOrderCustomerCustomerUuidOrderByOrderCreatedAtDesc(customer.getCustomerUuid(), pageable);
+        Customer customerJpaEntity = findCustomerByUserUuid(userUuid);
+        Page<OrderItem> orderItems = orderItemRepository.findAllByCustomerUuidOrderByOrderCreatedAtDesc(customerJpaEntity.getCustomerUuid(), pageable);
         return orderItems.map(orderItemMapper::toResponseDto);
     }
 
@@ -158,8 +166,8 @@ public class OrderItemServiceImpl implements OrderItemService {
      */
     @Override
     public Page<OrderItemResponseDto> getOrderItemByStatus(UUID userUuid, OrderItemStatus orderItemStatus, Pageable pageable) {
-        Customer customer = findCustomerByUserUuid(userUuid);
-        Page<OrderItem> orderItems = orderItemRepository.findAllByOrderCustomerCustomerUuidAndOrderItemStatusOrderByOrderCreatedAtDesc(customer.getCustomerUuid(), orderItemStatus, pageable);
+        Customer customerJpaEntity = findCustomerByUserUuid(userUuid);
+        Page<OrderItem> orderItems = orderItemRepository.findAllByCustomerUuidAndOrderItemStatusOrderByOrderCreatedAtDesc(customerJpaEntity.getCustomerUuid(), orderItemStatus, pageable);
         return orderItems.map(orderItemMapper::toResponseDto);
     }
 
@@ -186,11 +194,11 @@ public class OrderItemServiceImpl implements OrderItemService {
 
     @Override
     public OrderItemCountResponseDto orderItemDashboardCount(UUID userUuid) {
-        Customer customer = findCustomerByUserUuid(userUuid);
+        Customer customerJpaEntity = findCustomerByUserUuid(userUuid);
 
-        int orderItemPendingCount = orderItemRepository.findOrderItemCountByStatus(customer.getCustomerUuid(), OrderItemStatus.PENDING);
-        int orderItemPendingApprovalCount = orderItemRepository.findOrderItemCountByStatus(customer.getCustomerUuid(), OrderItemStatus.PENDING_APPROVAL);
-        int orderItemAllCount = orderItemRepository.findOrderItemCount(customer.getCustomerUuid());
+        int orderItemPendingCount = orderItemRepository.findOrderItemCountByStatus(customerJpaEntity.getCustomerUuid(), OrderItemStatus.PENDING);
+        int orderItemPendingApprovalCount = orderItemRepository.findOrderItemCountByStatus(customerJpaEntity.getCustomerUuid(), OrderItemStatus.PENDING_APPROVAL);
+        int orderItemAllCount = orderItemRepository.findOrderItemCount(customerJpaEntity.getCustomerUuid());
 
         return orderItemMapper.orderItemDashboardCount(orderItemAllCount, orderItemPendingCount, orderItemPendingApprovalCount);
     }
@@ -206,9 +214,9 @@ public class OrderItemServiceImpl implements OrderItemService {
     @Override
     public OrderItemResponseDto getOrderItemInfo(UUID userUuid, String orderItemUuid) {
 
-        Customer customer = findCustomerByUserUuid(userUuid);
+        Customer customerJpaEntity = findCustomerByUserUuid(userUuid);
         OrderItem orderItem = findOrderItemByOrderItemUuid(orderItemUuid);
-        orderItemValidator.validateCustomerOwnershipOfOrderItem(customer, orderItem);
+        orderItemValidator.validateCustomerOwnershipOfOrderItem(customerJpaEntity, orderItem);
 
         return orderItemMapper.toResponseDto(orderItem);
     }
@@ -242,7 +250,7 @@ public class OrderItemServiceImpl implements OrderItemService {
 
 
     private Customer findCustomerByUserUuid(UUID userUuid) {
-        return customerRepository.findByUserUserUuid(userUuid)
+        return customerPersistencePort.findByUserUuid(userUuid)
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for user uuid: %s", userUuid)));
     }
 

@@ -1,7 +1,7 @@
 package com.kijinkai.domain.payment.application.dto.command;
 
 
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.payment.application.dto.request.DepositRequestDto;
 import com.kijinkai.domain.payment.domain.enums.BankType;
@@ -23,10 +23,10 @@ public class CreateDepositCommand {
     BankType bankType;
     String memo;
 
-    public static CreateDepositCommand from(Wallet wallet, Customer customer, DepositRequestDto requestDto){
+    public static CreateDepositCommand from(Wallet wallet, CustomerJpaEntity customerJpaEntity, DepositRequestDto requestDto){
 
         return CreateDepositCommand.builder()
-                .customerUuid(customer.getCustomerUuid())
+                .customerUuid(customerJpaEntity.getCustomerUuid())
                 .wlletUuid(wallet.getWalletUuid())
                 .amountOriginal(requestDto.getAmountOriginal())
                 .originalCurrency(requestDto.getOriginalCurrency())

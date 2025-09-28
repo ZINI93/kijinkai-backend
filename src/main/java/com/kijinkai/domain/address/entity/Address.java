@@ -2,7 +2,8 @@ package com.kijinkai.domain.address.entity;
 
 import com.kijinkai.domain.address.dto.AddressUpdateDto;
 import com.kijinkai.domain.common.TimeBaseEntity;
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
+import com.kijinkai.domain.customer.domain.model.Customer;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -26,9 +27,12 @@ public class Address extends TimeBaseEntity {
     @Column(name = "address_uuid", nullable = false, updatable = false, unique = true)
     private UUID addressUuid;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false, updatable = false)
-    private Customer customer;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "customer_id", nullable = false, updatable = false)
+//    private Customer customer;
+
+    @Column(name = "customer_uuid")
+    private UUID customerUuid;
 
     @Column(name = "recipient_name", nullable = false)
     private String recipientName;
@@ -56,9 +60,9 @@ public class Address extends TimeBaseEntity {
 
 
     @Builder
-    public Address(UUID addressUuid, Customer customer, String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, Boolean isDefault) {
+    public Address(UUID addressUuid, UUID customerUuid, String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, Boolean isDefault) {
         this.addressUuid = addressUuid != null ? addressUuid : UUID.randomUUID();
-        this.customer = customer;
+        this.customerUuid = customerUuid;
         this.recipientName = recipientName;
         this.recipientPhoneNumber = recipientPhoneNumber;
         this.country = country;

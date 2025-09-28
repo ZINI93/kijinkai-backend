@@ -1,9 +1,10 @@
 package com.kijinkai.domain.wallet.service;
 
 
-import com.kijinkai.domain.customer.entity.Customer;
-import com.kijinkai.domain.customer.exception.CustomerNotFoundException;
-import com.kijinkai.domain.customer.repository.CustomerRepository;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
+import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
+import com.kijinkai.domain.customer.adapter.out.persistence.repository.CustomerRepository;
+import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
 import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
@@ -51,7 +52,7 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public WalletResponseDto createWalletWithValidate(Customer customer) {
 
-        Wallet wallet = walletFactory.createWallet(customer);
+        Wallet wallet = walletFactory.createWallet(customer.getCustomerUuid());
         Wallet savedWallet = walletRepository.save(wallet);
 
         return walletMapper.toResponse(savedWallet);
@@ -144,8 +145,8 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public WalletBalanceResponseDto getWalletBalance(UUID userUuid) {
 
-        Customer customer = findCustomerByUserUuid(userUuid);
-        Wallet wallet = findWalletByCustomerUuid(customer.getCustomerUuid());
+        CustomerJpaEntity customerJpaEntity = findCustomerByUserUuid(userUuid);
+        Wallet wallet = findWalletByCustomerUuid(customerJpaEntity.getCustomerUuid());
 
         return walletMapper.balanceMapper(wallet.getBalance());
     }
@@ -233,17 +234,17 @@ public class WalletServiceImpl implements WalletService {
     }
 
     private Wallet findWalletByCustomerUuidAndWalletUuid(UUID customerUuid, UUID walletUuid) {
-        return walletRepository.findByCustomerCustomerUuidAndWalletUuid(customerUuid, walletUuid)
+        return walletRepository.findByCustomerUuidAndWalletUuid(customerUuid, walletUuid)
                 .orElseThrow(() -> new WalletNotFoundException(String.format("User not found for wallet uuid: %s", walletUuid)));
     }
 
-    private Customer findCustomerByUserUuid(UUID userUuid) {
-        return customerRepository.findByUserUserUuid(userUuid)
+    private CustomerJpaEntity findCustomerByUserUuid(UUID userUuid) {
+        return customerRepository.findByUserUuid(userUuid)
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for user uuid: %s", userUuid)));
     }
 
     private Wallet findWalletByCustomerUuid(UUID cusotmerUuid) {
-        return walletRepository.findByCustomerCustomerUuid(cusotmerUuid)
+        return walletRepository.findByCustomerUuid(cusotmerUuid)
                 .orElseThrow(() -> new WalletNotFoundException(String.format("Wallet not found for customer uuid: %s", cusotmerUuid)));
     }
 }

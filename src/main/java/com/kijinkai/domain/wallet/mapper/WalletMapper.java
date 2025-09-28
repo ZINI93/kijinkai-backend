@@ -1,6 +1,5 @@
 package com.kijinkai.domain.wallet.mapper;
 
-import com.kijinkai.domain.customer.entity.Customer;
 import com.kijinkai.domain.wallet.dto.WalletBalanceResponseDto;
 import com.kijinkai.domain.wallet.dto.WalletResponseDto;
 import com.kijinkai.domain.wallet.entity.Wallet;

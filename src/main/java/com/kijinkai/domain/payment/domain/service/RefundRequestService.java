@@ -1,6 +1,7 @@
 package com.kijinkai.domain.payment.domain.service;
 
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
+import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.orderitem.entity.OrderItem;
 import com.kijinkai.domain.payment.domain.entity.RefundRequest;
 import com.kijinkai.domain.payment.domain.enums.RefundType;
@@ -26,7 +27,7 @@ public class RefundRequestService {
 
     /**
      * 해당 상품에 대한 환불 생성 및 처리
-     * @param customer
+     * @param customerJpaEntity
      * @param wallet
      * @param orderItem
      * @param refundAmount

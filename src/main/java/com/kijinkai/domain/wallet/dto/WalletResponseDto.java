@@ -1,10 +1,9 @@
 package com.kijinkai.domain.wallet.dto;
 
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.wallet.entity.WalletStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,7 +20,7 @@ public class WalletResponseDto {
     private UUID walletUuid;
 
     @Schema(description = "고객 고유 식별자", example = "xxxx-xxxx")
-    private Customer customer;
+    private CustomerJpaEntity customerJpaEntity;
 
     @Schema(description = "보유 금액", example = "500000엔")
     private BigDecimal balance;
@@ -36,9 +35,9 @@ public class WalletResponseDto {
     private Long version;
 
     @Builder
-    public WalletResponseDto(UUID walletUuid, Customer customer, BigDecimal balance, Currency currency, WalletStatus walletStatus, Long version) {
+    public WalletResponseDto(UUID walletUuid, CustomerJpaEntity customerJpaEntity, BigDecimal balance, Currency currency, WalletStatus walletStatus, Long version) {
         this.walletUuid = walletUuid;
-        this.customer = customer;
+        this.customerJpaEntity = customerJpaEntity;
         this.balance = balance;
         this.currency = currency;
         this.walletStatus = walletStatus;

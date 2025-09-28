@@ -1,15 +1,12 @@
 package com.kijinkai.domain.payment.domain.factory;
 
 
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
+import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.exchange.doamin.Currency;
-import com.kijinkai.domain.order.dto.OrderResponseDto;
-import com.kijinkai.domain.order.entity.Order;
 import com.kijinkai.domain.orderitem.entity.OrderItem;
 import com.kijinkai.domain.payment.domain.entity.*;
-import com.kijinkai.domain.payment.application.dto.WithdrawalRequestDto;
 import com.kijinkai.domain.payment.domain.enums.*;
-import com.kijinkai.domain.wallet.dto.WalletResponseDto;
 import com.kijinkai.domain.wallet.entity.Wallet;
 import org.springframework.stereotype.Component;
 

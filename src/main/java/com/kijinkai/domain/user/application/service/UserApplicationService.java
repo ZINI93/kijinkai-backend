@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 
 @Slf4j
@@ -95,12 +94,12 @@ public class UserApplicationService implements CreateUserUseCase, GetUserUseCase
      * @return
      */
     @Override
-    public Page<UserResponseDto> findAllByEmailAndName(UUID userUuid, String email, String name, Pageable pageable) {
+    public Page<UserResponseDto> findAllByEmailAndNickName(UUID userUuid, String email, String nickName, Pageable pageable) {
 
         User user = findUserByUserUuid(userUuid);
         user.validateAdminRole();
 
-        Page<User> users = userPersistencePort.findAllByEmailAndName(email, name, pageable);
+        Page<User> users = userPersistencePort.findAllByEmailAndNickName(email, nickName, pageable);
 
         return users.map(userMapper::toResponse);
     }
@@ -136,6 +135,12 @@ public class UserApplicationService implements CreateUserUseCase, GetUserUseCase
         }
     }
 
+    /**
+     * 비밀번호 업데이트
+     * @param userUuid
+     * @param updateDto
+     * @return
+     */
     @Override
     @Transactional
     public UserResponseDto updateUserPassword(UUID userUuid, UserUpdateDto updateDto) {

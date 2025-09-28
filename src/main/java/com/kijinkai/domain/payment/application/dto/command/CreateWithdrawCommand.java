@@ -1,7 +1,7 @@
 package com.kijinkai.domain.payment.application.dto.command;
 
 
-import com.kijinkai.domain.customer.entity.Customer;
+import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.payment.application.dto.request.WithdrawRequestDto;
 import com.kijinkai.domain.wallet.entity.Wallet;
@@ -23,10 +23,10 @@ public class CreateWithdrawCommand {
     String accountHolder;
 
 
-    public static CreateWithdrawCommand from(Wallet wallet, Customer customer, WithdrawRequestDto requestDto){
+    public static CreateWithdrawCommand from(Wallet wallet, CustomerJpaEntity customerJpaEntity, WithdrawRequestDto requestDto){
 
         return CreateWithdrawCommand.builder()
-                .customerUuid(customer.getCustomerUuid())
+                .customerUuid(customerJpaEntity.getCustomerUuid())
                 .walletUuid(wallet.getWalletUuid())
                 .requestAmount(requestDto.getRequestAmount())
                 .targetCurrency(requestDto.getCurrency())

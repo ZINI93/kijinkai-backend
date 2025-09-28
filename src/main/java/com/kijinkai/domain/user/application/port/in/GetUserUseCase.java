@@ -9,5 +9,5 @@ import java.util.UUID;
 public interface GetUserUseCase {
 
     UserResponseDto getUserInfo(UUID userUuid);
-    Page<UserResponseDto> findAllByEmailAndName(UUID userUuid, String email, String name, Pageable pageable);
+    Page<UserResponseDto> findAllByEmailAndNickName(UUID userUuid, String email, String nickName, Pageable pageable);
 }

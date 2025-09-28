@@ -1,7 +1,6 @@
 package com.kijinkai.domain.user.domain.model;
 
-import com.kijinkai.domain.user.application.dto.UserUpdateDto;
-import com.kijinkai.domain.user.domain.exception.InvalidUserDataException;
+import com.kijinkai.domain.user.domain.exception.InvalidUserStatusException;
 import com.kijinkai.domain.user.domain.exception.UserRoleValidateException;
 import lombok.*;
 
@@ -25,49 +24,57 @@ public class User {
     private LocalDateTime emailVerifiedAt;
     private UserStatus userStatus;
 
-
     /**
      * 이메일 인증 처리
      */
-    public void verifyEmail(){
+    public void verifyEmail() {
         this.emailVerified = true;
         this.emailVerifiedAt = LocalDateTime.now();
-        this.userStatus = UserStatus.ACTIVE;
     }
 
     /**
      * 이메일 인증 여부 확인  - login check
      */
 
-    public Boolean isEmailVerified(){
+    public Boolean isEmailVerified() {
         return this.emailVerified;
     }
 
     /**
-     * 계정 활성화 확인
+     * 계정 활성화
      */
-    public boolean isActive(){
+    public boolean isActive() {
         return this.userStatus == UserStatus.ACTIVE;
+    }
+
+    /**
+     * 게정 활성화 체크
+     */
+    public void validateRegistrationEligibility(){
+        if (this.userStatus != UserStatus.ACTIVE){
+            throw new InvalidUserStatusException("User is not eligible for customer registration");
+        }
     }
 
     /**
      * 유저 Role 업데이트
      */
-    public void updateRole(UserRole userRole){
+    public void updateRole(UserRole userRole) {
         this.userRole = userRole;
     }
 
     /**
      * 유저 프로필 업데이트
+     *
      * @param nickName
      * @param encodedPassword
      */
-    public void updateUser(String nickName, String encodedPassword){
-           this.password = encodedPassword;
+    public void updateUser(String nickName, String encodedPassword) {
+        this.password = encodedPassword;
         this.nickname = nickName;
     }
 
-    public void updatePassword(String password){
+    public void updatePassword(String password) {
         this.password = password;
     }
 
@@ -75,8 +82,8 @@ public class User {
     /**
      * 관리자 역할 검증
      */
-    public void validateAdminRole(){
-        if (this.userRole != UserRole.ADMIN){
+    public void validateAdminRole() {
+        if (this.userRole != UserRole.ADMIN) {
             throw new UserRoleValidateException(
                     String.format("Admin role required. Current role: %s", this.userRole)
             );
