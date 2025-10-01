@@ -44,7 +44,7 @@ public class CustomerPersistenceAdapter implements CustomerPersistencePort {
 
     @Override
     public Optional<Customer> findByCustomerUuid(UUID customerUuid) {
-        return customerRepository.findByUserUuid(customerUuid)
+        return customerRepository.findByCustomerUuid(customerUuid)
                 .map(customerPersistenceMapper::toCustomer);
     }
 

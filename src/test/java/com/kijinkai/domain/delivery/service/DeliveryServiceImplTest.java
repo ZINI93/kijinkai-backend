@@ -1,7 +1,7 @@
 //package com.kijinkai.domain.delivery.service;
 //
-//import com.kijinkai.domain.address.entity.Address;
-//import com.kijinkai.domain.address.repository.AddressRepository;
+//import com.kijinkai.domain.address.adapter.out.persistence.entity.AddressJpaEntity;
+//import com.kijinkai.domain.address.adapter.out.persistence.repository.AddressRepository;
 //import com.kijinkai.domain.customer.adapter.out.persistence.entity.Customer;
 //import com.kijinkai.domain.customer.exception.CustomerNotFoundException;
 //import com.kijinkai.domain.customer.adapter.out.persistence.repository.CustomerRepository;
@@ -9,7 +9,7 @@
 //import com.kijinkai.domain.delivery.dto.DeliveryResponseDto;
 //import com.kijinkai.domain.delivery.dto.DeliveryUpdateDto;
 //import com.kijinkai.domain.delivery.entity.Carrier;
-//import com.kijinkai.domain.delivery.entity.Delivery;
+//import com.kijinkai.domain.delivery.entity.DeliveryJpaEntity;
 //import com.kijinkai.domain.delivery.entity.DeliveryStatus;
 //import com.kijinkai.domain.delivery.exception.DeliveryCreationException;
 //import com.kijinkai.domain.delivery.exception.DeliveryNotFoundException;
@@ -70,8 +70,8 @@
 //    private Customer customer;
 //    private User user;
 //    private Order order;
-//    private Delivery delivery;
-//    private Address address;
+//    private DeliveryJpaEntity delivery;
+//    private AddressJpaEntity address;
 //    private DeliveryRequestDto requestDto;
 //    private DeliveryUpdateDto updateDto;
 //    private DeliveryResponseDto responseDto;
@@ -95,13 +95,13 @@
 //                .orderStatus(OrderStatus.FIRST_PAID)
 //                .build();
 //
-//        delivery = Delivery.builder()
+//        delivery = DeliveryJpaEntity.builder()
 //                .deliveryUuid(UUID.randomUUID())
 //                .order(order)
 //                .deliveryStatus(DeliveryStatus.PENDING)
 //                .build();
 //
-//        address = Address.builder()
+//        address = AddressJpaEntity.builder()
 //                .addressUuid(UUID.randomUUID())
 //                .customer(customer)
 //                .recipientName("홍길동")
@@ -149,7 +149,7 @@
 //        given(orderRepository.findByOrderUuid(orderUuid)).willReturn(Optional.of(order));
 //        given(addressRepository.findByCustomerUuid(customer.getCustomerUuid())).willReturn(Optional.of(address));
 //        given(factory.createDelivery(order, address, requestDto)).willReturn(delivery);
-//        given(deliveryRepository.save(any(Delivery.class))).willReturn(delivery);
+//        given(deliveryRepository.save(any(DeliveryJpaEntity.class))).willReturn(delivery);
 //        given(deliveryMapper.toResponse(delivery)).willReturn(responseDto);
 //
 //        // when
@@ -162,7 +162,7 @@
 //        assertThat(result.getDeliveryStatus()).isEqualTo(DeliveryStatus.PENDING);
 //
 //        verify(orderValidator).requirePaidStatusForConfirmation(order);
-//        verify(deliveryRepository).save(any(Delivery.class));
+//        verify(deliveryRepository).save(any(DeliveryJpaEntity.class));
 //    }
 //
 //    @Test
@@ -283,7 +283,7 @@
 //        // when & then
 //        assertThatThrownBy(() -> deliveryService.updateDeliveryWithValidate(userUuid, deliveryUuid, updateDto))
 //                .isInstanceOf(DeliveryUpdateException.class)
-//                .hasMessage("Failed to update Delivery");
+//                .hasMessage("Failed to update DeliveryJpaEntity");
 //    }
 //
 //    @Test

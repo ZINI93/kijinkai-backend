@@ -1,13 +1,11 @@
 package com.kijinkai.domain.payment.application.dto.request;
 
-import com.kijinkai.domain.delivery.entity.Carrier;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.payment.domain.enums.BankType;
 import lombok.Builder;
 import lombok.Value;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 @Value
 @Builder

@@ -20,18 +20,31 @@ public class Customer {
     private CustomerTier customerTier;
     private UUID userUuid;
 
+
+
+
     /**
      * 고객 정보 업데이트
      * @param customerUpdateDto
      */
-
-
     public void updateCustomer(CustomerUpdateDto customerUpdateDto) {
+        validateUpdateData(customerUpdateDto);
+
         this.firstName = customerUpdateDto.getFirstName();
         this.lastName = customerUpdateDto.getLastName();
         this.phoneNumber = customerUpdateDto.getPhoneNumber();
     }
 
+
+    /**
+     * 고객 정보 업데이트 검증
+     * @param customerUpdateDto
+     */
+    private void validateUpdateData(CustomerUpdateDto customerUpdateDto){
+        if (customerUpdateDto == null){
+            throw new IllegalArgumentException("Update data can't be null");
+        }
+    }
 }
 
 

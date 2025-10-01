@@ -3,10 +3,10 @@
 //import com.kijinkai.domain.address.dto.AddressRequestDto;
 //import com.kijinkai.domain.address.dto.AddressResponseDto;
 //import com.kijinkai.domain.address.dto.AddressUpdateDto;
-//import com.kijinkai.domain.address.entity.Address;
+//import com.kijinkai.domain.address.adapter.out.persistence.entity.AddressJpaEntity;
 //import com.kijinkai.domain.address.factory.AddressFactory;
 //import com.kijinkai.domain.address.mapper.AddressMapper;
-//import com.kijinkai.domain.address.repository.AddressRepository;
+//import com.kijinkai.domain.address.adapter.out.persistence.repository.AddressRepository;
 //import com.kijinkai.domain.customer.adapter.out.persistence.entity.Customer;
 //import com.kijinkai.domain.customer.adapter.out.persistence.repository.CustomerRepository;
 //import com.kijinkai.domain.user.domain.model.UserRole;
@@ -66,8 +66,8 @@
 //        return Customer.builder().user(user).build();
 //    }
 //
-//    private Address createMockAddress(UUID addressUuid, Customer customer, AddressRequestDto requestDto) {
-//        return Address.builder().addressUuid(addressUuid).customer(customer).zipcode(requestDto.getZipcode()).build();
+//    private AddressJpaEntity createMockAddress(UUID addressUuid, Customer customer, AddressRequestDto requestDto) {
+//        return AddressJpaEntity.builder().addressUuid(addressUuid).customer(customer).zipcode(requestDto.getZipcode()).build();
 //    }
 //
 //    @Test
@@ -79,13 +79,13 @@
 //
 //        User user = createMockUser(userUuid, UserRole.USER);
 //        Customer customer = createMockCustomer(user);
-//        Address address = createMockAddress(addressUuid, customer, request);
+//        AddressJpaEntity address = createMockAddress(addressUuid, customer, request);
 //        AddressResponseDto response = AddressResponseDto.builder().customerUuid(customerUuid).addressUuid(addressUuid).zipcode(address.getZipcode()).build();
 //
 //
 //        when(customerRepository.findByUserUuid(userUuid)).thenReturn(Optional.ofNullable(customer));
-//        when(addressFactory.createAddress(customer,request)).thenReturn(address);
-//        when(addressRepository.save(any(Address.class))).thenReturn(address);
+//        when(addressFactory.createAddressAndCustomer(customer,request)).thenReturn(address);
+//        when(addressRepository.save(any(AddressJpaEntity.class))).thenReturn(address);
 //        when(addressMapper.toResponse(address)).thenReturn(response);
 //
 //        //When
@@ -97,21 +97,21 @@
 //
 //
 //        verify(customerRepository,times(1)).findByUserUuid(userUuid);
-//        verify(addressRepository,times(1)).save(any(Address.class));
+//        verify(addressRepository,times(1)).save(any(AddressJpaEntity.class));
 //
 //        verify(addressMapper).toResponse(address);
 //    }
 //
 //    @Test
 //    @DisplayName("주소 업데이트")
-//    void updateAddressWithValidate() {
+//    void updateAddress() {
 //
 //        //Given
 //        AddressUpdateDto updateDto = AddressUpdateDto.builder().zipcode("333-333").build();
 //
 //        User user = createMockUser(userUuid, UserRole.USER);
 //        Customer customer = createMockCustomer(user);
-//        Address address = Address.builder().addressUuid(addressUuid).customer(customer).zipcode("123-123").build();
+//        AddressJpaEntity address = AddressJpaEntity.builder().addressUuid(addressUuid).customer(customer).zipcode("123-123").build();
 //        AddressResponseDto response = AddressResponseDto.builder().customerUuid(customerUuid).addressUuid(addressUuid).zipcode(updateDto.getZipcode()).build();
 //
 //        when(customerRepository.findByUserUuid(userUuid)).thenReturn(Optional.ofNullable(customer));
@@ -119,7 +119,7 @@
 //        when(addressMapper.toResponse(address)).thenReturn(response);
 //
 //        //When
-//        AddressResponseDto result = addressService.updateAddressWithValidate(userUuid, addressUuid, updateDto);
+//        AddressResponseDto result = addressService.updateAddress(userUuid, addressUuid, updateDto);
 //
 //        //Then
 //        assertThat(result).isNotNull();
@@ -137,7 +137,7 @@
 //        //Given
 //        User user = createMockUser(userUuid, UserRole.USER);
 //        Customer customer = createMockCustomer(user);
-//        Address address = Address.builder().addressUuid(addressUuid).customer(customer).zipcode("123-123").build();
+//        AddressJpaEntity address = AddressJpaEntity.builder().addressUuid(addressUuid).customer(customer).zipcode("123-123").build();
 //        AddressResponseDto response = AddressResponseDto.builder().customerUuid(customerUuid).addressUuid(addressUuid).zipcode(address.getZipcode()).build();
 //
 //        when(customerRepository.findByUserUuid(userUuid)).thenReturn(Optional.ofNullable(customer));
@@ -163,7 +163,7 @@
 //        //Given
 //        User user = createMockUser(userUuid, UserRole.USER);
 //        Customer customer = createMockCustomer(user);
-//        Address address = Address.builder().addressUuid(addressUuid).customer(customer).zipcode("123-123").build();
+//        AddressJpaEntity address = AddressJpaEntity.builder().addressUuid(addressUuid).customer(customer).zipcode("123-123").build();
 //
 //        when(customerRepository.findByUserUuid(userUuid)).thenReturn(Optional.ofNullable(customer));
 //        when(addressRepository.findByCustomerUuidAndAddressUuid(customer.getCustomerUuid(),addressUuid)).thenReturn(Optional.ofNullable(address));

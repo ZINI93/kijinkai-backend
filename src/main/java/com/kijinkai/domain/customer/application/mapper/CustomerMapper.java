@@ -1,7 +1,7 @@
 package com.kijinkai.domain.customer.application.mapper;
 
-import com.kijinkai.domain.address.entity.Address;
-import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
+import com.kijinkai.domain.address.adapter.out.persistence.entity.AddressJpaEntity;
+import com.kijinkai.domain.address.domain.model.Address;
 import com.kijinkai.domain.customer.application.dto.CustomerCreateResponse;
 import com.kijinkai.domain.customer.application.dto.CustomerResponseDto;
 import com.kijinkai.domain.customer.domain.model.Customer;
@@ -35,7 +35,7 @@ public class CustomerMapper {
                 .userUuid(userUuid)
                 .addressUuid(address.getAddressUuid())
                 .recipientName(address.getRecipientName())
-                .recipientPhoneNumber(address.getRecipientName())
+                .recipientPhoneNumber(address.getRecipientPhoneNumber())
                 .country(address.getCountry())
                 .zipcode(address.getZipcode())
                 .state(address.getState())

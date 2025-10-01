@@ -1,8 +1,8 @@
 package com.kijinkai.domain.customer.application.service;
 
-import com.kijinkai.domain.address.entity.Address;
-import com.kijinkai.domain.address.factory.AddressFactory;
-import com.kijinkai.domain.address.repository.AddressRepository;
+import com.kijinkai.domain.address.application.port.out.AddressPersistencePort;
+import com.kijinkai.domain.address.domain.factory.AddressFactory;
+import com.kijinkai.domain.address.domain.model.Address;
 import com.kijinkai.domain.customer.application.dto.CustomerCreateResponse;
 import com.kijinkai.domain.customer.application.dto.CustomerRequestDto;
 import com.kijinkai.domain.customer.application.dto.CustomerResponseDto;
@@ -14,6 +14,7 @@ import com.kijinkai.domain.customer.domain.factory.CustomerFactory;
 import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.model.User;
+import com.kijinkai.domain.user.domain.model.UserRole;
 import com.kijinkai.domain.user.domain.model.UserStatus;
 import com.kijinkai.domain.wallet.service.WalletService;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,13 +24,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CustomerApplicationServiceTest {
@@ -44,7 +50,7 @@ class CustomerApplicationServiceTest {
 
     // 추후에 수정파일
     @Mock WalletService walletService;
-    @Mock AddressRepository addressRepository;
+    @Mock AddressPersistencePort addressPersistencePort;
 
     @InjectMocks CustomerApplicationService customerApplicationService;
 
@@ -103,8 +109,8 @@ class CustomerApplicationServiceTest {
         when(customerPersistencePort.saveCustomer(any(Customer.class))).thenReturn(customer);
 
         // 주소
-        when(addressFactory.createAddress(customer.getCustomerUuid(), customerRequestDto)).thenReturn(address);
-        when(addressRepository.save(any(Address.class))).thenReturn(address);
+        when(addressFactory.createAddressAndCustomer(customer.getCustomerUuid(), customerRequestDto)).thenReturn(address);
+        when(addressPersistencePort.saveAddress(any(Address.class))).thenReturn(address);
 
         when(customerMapper.createCustomerWithAddressResponse(customer,address,user.getUserUuid())).thenReturn(customerCreateResponse);
 
@@ -143,10 +149,47 @@ class CustomerApplicationServiceTest {
     @Test
     void getCustomers() {
         //given
+        User admin = User.builder()
+                .userUuid(UUID.randomUUID())
+                .userRole(UserRole.ADMIN)
+                .userStatus(UserStatus.ACTIVE)
+                .build();
+
+        Customer customerAdmin = Customer.builder()
+                .customerUuid(UUID.randomUUID())
+                .userUuid(admin.getUserUuid())
+                .firstName(customerRequestDto.getFirstName())
+                .lastName(customerRequestDto.getLastName())
+                .phoneNumber(customerRequestDto.getPhoneNumber())
+                .build();
+
+        CustomerResponseDto customerResponseDtoAdmin = CustomerResponseDto
+                .builder().
+                customerUuid(customer.getCustomerUuid())
+                .userUuid(customer.getUserUuid())
+                .firstName(customer.getFirstName())
+                .lastName(customer.getLastName())
+                .phoneNumber(customer.getPhoneNumber())
+                .build();
+
+
+        PageRequest pageable = PageRequest.of(0, 10);
+        List<Customer> mockData = List.of(customerAdmin);
+        PageImpl<Customer> mockPage = new PageImpl<>(mockData, pageable, mockData.size());
+
+        when(userPersistencePort.findByUserUuid(admin.getUserUuid())).thenReturn(Optional.of(admin));
+        when(customerPersistencePort.findAllByCustomers(customerAdmin.getFirstName(), customerAdmin.getLastName(), customerAdmin.getPhoneNumber(), customerAdmin.getCustomerTier(), pageable)).thenReturn(mockPage);
+        when(customerMapper.toResponse(any(Customer.class))).thenReturn(customerResponseDtoAdmin);
 
         //when
+        Page<CustomerResponseDto> result = customerApplicationService.getCustomers(admin.getUserUuid(), customerAdmin.getFirstName(), customerAdmin.getLastName(), customerAdmin.getPhoneNumber(), customerAdmin.getCustomerTier(), pageable);
 
         //then
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getFirstName()).isEqualTo(customer.getFirstName());
+
+        verify(userPersistencePort, times(1)).findByUserUuid(admin.getUserUuid());
 
     }
 
@@ -168,19 +211,19 @@ class CustomerApplicationServiceTest {
                 .phoneNumber(customerUpdateDto.getPhoneNumber())
                 .build();
 
-        when(customerPersistencePort.findByCustomerUuid(customer.getCustomerUuid())).thenReturn(Optional.ofNullable(customer));
+        when(customerPersistencePort.findByUserUuid(user.getUserUuid())).thenReturn(Optional.ofNullable(customer));
         when(customerPersistencePort.saveCustomer(any(Customer.class))).thenReturn(customer);
         when(customerMapper.toResponse(customer)).thenReturn(updateResponseDto);
 
         //when
-        CustomerResponseDto result = customerApplicationService.updateCustomer(customer.getCustomerUuid(), customerUpdateDto);
+        CustomerResponseDto result = customerApplicationService.updateCustomer(user.getUserUuid(), customerUpdateDto);
 
         //then
         assertThat(result).isNotNull();
         assertThat(result.getFirstName()).isEqualTo(customerUpdateDto.getFirstName());
         assertThat(result.getPhoneNumber()).isEqualTo(customerUpdateDto.getPhoneNumber());
 
-        verify(customerPersistencePort, times(1)).findByCustomerUuid(customer.getCustomerUuid());
+        verify(customerPersistencePort, times(1)).findByUserUuid(user.getUserUuid());
 
     }
 

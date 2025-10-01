@@ -1,9 +1,9 @@
 package com.kijinkai.domain.customer.application.service;
 
 
-import com.kijinkai.domain.address.entity.Address;
-import com.kijinkai.domain.address.factory.AddressFactory;
-import com.kijinkai.domain.address.repository.AddressRepository;
+import com.kijinkai.domain.address.application.port.out.AddressPersistencePort;
+import com.kijinkai.domain.address.domain.factory.AddressFactory;
+import com.kijinkai.domain.address.domain.model.Address;
 import com.kijinkai.domain.customer.application.dto.CustomerCreateResponse;
 import com.kijinkai.domain.customer.application.dto.CustomerRequestDto;
 import com.kijinkai.domain.customer.application.dto.CustomerResponseDto;
@@ -43,14 +43,13 @@ public class CustomerApplicationService implements CreateCustomerUseCase, GetCus
 
     private final CustomerPersistencePort customerPersistencePort;
     private final UserPersistencePort userPersistencePort;
-    private final AddressRepository addressRepository; // 포트 생성되면 변경
-
 
     private final CustomerFactory customerFactory;
     private final CustomerMapper customerMapper;
     private final CustomerApplicationValidator customerApplicationValidator;
 
     // 외부
+    private final AddressPersistencePort addressPersistencePort;
     private final AddressFactory addressFactory;
     private final WalletService walletService;
 
@@ -68,28 +67,33 @@ public class CustomerApplicationService implements CreateCustomerUseCase, GetCus
     public CustomerCreateResponse createCustomer(UUID userUuid, CustomerRequestDto requestDto) {
         log.info("Creating customer for user uuid:{}", userUuid);
 
-        // 1. request 검증
-        customerApplicationValidator.validateCreateCustomerRequest(requestDto);
+        try {
+            // 1. request 검증
+            customerApplicationValidator.validateCreateCustomerRequest(requestDto);
 
 
-        // 2. 유저에 대한 검증
-        User user = findUserByUserUuid(userUuid);
-        user.validateRegistrationEligibility();
+            // 2. 유저에 대한 검증
+            User user = findUserByUserUuid(userUuid);
+            user.validateRegistrationEligibility();
 
-        // 3. 생성
-        Customer customer = customerFactory.createCustomer(userUuid, requestDto);
+            // 3. 생성
+            Customer customer = customerFactory.createCustomer(userUuid, requestDto);
 
-        // 4. 저장
-        Customer savedCustomer = customerPersistencePort.saveCustomer(customer);
+            // 4. 저장
+            Customer savedCustomer = customerPersistencePort.saveCustomer(customer);
 
-        // 5. 주소 정보 생성
-        Address address = addressFactory.createAddress(customer.getCustomerUuid(), requestDto);
-        Address savedAddress = addressRepository.save(address);
+            // 5. 주소 정보 생성
+            Address address = addressFactory.createAddressAndCustomer(customer.getCustomerUuid(), requestDto);
+            Address savedAddress = addressPersistencePort.saveAddress(address);
 
-        // 6. 지갑생성  -- 나중에 비동기로 전환 필요함
-        walletService.createWalletWithValidate(customer);
+            // 6. 지갑생성  -- 나중에 비동기로 전환 필요함
+            walletService.createWalletWithValidate(customer);
 
-        return customerMapper.createCustomerWithAddressResponse(savedCustomer, savedAddress, userUuid);
+            return customerMapper.createCustomerWithAddressResponse(savedCustomer, savedAddress, userUuid);
+        }catch (Exception e){
+            log.error("Customer creation failed: userUuid={}, error={}", userUuid, e.getMessage(), e);
+            throw e;
+        }
 
     }
 
@@ -111,9 +115,9 @@ public class CustomerApplicationService implements CreateCustomerUseCase, GetCus
 
     @Override
     @Transactional
-    public CustomerResponseDto updateCustomer(UUID customerUuid, CustomerUpdateDto updateDto) {
-        Customer customer = customerPersistencePort.findByCustomerUuid(customerUuid)
-                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for customerUuid: %s", customerUuid)));
+    public CustomerResponseDto updateCustomer(UUID userUuid, CustomerUpdateDto updateDto) {
+        Customer customer = customerPersistencePort.findByUserUuid(userUuid)
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for userUuid: %s", updateDto)));
 
         customer.updateCustomer(updateDto);
         Customer savedCustomer = customerPersistencePort.saveCustomer(customer);
@@ -126,7 +130,7 @@ public class CustomerApplicationService implements CreateCustomerUseCase, GetCus
     @Transactional
     public void deleteCustomer(Customer customer) {
         // 현재 미구현
-        // 회원 탈퇴한 유저들을 모아서 주기적으로 삭제하는 로직이 필요
+        // 회원 탈퇴한 유저들의 고객정보를 모아서 주기적으로 삭제하는 로직이 필요
     }
     // helper method
 
@@ -137,6 +141,6 @@ public class CustomerApplicationService implements CreateCustomerUseCase, GetCus
 
     private User findUserByUserUuid(UUID userUuid) {
         return userPersistencePort.findByUserUuid(userUuid)
-                .orElseThrow(() -> new UserNotFoundException(String.format("User not found for useruuid: %s", userUuid)));
+                .orElseThrow(() -> new UserNotFoundException(String.format("User not found for userUuid: %s", userUuid)));
     }
 }

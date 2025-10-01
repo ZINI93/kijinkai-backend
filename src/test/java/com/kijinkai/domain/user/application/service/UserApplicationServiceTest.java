@@ -154,7 +154,6 @@ class UserApplicationServiceTest {
     @Test
     @DisplayName("회원 프로필 수정")
     void updateUserProfile() {
-
         //given
         UserUpdateDto userUpdateDto = UserUpdateDto.builder()
                 .newPassword("new12341234")

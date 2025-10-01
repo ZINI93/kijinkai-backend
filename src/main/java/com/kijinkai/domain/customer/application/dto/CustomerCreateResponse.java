@@ -29,7 +29,7 @@ public class CustomerCreateResponse {
     CustomerTier customerTier;
 
 
-    // -- Address
+    // -- AddressJpaEntity
 
     @Schema(description = "주소 고유 식별자", example = "1111-1111")
     UUID addressUuid;
