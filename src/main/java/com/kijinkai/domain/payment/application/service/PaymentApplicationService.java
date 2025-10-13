@@ -5,8 +5,10 @@ import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.exchange.dto.ExchangeRateResponseDto;
 import com.kijinkai.domain.exchange.service.PriceCalculationService;
-import com.kijinkai.domain.orderitem.entity.OrderItem;
-import com.kijinkai.domain.orderitem.validator.OrderItemValidator;
+import com.kijinkai.domain.orderitem.application.port.out.OrderItemPersistencePort;
+import com.kijinkai.domain.orderitem.application.validator.OrderItemValidator;
+import com.kijinkai.domain.orderitem.domain.exception.OrderItemNotFoundException;
+import com.kijinkai.domain.orderitem.domain.model.OrderItem;
 import com.kijinkai.domain.payment.application.dto.request.*;
 import com.kijinkai.domain.payment.application.dto.response.*;
 import com.kijinkai.domain.payment.application.port.in.PaymentUseCase;
@@ -32,10 +34,10 @@ import com.kijinkai.domain.payment.domain.service.WithdrawRequestService;
 import com.kijinkai.domain.payment.application.mapper.PaymentMapper;
 import com.kijinkai.domain.payment.domain.util.PaymentContents;
 import com.kijinkai.domain.user.domain.model.User;
-import com.kijinkai.domain.wallet.dto.WalletResponseDto;
-import com.kijinkai.domain.wallet.entity.Wallet;
-import com.kijinkai.domain.wallet.exception.InsufficientBalanceException;
-import com.kijinkai.domain.wallet.exception.WalletNotActiveException;
+import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
+import com.kijinkai.domain.wallet.application.dto.WalletResponseDto;
+import com.kijinkai.domain.wallet.domain.exception.InsufficientBalanceException;
+import com.kijinkai.domain.wallet.domain.exception.WalletNotActiveException;
 import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,7 +68,7 @@ public class PaymentApplicationService implements PaymentUseCase {
     private final CustomerPort customerPort;
     private final WalletPort walletPort;
     private final UserPort userPort;
-    private final OrderItemPort orderItemPort;
+    private final OrderItemPersistencePort orderItemPersistencePort;
     private final ExchangePort exchangePort;
 
     //repository
@@ -98,7 +100,7 @@ public class PaymentApplicationService implements PaymentUseCase {
 
         Customer customer = customerPort.findByUserUuid(userUuid)
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", userUuid)));
-        Wallet wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
+        WalletJpaEntity wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
 
         ExchangeRateResponseDto exchangeRate = exchangePort.getExchangeRateInfoByCurrency(requestDto.getOriginalCurrency());
         BigDecimal convertedAmount = paymentCalculator.calculateDepositInJpy(exchangeRate.getCurrency(), requestDto.getAmountOriginal());
@@ -155,7 +157,7 @@ public class PaymentApplicationService implements PaymentUseCase {
             throw new DepositApprovalException("잔액이 부족합니다", e);
 
         } catch (WalletNotActiveException e) {
-            log.error("Wallet not active for deposit approval: {}", requestUuid, e);
+            log.error("WalletJpaEntity not active for deposit approval: {}", requestUuid, e);
             depositRequestService.markAsFailed(depositRequest, "비활성 지갑: " + e.getMessage());
             throw new DepositApprovalException("지갑이 비활성 상태입니다", e);
 
@@ -204,7 +206,7 @@ public class PaymentApplicationService implements PaymentUseCase {
         User user = userPort.findUserByUserUuid(adminUuid);
         Customer customer = customerPort.findByUserUuid(user.getUserUuid())
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", user.getUserUuid())));
-        Wallet wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
+        WalletJpaEntity wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
 
         Page<DepositRequest> depositRequests = depositRequestRepository.findByDepositPaymentUuidByStatus(customer.getCustomerUuid(), depositorName, DepositStatus.PENDING_ADMIN_APPROVAL, pageable);
 
@@ -272,7 +274,7 @@ public class PaymentApplicationService implements PaymentUseCase {
 
         Customer customer = customerPort.findByUserUuid(userUuid)
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", userUuid)));
-        Wallet wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
+        WalletJpaEntity wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
         BigDecimal withdrawFee = PaymentContents.WITHDRAWAL_FEE;
         ExchangeRateResponseDto exchangeRate = exchangePort.getExchangeRateInfoByCurrency(requestDto.getCurrency());
 
@@ -324,7 +326,7 @@ public class PaymentApplicationService implements PaymentUseCase {
             withdrawRequestService.markAsFailed(withdrawRequest, "잔액 부족:" + e.getMessage());
             throw new WithdrawApprovalException("잔액이 부족합니다", e);
         } catch (WalletNotActiveException e) {
-            log.error("Wallet not active for deposit approval: {}", requestUuid, e);
+            log.error("WalletJpaEntity not active for deposit approval: {}", requestUuid, e);
             withdrawRequestService.markAsFailed(withdrawRequest, "비활성된 지갑: " + e.getMessage());
             throw new WalletNotActiveException("지갑이 비활성 상태입니다", e);
         } catch (WithdrawRequestNotFoundException | WithdrawRequestStatusException e) {
@@ -365,7 +367,7 @@ public class PaymentApplicationService implements PaymentUseCase {
         User user = userPort.findUserByUserUuid(adminUuid);
         Customer customer = customerPort.findByUserUuid(user.getUserUuid())
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", user.getUserUuid())));
-        Wallet wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
+        WalletJpaEntity wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
         Page<WithdrawRequest> withdraws = withdrawRequestRepository.findAllByCustomerUuid(customer.getCustomerUuid(), pageable);
 
         return withdraws.map(withdraw -> paymentMapper.withdrawDetailsInfo(withdraw, wallet.getBalance()));
@@ -424,11 +426,12 @@ public class PaymentApplicationService implements PaymentUseCase {
 
         log.info("Creating refund request for admin uuid: {}", adminUuid);
 
-        OrderItem orderItem = orderItemPort.findByOrderItemUuid(orderItemUuid);
+        OrderItem orderItem = orderItemPersistencePort.findByOrderItemUuid(orderItemUuid)
+                .orElseThrow(() -> new OrderItemNotFoundException(String.format("Orderitem not found for OrderItemUuid: %s", orderItemUuid)));
         orderItem.isCancel();
         Customer customer = customerPort.findByCustomerUuid(orderItem.getCustomerUuid())
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", adminUuid)));
-        Wallet wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
+        WalletJpaEntity wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
 
         RefundRequest refundRequest = refundRequestService.createRefundRequest(
                 customer, wallet, orderItem, orderItem.getPriceOriginal(), adminUuid,
@@ -521,7 +524,7 @@ public class PaymentApplicationService implements PaymentUseCase {
         User user = userPort.findUserByUserUuid(adminUuid);
         Customer customer = customerPort.findByUserUuid(user.getUserUuid())
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", user.getUserUuid())));
-        Wallet wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
+        WalletJpaEntity wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
 
         Page<RefundRequest> refunds = refundRequestRepository.findAllByCustomerUuid(customer.getCustomerUuid(), pageable);
 
@@ -547,12 +550,12 @@ public class PaymentApplicationService implements PaymentUseCase {
 
         Customer customer = customerPort.findByUserUuid(userUuid)
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", userUuid)));
-        Wallet findWallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
+        WalletJpaEntity findWallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
 
         OrderPayment orderPayment = orderPaymentService.crateOrderPayment(customer, findWallet);
         OrderPayment savedOrderPayment = orderPaymentRepository.save(orderPayment);
 
-        List<OrderItem> orderItems = orderItemPort.firstOrderItemPayment(customer.getCustomerUuid(), requestDto, savedOrderPayment.getPaymentUuid());
+        List<OrderItem> orderItems = orderItemPersistencePort.firstOrderItemPayment(customer.getCustomerUuid(), requestDto, savedOrderPayment.getPaymentUuid());
 
         //총 결제 금액 계산
         BigDecimal totalPrice = orderItems.stream().map(OrderItem::getPriceOriginal)
@@ -605,15 +608,16 @@ public class PaymentApplicationService implements PaymentUseCase {
 
         List<UUID> orderItemUuids = requestDto.getOrderItemUuids();
         UUID secondOrderItemUuid = orderItemUuids.get(1);
-        OrderItem orderItem = orderItemPort.findByOrderItemUuid(secondOrderItemUuid);
+        OrderItem orderItem = orderItemPersistencePort.findByOrderItemUuid(secondOrderItemUuid)
+                .orElseThrow(() -> new OrderItemNotFoundException());
 
         Customer customer= customerPort.findByCustomerUuid(orderItem.getCustomerUuid())
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", adminUuid)));
-        Wallet wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
+        WalletJpaEntity wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
 
         OrderPayment orderPayment = orderPaymentService.createSecondOrderPayment(customer, requestDto.getDeliveryFee(), admin, wallet);
         OrderPayment savedOrderPayment = orderPaymentRepository.save(orderPayment);
-        orderItemPort.secondOrderItemPayment(orderItem.getCustomerUuid(), requestDto, savedOrderPayment.getPaymentUuid());
+        orderItemPersistencePort.secondOrderItemPayment(orderItem.getCustomerUuid(), requestDto, savedOrderPayment.getPaymentUuid());
 
         OrderPayment secondOrderPayment = orderPaymentService.createSecondOrderPayment(customer, requestDto.getDeliveryFee(), admin, wallet);
 
@@ -655,7 +659,7 @@ public class PaymentApplicationService implements PaymentUseCase {
             throw new IllegalStateException("결제할 수 없는 상태의 결제가 포함되어 있습니다");
         }
 
-        Wallet findWallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
+        WalletJpaEntity findWallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
 
         List<OrderPayment> invalidPaymentsByWalletUuid = orderPayments.stream()
                 .filter(payment -> payment.getWalletUuid() != findWallet.getWalletUuid())
@@ -717,7 +721,7 @@ public class PaymentApplicationService implements PaymentUseCase {
     public OrderPaymentResponseDto getOrderPaymentInfoByAdmin(UUID adminUuid, UUID paymentUuid) {
         User admin = userPort.findUserByUserUuid(adminUuid);
         OrderPayment findByorderPayment = orderPaymentRepository.findByPaymentUuid(paymentUuid)
-                .orElseThrow(() -> new OrderPaymentNotFoundException(String.format("Order payment not found for payment uuid: %s", paymentUuid)));
+                .orElseThrow(() -> new OrderPaymentNotFoundException(String.format("OrderJpaEntity payment not found for payment uuid: %s", paymentUuid)));
         OrderPayment orderPayment = orderPaymentService.getOrderPaymentInfoByAdmin(admin, findByorderPayment);
         return paymentMapper.orderPaymentInfo(orderPayment);
     }
@@ -740,7 +744,7 @@ public class PaymentApplicationService implements PaymentUseCase {
     }
 
     /**
-     * Order payment 상태, 조건 별 list
+     * OrderJpaEntity payment 상태, 조건 별 list
      *
      * @param userUuid
      * @param status
@@ -764,7 +768,7 @@ public class PaymentApplicationService implements PaymentUseCase {
         Customer customer = customerPort.findByUserUuid(user.getUserUuid())
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", user.getUserUuid())));
 
-        Wallet wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
+        WalletJpaEntity wallet = walletPort.findByCustomerUuid(customer.getCustomerUuid());
 
         Page<OrderPayment> orderPayments = orderPaymentRepository.findAllByCustomerUuid(customer.getCustomerUuid(), pageable);
 
@@ -799,7 +803,7 @@ public class PaymentApplicationService implements PaymentUseCase {
 
     private OrderPayment findOrderPaymentByCustomerUuidAndPaymentUuid(UUID customerUuid, UUID paymentUuid) {
         return orderPaymentRepository.findByCustomerUuidAndPaymentUuid(customerUuid, paymentUuid)
-                .orElseThrow(() -> new OrderPaymentNotFoundException(String.format("Order payment not found for customer uuid: %s and payment uuid: %s ", customerUuid, paymentUuid)));
+                .orElseThrow(() -> new OrderPaymentNotFoundException(String.format("OrderJpaEntity payment not found for customer uuid: %s and payment uuid: %s ", customerUuid, paymentUuid)));
     }
 
     private WithdrawRequest findWithdrawRequestByRequestUuid(UUID requestUuid) {

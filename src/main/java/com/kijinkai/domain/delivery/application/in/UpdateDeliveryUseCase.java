@@ -7,5 +7,5 @@ import java.util.UUID;
 
 public interface UpdateDeliveryUseCase {
     DeliveryResponseDto updateDeliveryWithValidate(UUID userUuid, UUID deliveryUuid, DeliveryUpdateDto updateDto);
-    DeliveryResponseDto deliveryShipped(UUID userUuid, UUID deliveryUuid);
+    DeliveryResponseDto shipDelivery(UUID userUuid, UUID deliveryUuid);
 }

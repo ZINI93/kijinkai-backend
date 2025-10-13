@@ -2,6 +2,8 @@ package com.kijinkai.domain.delivery.adpater.out.persistence.entity;
 
 
 import com.kijinkai.domain.common.BaseEntity;
+import com.kijinkai.domain.delivery.domain.model.Carrier;
+import com.kijinkai.domain.delivery.domain.model.DeliveryStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,7 +29,7 @@ public class DeliveryJpaEntity extends BaseEntity {
 
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "order_id", nullable = false, updatable = false)
-//    private Order order;  // 필요 없음 // order_payment를 참조
+//    private OrderJpaEntity order;  // 필요 없음 // order_payment를 참조
 
     @Column(name = "order_payment_uuid", nullable = false, updatable = false)
     private UUID orderPaymentUuid;

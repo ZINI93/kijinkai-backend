@@ -2,10 +2,11 @@ package com.kijinkai.domain.transaction.entity;
 
 
 import com.kijinkai.domain.common.BaseEntity;
-import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
-import com.kijinkai.domain.order.entity.Order;
+import com.kijinkai.domain.order.adapter.out.persistence.entity.OrderJpaEntity;
 import com.kijinkai.domain.exchange.doamin.Currency;
-import com.kijinkai.domain.wallet.entity.Wallet;
+import com.kijinkai.domain.order.domain.model.Order;
+import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
+import com.kijinkai.domain.wallet.domain.model.Wallet;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;

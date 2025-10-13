@@ -1,6 +1,5 @@
 package com.kijinkai.domain.payment.domain.service;
 
-import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
 import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.payment.domain.entity.DepositRequest;
 import com.kijinkai.domain.exchange.doamin.Currency;
@@ -10,7 +9,7 @@ import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
 import com.kijinkai.domain.payment.domain.validator.PaymentValidator;
 import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
 import com.kijinkai.domain.user.domain.model.User;
-import com.kijinkai.domain.wallet.entity.Wallet;
+import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -46,7 +45,7 @@ public class DepositRequestService {
      * @return
      */
     public DepositRequest createDepositRequest(
-            Customer customer, Wallet wallet, BigDecimal originalAmount, Currency originalCurrency, BigDecimal exchangeRate, String depositorName, BankType bankType,
+            Customer customer, WalletJpaEntity wallet, BigDecimal originalAmount, Currency originalCurrency, BigDecimal exchangeRate, String depositorName, BankType bankType,
             BigDecimal convertedAmount
     ) {
         paymentValidator.validateDepositEligibility(originalAmount, wallet);

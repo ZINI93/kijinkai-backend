@@ -5,7 +5,7 @@ import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEn
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.payment.application.dto.request.DepositRequestDto;
 import com.kijinkai.domain.payment.domain.enums.BankType;
-import com.kijinkai.domain.wallet.entity.Wallet;
+import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
 import lombok.Builder;
 import lombok.Value;
 
@@ -23,7 +23,7 @@ public class CreateDepositCommand {
     BankType bankType;
     String memo;
 
-    public static CreateDepositCommand from(Wallet wallet, CustomerJpaEntity customerJpaEntity, DepositRequestDto requestDto){
+    public static CreateDepositCommand from(WalletJpaEntity wallet, CustomerJpaEntity customerJpaEntity, DepositRequestDto requestDto){
 
         return CreateDepositCommand.builder()
                 .customerUuid(customerJpaEntity.getCustomerUuid())

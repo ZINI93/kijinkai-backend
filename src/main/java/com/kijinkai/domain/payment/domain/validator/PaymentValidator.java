@@ -4,9 +4,9 @@ import com.kijinkai.domain.payment.application.dto.PaymentDepositRequestDto;
 import com.kijinkai.domain.payment.application.dto.WithdrawalRequestDto;
 import com.kijinkai.domain.payment.domain.exception.PaymentAmountException;
 import com.kijinkai.domain.payment.domain.repository.DepositRequestRepository;
-import com.kijinkai.domain.wallet.entity.Wallet;
-import com.kijinkai.domain.wallet.entity.WalletStatus;
-import com.kijinkai.domain.wallet.exception.WalletNotActiveException;
+import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
+import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletStatus;
+import com.kijinkai.domain.wallet.domain.exception.WalletNotActiveException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +33,7 @@ public class PaymentValidator {
 
 
 
-    public void validateDepositEligibility(BigDecimal originalAmount, Wallet wallet) {
+    public void validateDepositEligibility(BigDecimal originalAmount, WalletJpaEntity wallet) {
 
         if (!wallet.getWalletStatus().equals(WalletStatus.ACTIVE)){
             throw new WalletNotActiveException("Inactive wallets can not be deposited");

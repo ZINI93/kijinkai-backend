@@ -1,14 +1,17 @@
 package com.kijinkai.domain.delivery.application.dto;
 
 
-import com.kijinkai.domain.delivery.adpater.out.persistence.entity.Carrier;
+import com.kijinkai.domain.delivery.domain.model.Carrier;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
 
 @Getter
+@Builder
+@AllArgsConstructor
 public class DeliveryUpdateDto {
 
 
@@ -49,18 +52,4 @@ public class DeliveryUpdateDto {
     private String deliveryRequest; // 배송 요청 사항
 
 
-    @Builder
-    public DeliveryUpdateDto(String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, Carrier carrier, String trackingNumber, BigDecimal deliveryFee, String deliveryRequest) {
-        this.recipientName = recipientName;
-        this.recipientPhoneNumber = recipientPhoneNumber;
-        this.country = country;
-        this.zipcode = zipcode;
-        this.state = state;
-        this.city = city;
-        this.street = street;
-        this.carrier = carrier;
-        this.trackingNumber = trackingNumber;
-        this.deliveryFee = deliveryFee;
-        this.deliveryRequest = deliveryRequest;
-    }
 }

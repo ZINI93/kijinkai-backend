@@ -1,13 +1,12 @@
 package com.kijinkai.domain.payment.domain.factory;
 
 
-import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
 import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.exchange.doamin.Currency;
-import com.kijinkai.domain.orderitem.entity.OrderItem;
+import com.kijinkai.domain.orderitem.domain.model.OrderItem;
 import com.kijinkai.domain.payment.domain.entity.*;
 import com.kijinkai.domain.payment.domain.enums.*;
-import com.kijinkai.domain.wallet.entity.Wallet;
+import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -17,7 +16,7 @@ import java.util.UUID;
 public class PaymentFactory {
 
     public DepositRequest createDepositRequest(
-            Customer customer, Wallet wallet, BigDecimal originalAmount, Currency originalCurrency,
+            Customer customer, WalletJpaEntity wallet, BigDecimal originalAmount, Currency originalCurrency,
             BigDecimal convertAmount, BigDecimal exchangeRate, String depositorName, BankType bankType
     ) {
 
@@ -34,7 +33,7 @@ public class PaymentFactory {
     }
 
     public WithdrawRequest createWithdrawRequest(
-            Customer customer, Wallet wallet, BigDecimal requestAmount, Currency tagetCurrency
+            Customer customer, WalletJpaEntity wallet, BigDecimal requestAmount, Currency tagetCurrency
             , BigDecimal withdrawFee, String bankName, String accountHolder, BigDecimal convertedAmount, String accountNumber,
             BigDecimal exchangeRate) {
 
@@ -54,7 +53,7 @@ public class PaymentFactory {
 
 
     public RefundRequest createRefundPayment(
-            Customer customer, Wallet wallet, OrderItem orderItem
+            Customer customer, WalletJpaEntity wallet, OrderItem orderItem
             , BigDecimal refundAmount, UUID adminUuid, String refundReason, RefundType refundType) {
 
         return RefundRequest.builder()
@@ -69,7 +68,7 @@ public class PaymentFactory {
     }
 
     public OrderPayment createOrderFirstPayment(
-            Customer customer, Wallet wallet) {
+            Customer customer, WalletJpaEntity wallet) {
         return OrderPayment.builder()
                 .customerUuid(customer.getCustomerUuid())
                 .walletUuid(wallet.getWalletUuid())
@@ -80,7 +79,7 @@ public class PaymentFactory {
                 .build();
     }
     public OrderPayment createOrderSecondPayment(
-            Customer customer, BigDecimal paymentAmount, Wallet wallet, UUID adminUuid) {
+            Customer customer, BigDecimal paymentAmount, WalletJpaEntity wallet, UUID adminUuid) {
         return OrderPayment.builder()
                 .customerUuid(customer.getCustomerUuid())
                 .paymentType(PaymentType.SHIPPING_PAYMENT)

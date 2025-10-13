@@ -213,7 +213,7 @@ public class OrderPaymentController {
             @PathVariable UUID paymentUuid
     ) {
         UUID adminUuid = getUserUuid(authentication);
-        log.info("Order payment retrieved by admin - Admin: {}, Payment: {}", adminUuid, paymentUuid);
+        log.info("OrderJpaEntity payment retrieved by admin - Admin: {}, Payment: {}", adminUuid, paymentUuid);
 
         try {
             OrderPaymentResponseDto response = paymentUseCase.getOrderPaymentInfoByAdmin(paymentUuid, adminUuid);
@@ -243,7 +243,7 @@ public class OrderPaymentController {
             @PathVariable UUID paymentUuid
     ) {
         UUID userUuid = getUserUuid(authentication);
-        log.info("Order payment retrieved - User: {}, Payment: {}", userUuid, paymentUuid);
+        log.info("OrderJpaEntity payment retrieved - User: {}, Payment: {}", userUuid, paymentUuid);
 
         try {
             OrderPaymentResponseDto response = paymentUseCase.getOrderPaymentInfo(paymentUuid, userUuid);
@@ -272,7 +272,7 @@ public class OrderPaymentController {
             Authentication authentication
     ) {
         UUID userUuid = getUserUuid(authentication);
-        log.info("Order payment retrieved - User: {}", userUuid);
+        log.info("OrderJpaEntity payment retrieved - User: {}", userUuid);
 
         try {
             OrderPaymentCountResponseDto response = paymentUseCase.getOrderPaymentDashboardCount(userUuid);

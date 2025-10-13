@@ -1,9 +1,7 @@
 package com.kijinkai.domain.delivery.domain.model;
 
-import com.kijinkai.domain.delivery.adpater.out.persistence.entity.Carrier;
-import com.kijinkai.domain.delivery.adpater.out.persistence.entity.DeliveryStatus;
 import com.kijinkai.domain.delivery.application.dto.DeliveryUpdateDto;
-import jakarta.persistence.*;
+import com.kijinkai.domain.delivery.domain.exception.DeliveryInvalidException;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -16,8 +14,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Delivery {
-
-
 
     private Long deliveryId;
     private UUID deliveryUuid;
@@ -47,6 +43,9 @@ public class Delivery {
 
 
     public void updateDelivery(DeliveryUpdateDto updateDto) {
+
+        validateDeliveryUpdate(updateDto);
+
         this.recipientName = updateDto.getRecipientName();
         this.recipientPhoneNumber = updateDto.getRecipientPhoneNumber();
         this.country = updateDto.getCountry();
@@ -59,8 +58,15 @@ public class Delivery {
         this.deliveryFee = updateDto.getDeliveryFee();
     }
 
+    private void validateDeliveryUpdate(DeliveryUpdateDto updateDto) {
+        if (updateDto == null) {
+            throw new IllegalArgumentException("Update data cannot be null");
+        }
 
-
+        if (this.deliveryStatus != DeliveryStatus.PENDING) {
+            throw new DeliveryInvalidException("Cannot update delivery. Status must be PENDING");
+        }
+    }
 
     public void updateDeliveryStatus(DeliveryStatus deliveryStatus) {
         this.deliveryStatus = deliveryStatus;

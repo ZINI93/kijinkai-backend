@@ -22,7 +22,7 @@ import com.kijinkai.domain.customer.domain.model.CustomerTier;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
 import com.kijinkai.domain.user.domain.model.User;
-import com.kijinkai.domain.wallet.service.WalletService;
+import com.kijinkai.domain.wallet.application.service.WalletApplicationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -51,7 +51,7 @@ public class CustomerApplicationService implements CreateCustomerUseCase, GetCus
     // 외부
     private final AddressPersistencePort addressPersistencePort;
     private final AddressFactory addressFactory;
-    private final WalletService walletService;
+    private final WalletApplicationService walletApplicationService;
 
 
     /**
@@ -87,7 +87,7 @@ public class CustomerApplicationService implements CreateCustomerUseCase, GetCus
             Address savedAddress = addressPersistencePort.saveAddress(address);
 
             // 6. 지갑생성  -- 나중에 비동기로 전환 필요함
-            walletService.createWalletWithValidate(customer);
+            walletApplicationService.createWallet(customer);
 
             return customerMapper.createCustomerWithAddressResponse(savedCustomer, savedAddress, userUuid);
         }catch (Exception e){

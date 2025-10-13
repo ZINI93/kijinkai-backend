@@ -1,7 +1,7 @@
 package com.kijinkai.domain.delivery.application.out;
 
 
-import com.kijinkai.domain.delivery.adpater.out.persistence.entity.DeliveryStatus;
+import com.kijinkai.domain.delivery.domain.model.DeliveryStatus;
 import com.kijinkai.domain.delivery.domain.model.Delivery;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

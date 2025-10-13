@@ -1,7 +1,6 @@
 package com.kijinkai.domain.payment.domain.service;
 
 
-import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
 import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.payment.domain.entity.WithdrawRequest;
@@ -9,7 +8,7 @@ import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
 import com.kijinkai.domain.payment.domain.validator.PaymentValidator;
 import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
 import com.kijinkai.domain.user.domain.model.User;
-import com.kijinkai.domain.wallet.entity.Wallet;
+import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -39,7 +38,7 @@ public class WithdrawRequestService {
      * @return
      */
     public WithdrawRequest createWithdrawRequest(
-            Customer customer, Wallet wallet, BigDecimal requestAmount, Currency tagetCurrency
+            Customer customer, WalletJpaEntity wallet, BigDecimal requestAmount, Currency tagetCurrency
             , String bankName, String accountHolder, BigDecimal withdrawFee, BigDecimal convertedAmount,
             String accountNumber, BigDecimal exchangeRate
     ) {

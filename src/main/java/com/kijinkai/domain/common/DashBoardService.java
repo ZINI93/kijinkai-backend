@@ -4,16 +4,16 @@ package com.kijinkai.domain.common;
 import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
 import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.adapter.out.persistence.repository.CustomerRepository;
-import com.kijinkai.domain.delivery.adpater.out.persistence.entity.DeliveryStatus;
+import com.kijinkai.domain.delivery.domain.model.DeliveryStatus;
 import com.kijinkai.domain.delivery.adpater.out.persistence.repository.DeliveryRepository;
-import com.kijinkai.domain.orderitem.entity.OrderItemStatus;
-import com.kijinkai.domain.orderitem.repository.OrderItemRepository;
+import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
+import com.kijinkai.domain.orderitem.adapter.out.persistence.repostiory.OrderItemRepository;
 import com.kijinkai.domain.payment.domain.enums.OrderPaymentStatus;
 import com.kijinkai.domain.payment.domain.enums.PaymentType;
 import com.kijinkai.domain.payment.domain.repository.OrderPaymentRepository;
-import com.kijinkai.domain.wallet.entity.Wallet;
-import com.kijinkai.domain.wallet.exception.WalletNotFoundException;
-import com.kijinkai.domain.wallet.repository.WalletRepository;
+import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
+import com.kijinkai.domain.wallet.domain.exception.WalletNotFoundException;
+import com.kijinkai.domain.wallet.adapter.out.persistence.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +42,7 @@ public class DashBoardService {
         CustomerJpaEntity customerJpaEntity = customerRepository.findByUserUuid(userUuid)
                 .orElseThrow(() -> new CustomerNotFoundException(""));
 
-        Wallet wallet = walletRepository.findByCustomerUuid(customerJpaEntity.getCustomerUuid())
+        WalletJpaEntity wallet = walletRepository.findByCustomerUuid(customerJpaEntity.getCustomerUuid())
                 .orElseThrow(() -> new WalletNotFoundException(""));
 
         int shippedCount = deliveryRepository.findByDeliveryStatusCount(customerJpaEntity.getCustomerUuid(), DeliveryStatus.SHIPPED);

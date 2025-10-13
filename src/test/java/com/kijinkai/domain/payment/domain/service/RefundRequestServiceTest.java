@@ -6,7 +6,7 @@
 //import com.kijinkai.domain.payment.domain.enums.RefundType;
 //import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
 //import com.kijinkai.domain.user.adapter.in.web.validator.UserValidator;
-//import com.kijinkai.domain.wallet.entity.Wallet;
+//import com.kijinkai.domain.wallet.entity.WalletJpaEntity;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.Test;
 //import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,7 +32,7 @@
 //    private Customer customer;
 //
 //    @Mock
-//    private Wallet wallet;
+//    private WalletJpaEntity wallet;
 //
 //    @Mock
 //    private OrderItem orderItem;

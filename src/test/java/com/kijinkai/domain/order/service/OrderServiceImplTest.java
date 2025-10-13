@@ -7,18 +7,18 @@
 //import com.kijinkai.domain.order.dto.OrderRequestDto;
 //import com.kijinkai.domain.order.dto.OrderResponseDto;
 //import com.kijinkai.domain.order.dto.OrderUpdateDto;
-//import com.kijinkai.domain.order.entity.Order;
+//import com.kijinkai.domain.order.entity.OrderJpaEntity;
 //import com.kijinkai.domain.order.entity.OrderStatus;
 //import com.kijinkai.domain.order.exception.OrderCreationException;
 //import com.kijinkai.domain.order.factory.OrderFactory;
 //import com.kijinkai.domain.order.mapper.OrderMapper;
-//import com.kijinkai.domain.order.repository.OrderRepository;
+//import com.kijinkai.domain.order.adapter.out.persistence.repository.OrderRepository;
 //import com.kijinkai.domain.order.validator.OrderValidator;
 //import com.kijinkai.domain.orderitem.dto.OrderItemRequestDto;
 //import com.kijinkai.domain.orderitem.dto.OrderItemUpdateDto;
 //import com.kijinkai.domain.orderitem.entity.OrderItem;
 //import com.kijinkai.domain.orderitem.exception.OrderUpdateException;
-//import com.kijinkai.domain.orderitem.repository.OrderItemRepository;
+//import com.kijinkai.domain.orderitem.adapter.out.persistence.repostiory.OrderItemRepository;
 //import com.kijinkai.domain.orderitem.service.OrderItemService;
 //import com.kijinkai.domain.payment.domain.exception.PaymentProcessingException;
 //import com.kijinkai.domain.transaction.entity.TransactionStatus;
@@ -27,7 +27,7 @@
 //import com.kijinkai.domain.user.domain.model.UserRole;
 //import com.kijinkai.domain.user.domain.exception.UserRoleValidateException;
 //import com.kijinkai.domain.user.adapter.in.web.validator.UserValidator;
-//import com.kijinkai.domain.wallet.entity.Wallet;
+//import com.kijinkai.domain.wallet.entity.WalletJpaEntity;
 //import com.kijinkai.domain.wallet.entity.WalletStatus;
 //import com.kijinkai.domain.wallet.exception.WalletUpdateFailedException;
 //import com.kijinkai.domain.wallet.repository.WalletRepository;
@@ -88,8 +88,8 @@
 //    private UUID userUuid;
 //    private UUID orderUuid;
 //    private Customer customer;
-//    private Order order;
-//    private Wallet wallet;
+//    private OrderJpaEntity order;
+//    private WalletJpaEntity wallet;
 //    private OrderRequestDto orderRequestDto;
 //    private OrderResponseDto orderResponseDto;
 //
@@ -108,13 +108,13 @@
 //                .user(user)
 //                .build();
 //
-//        order = Order.builder()
+//        order = OrderJpaEntity.builder()
 //                .orderUuid(orderUuid)
 //                .customer(customer)
 //                .orderStatus(OrderStatus.DRAFT)
 //                .build();
 //
-//        wallet = Wallet.builder()
+//        wallet = WalletJpaEntity.builder()
 //                .walletUuid(UUID.randomUUID())
 //                .customer(customer)
 //                .balance(new BigDecimal("1000.00"))
@@ -247,7 +247,7 @@
 //
 //        @BeforeEach
 //        void setUp() {
-//            order = Order.builder()
+//            order = OrderJpaEntity.builder()
 //                    .orderUuid(orderUuid)
 //                    .customer(customer)
 //                    .orderStatus(OrderStatus.AWAITING_PAYMENT)
@@ -259,7 +259,7 @@
 //        @DisplayName("성공: 정상적인 주문 완료")
 //        void completedOrder_Success() {
 //            // Given
-//            Wallet updatedWallet = Wallet.builder()
+//            WalletJpaEntity updatedWallet = WalletJpaEntity.builder()
 //                    .walletUuid(wallet.getWalletUuid())
 //                    .customer(customer)
 //                    .balance(new BigDecimal("500.00"))

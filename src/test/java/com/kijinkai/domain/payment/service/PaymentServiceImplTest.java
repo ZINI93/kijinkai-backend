@@ -3,10 +3,10 @@
 //import com.kijinkai.domain.customer.adapter.out.persistence.entity.Customer;
 //import com.kijinkai.domain.customer.adapter.out.persistence.repository.CustomerRepository;
 //import com.kijinkai.domain.exchange.service.PriceCalculationService;
-//import com.kijinkai.domain.order.entity.Order;
+//import com.kijinkai.domain.order.entity.OrderJpaEntity;
 //import com.kijinkai.domain.orderitem.entity.OrderItem;
 //import com.kijinkai.domain.orderitem.entity.OrderItemStatus;
-//import com.kijinkai.domain.orderitem.repository.OrderItemRepository;
+//import com.kijinkai.domain.orderitem.adapter.out.persistence.repostiory.OrderItemRepository;
 //import com.kijinkai.domain.payment.application.dto.PaymentDepositRequestDto;
 //import com.kijinkai.domain.payment.application.dto.PaymentResponseDto;
 //import com.kijinkai.domain.payment.application.dto.WithdrawalRequestDto;
@@ -20,7 +20,7 @@
 //import com.kijinkai.domain.user.exception.UserRoleValidateException;
 //import com.kijinkai.domain.user.adapter.out.persistence.repository.UserRepository;
 //import com.kijinkai.domain.user.validator.UserValidator;
-//import com.kijinkai.domain.wallet.entity.Wallet;
+//import com.kijinkai.domain.wallet.entity.WalletJpaEntity;
 //import com.kijinkai.domain.wallet.entity.WalletStatus;
 //import com.kijinkai.domain.wallet.exception.InactiveWalletException;
 //import com.kijinkai.domain.wallet.exception.InsufficientBalanceException;
@@ -82,10 +82,10 @@
 //    private String paymentUuid;
 //    private User user;
 //    private Customer customer;
-//    private Wallet wallet;
+//    private WalletJpaEntity wallet;
 //    private Payment payment;
 //    private User adminUser;
-//    private Order order;
+//    private OrderJpaEntity order;
 //    private OrderItem orderItem;
 //    private PaymentDepositRequestDto depositRequestDto;
 //    private WithdrawalRequestDto withdrawalRequestDto;
@@ -102,9 +102,9 @@
 //
 //        user = User.builder().userUuid(userUuid).build();
 //        customer = Customer.builder().user(user).build();
-//        wallet = Wallet.builder().walletUuid(walletUuid).customer(customer).balance(new BigDecimal(500000.00)).walletStatus(WalletStatus.ACTIVE).build();
+//        wallet = WalletJpaEntity.builder().walletUuid(walletUuid).customer(customer).balance(new BigDecimal(500000.00)).walletStatus(WalletStatus.ACTIVE).build();
 //        payment = Payment.builder().customer(customer).wallet(wallet).paymentUuid(UUID.fromString(paymentUuid)).paymentStatus(PaymentStatus.PENDING).amountOriginal(new BigDecimal(50000.00)).build();
-//        order = Order.builder().customer(customer).build();
+//        order = OrderJpaEntity.builder().customer(customer).build();
 //        orderItem = OrderItem.builder().orderItemUuid(UUID.randomUUID()).priceOriginal(new BigDecimal(5000.00)).order(order).build();
 //
 //        // DTO 생성
@@ -129,11 +129,11 @@
 //        return Customer.builder().user(user).build();
 //    }
 //
-//    private Wallet createMockWallet(UUID walletUuid, Customer customer, BigDecimal balance, WalletStatus status) {
-//        return Wallet.builder().walletUuid(walletUuid).customer(customer).balance(balance).walletStatus(status).build();
+//    private WalletJpaEntity createMockWallet(UUID walletUuid, Customer customer, BigDecimal balance, WalletStatus status) {
+//        return WalletJpaEntity.builder().walletUuid(walletUuid).customer(customer).balance(balance).walletStatus(status).build();
 //    }
 //
-//    private Payment createMockPayment(Customer customer, Wallet wallet, UUID paymentUuid, PaymentStatus status, BigDecimal amount) {
+//    private Payment createMockPayment(Customer customer, WalletJpaEntity wallet, UUID paymentUuid, PaymentStatus status, BigDecimal amount) {
 //        return Payment.builder().customer(customer).paymentUuid(paymentUuid).paymentStatus(status).amountOriginal(amount).build();
 //    }
 //
@@ -166,13 +166,13 @@
 //    void createDepositPayment_InactiveWallet_ThrowsException() {
 //        // Given
 //        when(walletRepository.findByUserUserUuidWithCustomerAndUser(userUuid)).thenReturn(Optional.of(wallet));
-//        doThrow(new InactiveWalletException("Wallet is inactive")).when(walletValidator).requireActiveStatus(wallet);
+//        doThrow(new InactiveWalletException("WalletJpaEntity is inactive")).when(walletValidator).requireActiveStatus(wallet);
 //
 //
 //        // When & Then
 //        assertThatThrownBy(() -> paymentService.createDepositPayment(userUuid, depositRequestDto))
 //                .isInstanceOf(InactiveWalletException.class)
-//                .hasMessage("Wallet is inactive");
+//                .hasMessage("WalletJpaEntity is inactive");
 //    }
 //
 //    @Test
@@ -184,7 +184,7 @@
 //        // When & Then
 //        assertThatThrownBy(() -> paymentService.createDepositPayment(userUuid, depositRequestDto))
 //                .isInstanceOf(WalletNotFoundException.class)
-//                .hasMessageContaining("Wallet not found for userUuid");
+//                .hasMessageContaining("WalletJpaEntity not found for userUuid");
 //    }
 //
 //    @Test
@@ -273,7 +273,7 @@
 //
 //        User user = createMockUser(UUID.randomUUID(), UserRole.USER);
 //        Customer customer = createMockCustomer(user);
-//        Wallet wallet = createMockWallet(UUID.randomUUID(), customer, BigDecimal.ZERO, WalletStatus.FROZEN);
+//        WalletJpaEntity wallet = createMockWallet(UUID.randomUUID(), customer, BigDecimal.ZERO, WalletStatus.FROZEN);
 //
 //        // Given
 //        when(customerRepository.findByUserUuid(userUuid)).thenReturn(Optional.of(this.customer));
@@ -359,11 +359,11 @@
 ////
 ////        User user = createMockUser(UUID.randomUUID(), UserRole.USER);
 ////        Customer customer = createMockCustomer(user);
-////        Wallet wallet = createMockWallet(UUID.randomUUID(), customer, BigDecimal.ZERO, WalletStatus.FROZEN);
+////        WalletJpaEntity wallet = createMockWallet(UUID.randomUUID(), customer, BigDecimal.ZERO, WalletStatus.FROZEN);
 ////        Payment payment = createMockPayment(customer, wallet, UUID.randomUUID(), PaymentStatus.COMPLETED, new BigDecimal(10000.00));
 //
 //
-//        Wallet wallet1 = Wallet.builder().walletUuid(walletUuid).customer(customer).walletStatus(WalletStatus.FROZEN).build();
+//        WalletJpaEntity wallet1 = WalletJpaEntity.builder().walletUuid(walletUuid).customer(customer).walletStatus(WalletStatus.FROZEN).build();
 //        Payment payment1 = Payment.builder().paymentUuid(UUID.fromString(paymentUuid)).wallet(wallet1).build();
 //
 //        when(userRepository.findByUserUuid(adminUuid)).thenReturn(Optional.of(adminUser));
@@ -373,7 +373,7 @@
 //        // When & Then
 //        assertThatThrownBy(() -> paymentService.completePaymentByWithdrawal(adminUuid, paymentUuid))
 //                .isInstanceOf(InactiveWalletException.class)
-//                .hasMessage("Wallet is inactive");
+//                .hasMessage("WalletJpaEntity is inactive");
 //    }
 //
 //    @Test
@@ -383,7 +383,7 @@
 //
 //        User user = createMockUser(UUID.randomUUID(), UserRole.USER);
 //        Customer customer = createMockCustomer(user);
-//        Wallet wallet = createMockWallet(UUID.randomUUID(), customer, BigDecimal.ZERO, WalletStatus.ACTIVE);
+//        WalletJpaEntity wallet = createMockWallet(UUID.randomUUID(), customer, BigDecimal.ZERO, WalletStatus.ACTIVE);
 //        Payment payment = createMockPayment(customer, wallet, UUID.randomUUID(), PaymentStatus.COMPLETED, new BigDecimal(10000.00));
 //
 //        when(customerRepository.findByUserUuid(userUuid)).thenReturn(Optional.of(customer));

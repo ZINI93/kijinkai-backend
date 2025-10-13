@@ -1,7 +1,5 @@
 package com.kijinkai.domain.payment.domain.repository;
 
-import com.kijinkai.domain.orderitem.entity.OrderItem;
-import com.kijinkai.domain.orderitem.entity.OrderItemStatus;
 import com.kijinkai.domain.payment.domain.entity.DepositRequest;
 import com.kijinkai.domain.payment.domain.enums.DepositStatus;
 import org.springframework.data.domain.Page;

@@ -6,7 +6,7 @@ import com.kijinkai.domain.address.domain.model.Address;
 import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPersistencePort;
 import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.domain.model.Customer;
-import com.kijinkai.domain.delivery.adpater.out.persistence.entity.DeliveryStatus;
+import com.kijinkai.domain.delivery.domain.model.DeliveryStatus;
 import com.kijinkai.domain.delivery.application.dto.DeliveryCountResponseDto;
 import com.kijinkai.domain.delivery.application.dto.DeliveryRequestDto;
 import com.kijinkai.domain.delivery.application.dto.DeliveryResponseDto;
@@ -23,7 +23,7 @@ import com.kijinkai.domain.delivery.domain.exception.DeliveryNotFoundException;
 import com.kijinkai.domain.delivery.domain.exception.DeliveryUpdateException;
 import com.kijinkai.domain.delivery.domain.factory.DeliveryFactory;
 import com.kijinkai.domain.delivery.domain.model.Delivery;
-import com.kijinkai.domain.order.validator.OrderValidator;
+import com.kijinkai.domain.order.application.validator.OrderValidator;
 import com.kijinkai.domain.payment.domain.entity.OrderPayment;
 import com.kijinkai.domain.payment.domain.exception.OrderPaymentNotFoundException;
 import com.kijinkai.domain.payment.domain.repository.OrderPaymentRepository;
@@ -81,7 +81,7 @@ public class DeliveryApplicationService implements CreateDeliveryUseCase, Delete
         user.validateAdminRole();
 
         OrderPayment secondOrderPayment = orderPaymentRepository.findByPaymentUuid(orderPaymentUuid)
-                .orElseThrow(() -> new OrderPaymentNotFoundException(String.format("Order payment not found exception for orderPaymentUuid: %s", orderPaymentUuid)));
+                .orElseThrow(() -> new OrderPaymentNotFoundException(String.format("OrderJpaEntity payment not found exception for orderPaymentUuid: %s", orderPaymentUuid)));
 
         Customer customer = customerPersistencePort.findByCustomerUuid(secondOrderPayment.getCustomerUuid())
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found exception for customer uuid: %s", secondOrderPayment.getCustomerUuid())));
@@ -128,7 +128,7 @@ public class DeliveryApplicationService implements CreateDeliveryUseCase, Delete
      */
     @Override
     @Transactional
-    public DeliveryResponseDto deliveryShipped(UUID userUuid, UUID deliveryUuid) {
+    public DeliveryResponseDto shipDelivery(UUID userUuid, UUID deliveryUuid) {
 
         Customer customer = findCustomerByUserUuid(userUuid);
         User user = findUserByUserUuid(userUuid);
@@ -140,7 +140,9 @@ public class DeliveryApplicationService implements CreateDeliveryUseCase, Delete
 
         delivery.updateDeliveryStatus(DeliveryStatus.SHIPPED);
 
-        return deliveryMapper.toResponse(delivery);
+        Delivery savedDelivery = deliveryPersistencePort.saveDelivery(delivery);
+
+        return deliveryMapper.toResponse(savedDelivery);
     }
 
     /**

@@ -14,6 +14,7 @@ import com.kijinkai.domain.address.domain.exception.AddressNotFoundException;
 import com.kijinkai.domain.address.domain.factory.AddressFactory;
 import com.kijinkai.domain.address.domain.model.Address;
 import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPersistencePort;
+import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.domain.model.Customer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -97,7 +98,7 @@ public class AddressApplicationService implements CreateAddressUseCase, GetAddre
     // helper method
     private Customer findCustomerByUserUuid(UUID userUuid) {
         return customerPersistencePort.findByUserUuid(userUuid)
-                .orElseThrow(() -> new AddressNotFoundException(String.format("Address not found for userUuid: %s", userUuid)));
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for userUuid: %s", userUuid)));
     }
 
     private Address findAddressByCustomerUuid(UUID customerUuid) {

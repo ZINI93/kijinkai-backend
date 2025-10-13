@@ -3,7 +3,7 @@
 //import com.kijinkai.domain.customer.adapter.out.persistence.entity.Customer;
 //import com.kijinkai.domain.exchange.doamin.Currency;
 //import com.kijinkai.domain.exchange.service.PriceCalculationService;
-//import com.kijinkai.domain.order.entity.Order;
+//import com.kijinkai.domain.order.entity.OrderJpaEntity;
 //import com.kijinkai.domain.orderitem.entity.OrderItem;
 //import com.kijinkai.domain.payment.application.dto.request.DepositRequestDto;
 //import com.kijinkai.domain.payment.application.dto.request.OrderPaymentRequestDto;
@@ -32,7 +32,7 @@
 //import com.kijinkai.domain.payment.domain.service.WithdrawRequestService;
 //import com.kijinkai.domain.user.domain.model.User;
 //import com.kijinkai.domain.wallet.dto.WalletResponseDto;
-//import com.kijinkai.domain.wallet.entity.Wallet;
+//import com.kijinkai.domain.wallet.entity.WalletJpaEntity;
 //import com.kijinkai.domain.wallet.exception.InsufficientBalanceException;
 //import com.kijinkai.domain.wallet.exception.WalletNotActiveException;
 //import jakarta.persistence.OptimisticLockException;
@@ -108,13 +108,13 @@
 //    private Customer customer;
 //
 //    @Mock
-//    private Wallet wallet;
+//    private WalletJpaEntity wallet;
 //
 //    @Mock
 //    private User user;
 //
 //    @Mock
-//    private Order order;
+//    private OrderJpaEntity order;
 //
 //    @Mock
 //    private OrderItem orderItem;
@@ -762,7 +762,7 @@
 //        when(depositRequestRepository.findByRefundUuid(requestUuid)).thenReturn(Optional.of(depositRequest));
 //        when(depositRequestService.approveDepositRequest(depositRequest, adminUuid, memo)).thenReturn(depositRequest);
 //        when(walletPort.deposit(customerUuid, walletUuid, convertedAmount))
-//                .thenThrow(new WalletNotActiveException("Wallet not active"));
+//                .thenThrow(new WalletNotActiveException("WalletJpaEntity not active"));
 //
 //        // When & Then
 //        assertThrows(DepositApprovalException.class, () -> {

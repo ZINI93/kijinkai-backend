@@ -2,10 +2,7 @@ package com.kijinkai.domain.payment.application.mapper;
 
 import com.kijinkai.domain.payment.application.dto.response.*;
 import com.kijinkai.domain.payment.domain.entity.*;
-import com.kijinkai.domain.payment.application.dto.PaymentResponseDto;
-import com.kijinkai.domain.payment.domain.service.OrderPaymentService;
-import com.kijinkai.domain.wallet.dto.WalletResponseDto;
-import com.kijinkai.domain.wallet.entity.Wallet;
+import com.kijinkai.domain.wallet.application.dto.WalletResponseDto;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 

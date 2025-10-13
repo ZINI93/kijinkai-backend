@@ -16,7 +16,7 @@ import com.kijinkai.domain.user.application.port.out.persistence.UserPersistence
 import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.user.domain.model.UserRole;
 import com.kijinkai.domain.user.domain.model.UserStatus;
-import com.kijinkai.domain.wallet.service.WalletService;
+import com.kijinkai.domain.wallet.application.service.WalletApplicationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,7 +49,8 @@ class CustomerApplicationServiceTest {
     @Mock AddressFactory addressFactory;
 
     // 추후에 수정파일
-    @Mock WalletService walletService;
+    @Mock
+    WalletApplicationService walletService;
     @Mock AddressPersistencePort addressPersistencePort;
 
     @InjectMocks CustomerApplicationService customerApplicationService;

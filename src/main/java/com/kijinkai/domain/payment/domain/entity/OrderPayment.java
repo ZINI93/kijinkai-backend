@@ -1,8 +1,8 @@
 package com.kijinkai.domain.payment.domain.entity;
 
 import com.kijinkai.domain.common.BaseEntity;
-import com.kijinkai.domain.order.entity.Order;
-import com.kijinkai.domain.order.entity.OrderStatus;
+import com.kijinkai.domain.order.adapter.out.persistence.entity.OrderJpaEntity;
+import com.kijinkai.domain.order.adapter.out.persistence.entity.OrderStatus;
 import com.kijinkai.domain.payment.domain.enums.OrderPaymentStatus;
 import com.kijinkai.domain.payment.domain.enums.PaymentOrder;
 import com.kijinkai.domain.payment.domain.enums.PaymentType;
@@ -91,7 +91,7 @@ public class OrderPayment extends BaseEntity {
     }
 
     // 도메인 로직: 결제 완료
-    public void OrderSecondComplete(Order order) {
+    public void OrderSecondComplete(OrderJpaEntity order) {
         if (order.getOrderStatus() != OrderStatus.FIRST_PAID) {
             throw new IllegalStateException("첫번째 지불을 하지 않았습니다.");
         }

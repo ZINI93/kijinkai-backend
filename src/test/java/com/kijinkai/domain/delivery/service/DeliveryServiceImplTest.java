@@ -18,9 +18,9 @@
 //import com.kijinkai.domain.delivery.mapper.DeliveryMapper;
 //import com.kijinkai.domain.delivery.repository.DeliveryRepository;
 //import com.kijinkai.domain.delivery.validator.DeliveryValidator;
-//import com.kijinkai.domain.order.entity.Order;
+//import com.kijinkai.domain.order.entity.OrderJpaEntity;
 //import com.kijinkai.domain.order.entity.OrderStatus;
-//import com.kijinkai.domain.order.repository.OrderRepository;
+//import com.kijinkai.domain.order.adapter.out.persistence.repository.OrderRepository;
 //import com.kijinkai.domain.order.validator.OrderValidator;
 //import com.kijinkai.domain.user.domain.model.UserRole;
 //import com.kijinkai.domain.user.adapter.in.web.validator.UserValidator;
@@ -69,7 +69,7 @@
 //
 //    private Customer customer;
 //    private User user;
-//    private Order order;
+//    private OrderJpaEntity order;
 //    private DeliveryJpaEntity delivery;
 //    private AddressJpaEntity address;
 //    private DeliveryRequestDto requestDto;
@@ -89,7 +89,7 @@
 //                .user(user)
 //                .build();
 //
-//        order = Order.builder()
+//        order = OrderJpaEntity.builder()
 //                .orderUuid(UUID.randomUUID())
 //                .customer(customer)
 //                .orderStatus(OrderStatus.FIRST_PAID)
@@ -212,7 +212,7 @@
 //        given(deliveryMapper.toResponse(delivery)).willReturn(responseDto);
 //
 //        // when
-//        DeliveryResponseDto result = deliveryService.deliveryShipped(userUuid, deliveryUuid);
+//        DeliveryResponseDto result = deliveryService.shipDelivery(userUuid, deliveryUuid);
 //
 //        // then
 //        assertThat(result).isNotNull();
@@ -235,7 +235,7 @@
 //        given(customerRepository.findByUserUuid(userUuid)).willReturn(Optional.empty());
 //
 //        // when & then
-//        assertThatThrownBy(() -> deliveryService.deliveryShipped(userUuid, deliveryUuid))
+//        assertThatThrownBy(() -> deliveryService.shipDelivery(userUuid, deliveryUuid))
 //                .isInstanceOf(CustomerNotFoundException.class)
 //                .hasMessage("userUuid: customer not found");
 //    }
@@ -277,8 +277,8 @@
 //        given(customerRepository.findByUserUuid(userUuid)).willReturn(Optional.of(customer));
 //        given(deliveryRepository.findByCustomerUuidAndDeliveryUuid(customer.getCustomerUuid(), deliveryUuid)).willReturn(Optional.of(delivery));
 //
-//        doThrow(new RuntimeException("Order validation failed"))
-//                .when(orderValidator).requirePaidStatusForConfirmation(any(Order.class));
+//        doThrow(new RuntimeException("OrderJpaEntity validation failed"))
+//                .when(orderValidator).requirePaidStatusForConfirmation(any(OrderJpaEntity.class));
 //
 //        // when & then
 //        assertThatThrownBy(() -> deliveryService.updateDeliveryWithValidate(userUuid, deliveryUuid, updateDto))

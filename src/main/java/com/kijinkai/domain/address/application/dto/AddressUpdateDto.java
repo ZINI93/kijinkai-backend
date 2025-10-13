@@ -1,11 +1,13 @@
 package com.kijinkai.domain.address.application.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
+@AllArgsConstructor
 public class AddressUpdateDto {
 
     @Schema(description = "수취인", example = "Park Jinhee")
@@ -29,14 +31,4 @@ public class AddressUpdateDto {
     @Schema(description = "주소3", example = "신암동 111-11")
     private String street;
 
-    @Builder
-    public AddressUpdateDto(String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street) {
-        this.recipientName = recipientName;
-        this.recipientPhoneNumber = recipientPhoneNumber;
-        this.country = country;
-        this.zipcode = zipcode;
-        this.state = state;
-        this.city = city;
-        this.street = street;
-    }
 }

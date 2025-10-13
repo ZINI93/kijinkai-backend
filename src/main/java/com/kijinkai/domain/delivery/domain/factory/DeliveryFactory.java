@@ -1,10 +1,8 @@
 package com.kijinkai.domain.delivery.domain.factory;
 
-import com.kijinkai.domain.address.adapter.out.persistence.entity.AddressJpaEntity;
 import com.kijinkai.domain.address.domain.model.Address;
 import com.kijinkai.domain.delivery.application.dto.DeliveryRequestDto;
-import com.kijinkai.domain.delivery.adpater.out.persistence.entity.DeliveryJpaEntity;
-import com.kijinkai.domain.delivery.adpater.out.persistence.entity.DeliveryStatus;
+import com.kijinkai.domain.delivery.domain.model.DeliveryStatus;
 import com.kijinkai.domain.delivery.domain.model.Delivery;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +15,7 @@ public class DeliveryFactory {
     public Delivery createDelivery(UUID orderPaymentUuid, UUID customerUuid, Address address, BigDecimal deliveryFee, DeliveryRequestDto requestDto) {
 
         return Delivery.builder()
+                .deliveryUuid(UUID.randomUUID())
                 .orderPaymentUuid(orderPaymentUuid)
                 .customerUuid(customerUuid)
                 .recipientName(address.getRecipientName())
@@ -30,7 +29,7 @@ public class DeliveryFactory {
                 .carrier(requestDto.getCarrier())
                 .trackingNumber(requestDto.getTrackingNumber())
                 .deliveryFee(deliveryFee)
-                .deliveryStatus(DeliveryStatus.SHIPPED)
+                .deliveryStatus(DeliveryStatus.PENDING)
                 .build();
     }
 }

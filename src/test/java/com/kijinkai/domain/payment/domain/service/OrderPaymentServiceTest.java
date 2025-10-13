@@ -1,11 +1,11 @@
 //package com.kijinkai.domain.payment.domain.service;
 //
 //import com.kijinkai.domain.customer.adapter.out.persistence.entity.Customer;
-//import com.kijinkai.domain.order.entity.Order;
+//import com.kijinkai.domain.order.entity.OrderJpaEntity;
 //import com.kijinkai.domain.payment.domain.entity.OrderPayment;
 //import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
 //import com.kijinkai.domain.user.adapter.in.web.validator.UserValidator;
-//import com.kijinkai.domain.wallet.entity.Wallet;
+//import com.kijinkai.domain.wallet.entity.WalletJpaEntity;
 //import org.junit.jupiter.api.BeforeEach;
 //
 //import org.junit.jupiter.api.Test;
@@ -31,10 +31,10 @@
 //    private Customer customer;
 //
 //    @Mock
-//    private Wallet wallet;
+//    private WalletJpaEntity wallet;
 //
 //    @Mock
-//    private Order order;
+//    private OrderJpaEntity order;
 //
 //    @Mock
 //    private OrderPayment orderPayment;

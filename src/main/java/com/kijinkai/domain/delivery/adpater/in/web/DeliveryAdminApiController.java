@@ -6,7 +6,7 @@ import com.kijinkai.domain.delivery.application.dto.DeliveryCountResponseDto;
 import com.kijinkai.domain.delivery.application.dto.DeliveryRequestDto;
 import com.kijinkai.domain.delivery.application.dto.DeliveryResponseDto;
 import com.kijinkai.domain.delivery.application.dto.DeliveryUpdateDto;
-import com.kijinkai.domain.delivery.adpater.out.persistence.entity.DeliveryStatus;
+import com.kijinkai.domain.delivery.domain.model.DeliveryStatus;
 import com.kijinkai.domain.delivery.application.in.CreateDeliveryUseCase;
 import com.kijinkai.domain.delivery.application.in.DeleteDeliveryUseCase;
 import com.kijinkai.domain.delivery.application.in.GetDeliveryUseCase;
@@ -42,7 +42,7 @@ public class DeliveryAdminApiController extends BaseController {
     private final CreateDeliveryUseCase createDeliveryUseCase;
     private final GetDeliveryUseCase getDeliveryUseCase;
     private final UpdateDeliveryUseCase updateDeliveryUseCase;
-    private final DeleteDeliveryUseCase deleteDelivery;
+    private final DeleteDeliveryUseCase deleteDeliveryUseCase;
 
     /**
      * 관리자에 의해서 배송작성
@@ -102,7 +102,7 @@ public class DeliveryAdminApiController extends BaseController {
         log.info("Starting delivery: {} by admin: {}", deliveryUuid, userUuid);
 
         try {
-            DeliveryResponseDto delivery = updateDeliveryUseCase.deliveryShipped(userUuid, deliveryUuid);
+            DeliveryResponseDto delivery = updateDeliveryUseCase.shipDelivery(userUuid, deliveryUuid);
             return ResponseEntity.ok(BasicResponseDto.success("배송이 시작되었습니다", delivery));
         } catch (Exception e) {
             log.error("Failed to start delivery: {} by admin: {}", deliveryUuid, userUuid, e);
@@ -161,7 +161,7 @@ public class DeliveryAdminApiController extends BaseController {
         log.info("Deleting delivery: {} by admin: {}", deliveryUuid, userUuid);
 
         try {
-            deleteDelivery.deleteDelivery(userUuid, deliveryUuid);
+            deleteDeliveryUseCase.deleteDelivery(userUuid, deliveryUuid);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
             log.error("Failed to delete delivery: {} by admin: {}", deliveryUuid, userUuid, e);

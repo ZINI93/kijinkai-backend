@@ -1,6 +1,5 @@
 package com.kijinkai.domain.delivery.domain.model;
 
-import com.kijinkai.domain.delivery.adpater.out.persistence.entity.Carrier;
 import com.kijinkai.domain.delivery.application.dto.DeliveryUpdateDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

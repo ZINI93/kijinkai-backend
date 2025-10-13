@@ -8,7 +8,7 @@ import lombok.*;
 import java.util.UUID;
 
 @Getter
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Address {

@@ -13,7 +13,7 @@
 //import com.kijinkai.domain.user.domain.model.UserStatus;
 //import com.kijinkai.domain.user.adapter.out.persistence.repository.UserRepository;
 //import com.kijinkai.domain.wallet.dto.WalletResponseDto;
-//import com.kijinkai.domain.wallet.entity.Wallet;
+//import com.kijinkai.domain.wallet.entity.WalletJpaEntity;
 //import com.kijinkai.domain.wallet.service.WalletService;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.DisplayName;
@@ -47,7 +47,7 @@
 //    CustomerResponseDto responseDto;
 //    WalletResponseDto walletResponseDto;
 //    User user;
-//    Wallet wallet;
+//    WalletJpaEntity wallet;
 //    String customerUuid;
 //
 //
@@ -58,7 +58,7 @@
 //
 //        customerUuid = UUID.randomUUID().toString();
 //
-//        wallet = Wallet.builder().walletUuid(UUID.randomUUID()).build();
+//        wallet = WalletJpaEntity.builder().walletUuid(UUID.randomUUID()).build();
 //        walletResponseDto = WalletResponseDto.builder().build();
 //
 //        user = User.builder().userUuid(UUID.randomUUID()).emailVerified(true).userStatus(UserStatus.ACTIVE).build();

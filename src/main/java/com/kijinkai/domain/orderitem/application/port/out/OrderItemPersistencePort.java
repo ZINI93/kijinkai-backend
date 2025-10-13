@@ -1,0 +1,35 @@
+package com.kijinkai.domain.orderitem.application.port.out;
+
+import com.kijinkai.domain.customer.domain.model.Customer;
+import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
+import com.kijinkai.domain.orderitem.domain.model.OrderItem;
+import com.kijinkai.domain.payment.application.dto.request.OrderPaymentRequestDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+public interface OrderItemPersistencePort {
+
+    OrderItem saveOrderItem(OrderItem orderItem);
+    List<OrderItem> saveAllOrderItem(List<OrderItem> orderItems);
+
+    void deleteOrderItem(OrderItem orderItem);
+
+    Optional<OrderItem> findByOrderUuid(UUID orderUuid);
+    Optional<OrderItem> findByOrderItemUuid(UUID orderUuid);
+    Page<OrderItem> findAllByCustomerUuidOrderByOrderCreatedAtDesc(UUID customerUuid, Pageable pageable);
+    Page<OrderItem> findAllByCustomerUuidAndOrderItemStatusOrderByOrderCreatedAtDesc(UUID customerUuid, OrderItemStatus status, Pageable pageable);
+    List<OrderItem> findByOrderItemUuidInAndCustomerUuid(List<UUID> orderItemUuids, UUID customerUuid);
+    int findOrderItemCountByStatus(@Param("customerUuid") UUID customerUuid, @Param("orderItemStatus") OrderItemStatus orderItemStatus);
+    int findOrderItemCount(@Param("customerUuid") UUID customerUuid);
+
+
+    List<OrderItem> firstOrderItemPayment(UUID customerUuid, OrderPaymentRequestDto request, UUID productPaymentUuid);
+    List<OrderItem> secondOrderItemPayment(UUID customerUuid, OrderPaymentRequestDto request, UUID deliveryPaymentUuid);
+
+}

@@ -1,8 +1,6 @@
 package com.kijinkai.domain.payment.infrastructure.adapter.repository;
 
 
-import com.kijinkai.domain.orderitem.entity.OrderItem;
-import com.kijinkai.domain.orderitem.entity.OrderItemStatus;
 import com.kijinkai.domain.payment.application.port.out.DepositRequestPort;
 import com.kijinkai.domain.payment.domain.entity.DepositRequest;
 import com.kijinkai.domain.payment.domain.enums.DepositStatus;

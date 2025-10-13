@@ -1,6 +1,5 @@
 package com.kijinkai.domain.payment.application.dto.request;
 
-import com.kijinkai.domain.orderitem.entity.OrderItem;
 import lombok.Builder;
 import lombok.Value;
 

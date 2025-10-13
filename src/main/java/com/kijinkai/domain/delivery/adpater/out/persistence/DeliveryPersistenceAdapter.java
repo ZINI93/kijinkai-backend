@@ -1,7 +1,7 @@
 package com.kijinkai.domain.delivery.adpater.out.persistence;
 
 import com.kijinkai.domain.delivery.adpater.out.persistence.entity.DeliveryJpaEntity;
-import com.kijinkai.domain.delivery.adpater.out.persistence.entity.DeliveryStatus;
+import com.kijinkai.domain.delivery.domain.model.DeliveryStatus;
 import com.kijinkai.domain.delivery.adpater.out.persistence.persistenceMapper.DeliveryPersistenceMapper;
 import com.kijinkai.domain.delivery.adpater.out.persistence.repository.DeliveryRepository;
 import com.kijinkai.domain.delivery.application.out.DeliveryPersistencePort;

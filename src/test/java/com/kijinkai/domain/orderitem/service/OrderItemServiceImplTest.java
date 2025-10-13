@@ -1,8 +1,8 @@
 //package com.kijinkai.domain.orderitem.service;
 //
-//import com.kijinkai.domain.order.repository.OrderRepository;
+//import com.kijinkai.domain.order.adapter.out.persistence.repository.OrderRepository;
 //import com.kijinkai.domain.orderitem.mapper.OrderItemMapper;
-//import com.kijinkai.domain.orderitem.repository.OrderItemRepository;
+//import com.kijinkai.domain.orderitem.adapter.out.persistence.repostiory.OrderItemRepository;
 //import com.kijinkai.domain.platform.repository.PlatformRepository;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.Test;

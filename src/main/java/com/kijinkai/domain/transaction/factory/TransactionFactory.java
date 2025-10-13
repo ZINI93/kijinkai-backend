@@ -1,12 +1,13 @@
 package com.kijinkai.domain.transaction.factory;
 
-import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
-import com.kijinkai.domain.order.entity.Order;
+import com.kijinkai.domain.order.adapter.out.persistence.entity.OrderJpaEntity;
 import com.kijinkai.domain.exchange.doamin.Currency;
+import com.kijinkai.domain.order.domain.model.Order;
 import com.kijinkai.domain.transaction.entity.Transaction;
 import com.kijinkai.domain.transaction.entity.TransactionStatus;
 import com.kijinkai.domain.transaction.entity.TransactionType;
-import com.kijinkai.domain.wallet.entity.Wallet;
+import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
+import com.kijinkai.domain.wallet.domain.model.Wallet;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;

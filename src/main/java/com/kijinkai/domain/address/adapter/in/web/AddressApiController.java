@@ -35,7 +35,7 @@ public class AddressApiController {
     private final CreateAddressUseCase createAddressUseCase;
     private final GetAddressUseCase getAddressUseCase;
     private final UpdateAddressUseCase updateAddressUseCase;
-    private final DeleteAddressUseCase deleteAddress;
+    private final DeleteAddressUseCase deleteAddressUseCase;
 
 
     @PostMapping
@@ -125,7 +125,7 @@ public class AddressApiController {
         UUID userUuid = getUserUuid(authentication);
         log.info("User: {} requests address delete", userUuid);
 
-        deleteAddress.deleteAddress(userUuid, addressUuid);
+        deleteAddressUseCase.deleteAddress(userUuid, addressUuid);
 
         return ResponseEntity.noContent().build();
     }

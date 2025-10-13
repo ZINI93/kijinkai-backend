@@ -1,10 +1,10 @@
 package com.kijinkai.domain.transaction.service;
 
-import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
 import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPersistencePort;
 import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.domain.model.Customer;
-import com.kijinkai.domain.order.entity.Order;
+import com.kijinkai.domain.order.adapter.out.persistence.entity.OrderJpaEntity;
+import com.kijinkai.domain.order.domain.model.Order;
 import com.kijinkai.domain.transaction.dto.TransactionResponseDto;
 import com.kijinkai.domain.transaction.entity.Transaction;
 import com.kijinkai.domain.transaction.entity.TransactionStatus;
@@ -17,7 +17,8 @@ import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidato
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
 import com.kijinkai.domain.user.domain.model.User;
-import com.kijinkai.domain.wallet.entity.Wallet;
+import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
+import com.kijinkai.domain.wallet.domain.model.Wallet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -6,7 +6,7 @@
 //import com.kijinkai.domain.user.adapter.in.web.validator.UserValidator;
 //import com.kijinkai.domain.wallet.dto.WalletFreezeRequest;
 //import com.kijinkai.domain.wallet.dto.WalletResponseDto;
-//import com.kijinkai.domain.wallet.entity.Wallet;
+//import com.kijinkai.domain.wallet.entity.WalletJpaEntity;
 //import com.kijinkai.domain.wallet.entity.WalletStatus;
 //import com.kijinkai.domain.wallet.fectory.WalletFactory;
 //import com.kijinkai.domain.wallet.mapper.WalletMapper;
@@ -58,7 +58,7 @@
 //    private WalletResponseDto walletResponseDto;
 //
 //
-//    private void setWalletId(Wallet wallet, Long id) throws Exception {
+//    private void setWalletId(WalletJpaEntity wallet, Long id) throws Exception {
 //        Field field = wallet.getClass().getDeclaredField("walletId");
 //        field.setAccessible(true);
 //        field.set(wallet, id);
@@ -83,8 +83,8 @@
 //        return Customer.builder().user(user).build();
 //    }
 //
-//    private Wallet createMockWallet(UUID walletUuid, Customer customer, BigDecimal balance, WalletStatus status) {
-//        return Wallet.builder().walletUuid(walletUuid).customer(customer).balance(balance).walletStatus(status).build();
+//    private WalletJpaEntity createMockWallet(UUID walletUuid, Customer customer, BigDecimal balance, WalletStatus status) {
+//        return WalletJpaEntity.builder().walletUuid(walletUuid).customer(customer).balance(balance).walletStatus(status).build();
 //    }
 //
 //
@@ -95,10 +95,10 @@
 //        //Given
 //        User user = createMockUser(userUuid, UserRole.USER);
 //        Customer customer = createMockCustomer(user);
-//        Wallet wallet = createMockWallet(walletUuid, customer, BigDecimal.ZERO, WalletStatus.ACTIVE);
+//        WalletJpaEntity wallet = createMockWallet(walletUuid, customer, BigDecimal.ZERO, WalletStatus.ACTIVE);
 //
 //        when(walletFactory.createWallet(customer)).thenReturn(wallet);
-//        when(walletRepository.save(any(Wallet.class))).thenReturn(wallet);
+//        when(walletRepository.save(any(WalletJpaEntity.class))).thenReturn(wallet);
 //        when(walletMapper.toResponse(wallet)).thenReturn(new WalletResponseDto());
 //
 //        //When
@@ -110,7 +110,7 @@
 //
 //        verify(walletMapper, times(1)).toResponse(wallet);
 //        verify(walletFactory, times(1)).createWallet(customer);
-//        verify(walletRepository, times(1)).save(any(Wallet.class));
+//        verify(walletRepository, times(1)).save(any(WalletJpaEntity.class));
 //    }
 //
 //    @Test
@@ -120,12 +120,12 @@
 //        //Given
 //        User user = createMockUser(userUuid, UserRole.USER);
 //        Customer customer = createMockCustomer(user);
-//        Wallet initialWallet = createMockWallet(walletUuid, customer, BigDecimal.ZERO, WalletStatus.ACTIVE);
+//        WalletJpaEntity initialWallet = createMockWallet(walletUuid, customer, BigDecimal.ZERO, WalletStatus.ACTIVE);
 //
 //        BigDecimal depositAmount = new BigDecimal("50000.00");
 //        BigDecimal expectedFinalBalance = BigDecimal.ZERO.add(depositAmount);
 //
-//        Wallet updatedWallet = createMockWallet(walletUuid, customer, expectedFinalBalance, WalletStatus.ACTIVE);
+//        WalletJpaEntity updatedWallet = createMockWallet(walletUuid, customer, expectedFinalBalance, WalletStatus.ACTIVE);
 //
 //        when(walletRepository.findByCustomerUuidAndWalletUuid(eq(customerUuid), eq(walletUuid))).thenReturn(Optional.of(initialWallet));
 //        when(walletRepository.increaseBalanceAtomic(walletUuid, depositAmount)).thenReturn(1);
@@ -152,12 +152,12 @@
 //        //Given
 //        User user = createMockUser(userUuid, UserRole.USER);
 //        Customer customer = createMockCustomer(user);
-//        Wallet initialWallet = createMockWallet(walletUuid, customer, new BigDecimal(1000000.00), WalletStatus.ACTIVE);
+//        WalletJpaEntity initialWallet = createMockWallet(walletUuid, customer, new BigDecimal(1000000.00), WalletStatus.ACTIVE);
 //
 //        BigDecimal withdrawalAmount = new BigDecimal(100000.00);
 //        BigDecimal expectedFinalBalance = initialWallet.getBalance().subtract(withdrawalAmount);
 //
-//        Wallet updateWallet = createMockWallet(walletUuid, customer, expectedFinalBalance, WalletStatus.ACTIVE);
+//        WalletJpaEntity updateWallet = createMockWallet(walletUuid, customer, expectedFinalBalance, WalletStatus.ACTIVE);
 //
 //        when(walletRepository.findByCustomerUuidAndWalletUuid(customerUuid, walletUuid)).thenReturn(Optional.ofNullable(initialWallet));
 //        when(walletRepository.decreaseBalanceAtomic(walletUuid, withdrawalAmount)).thenReturn(1);
@@ -185,7 +185,7 @@
 ////
 ////        User user = createMockUser(userUuid, UserRole.USER);
 ////        Customer customer = createMockCustomer(user);
-////        Wallet wallet = createMockWallet(UUID.fromString(walletUuid), customer, new BigDecimal(1000000.00), WalletStatus.ACTIVE);
+////        WalletJpaEntity wallet = createMockWallet(UUID.fromString(walletUuid), customer, new BigDecimal(1000000.00), WalletStatus.ACTIVE);
 ////        BigDecimal amount = new BigDecimal(10000.00);
 ////        WalletResponseDto response = WalletResponseDto.builder().walletUuid(wallet.getWalletUuid()).balance(wallet.getBalance()).build();
 ////
@@ -209,7 +209,7 @@
 //
 //        User user = createMockUser(userUuid, UserRole.USER);
 //        Customer customer = createMockCustomer(user);
-//        Wallet wallet = createMockWallet(UUID.fromString(walletUuid), customer, new BigDecimal(1000000.00), WalletStatus.ACTIVE);
+//        WalletJpaEntity wallet = createMockWallet(UUID.fromString(walletUuid), customer, new BigDecimal(1000000.00), WalletStatus.ACTIVE);
 //        WalletResponseDto response = WalletResponseDto.builder().walletUuid(wallet.getWalletUuid()).balance(wallet.getBalance()).build();
 //
 //        when(walletRepository.findByCustomerUuidAndWalletUuid(customerUuid, UUID.fromString(walletUuid))).thenReturn(Optional.ofNullable(wallet));
@@ -233,7 +233,7 @@
 //
 //        User user = createMockUser(adminUuid, UserRole.ADMIN);
 //        Customer customer = createMockCustomer(user);
-//        Wallet wallet = createMockWallet(UUID.fromString(walletUuid), customer, new BigDecimal(1000000.00), WalletStatus.ACTIVE);
+//        WalletJpaEntity wallet = createMockWallet(UUID.fromString(walletUuid), customer, new BigDecimal(1000000.00), WalletStatus.ACTIVE);
 //        WalletResponseDto response = WalletResponseDto.builder().walletUuid(wallet.getWalletUuid()).balance(wallet.getBalance()).build();
 //
 //        when(userRepository.findByUserUuid(adminUuid)).thenReturn(Optional.ofNullable(user));
@@ -260,13 +260,13 @@
 //
 //        User admin = createMockUser(adminUuid, UserRole.ADMIN);
 //        Customer customer = createMockCustomer(admin);
-//        Wallet wallet = createMockWallet(UUID.fromString(walletUuid), customer, new BigDecimal(1000000.00), WalletStatus.CLOSED);
+//        WalletJpaEntity wallet = createMockWallet(UUID.fromString(walletUuid), customer, new BigDecimal(1000000.00), WalletStatus.CLOSED);
 //        WalletResponseDto response = WalletResponseDto.builder().walletUuid(wallet.getWalletUuid()).balance(wallet.getBalance()).walletStatus(wallet.getWalletStatus()).build();
 //        WalletFreezeRequest FreezeRequest = new WalletFreezeRequest("규약위반");
 //
 //        when(userRepository.findByUserUuid(adminUuid)).thenReturn(Optional.ofNullable(admin));
 //        when(walletRepository.findByWalletUuid(UUID.fromString(walletUuid))).thenReturn(Optional.ofNullable(wallet));
-//        when(walletRepository.save(any(Wallet.class))).thenReturn(wallet);
+//        when(walletRepository.save(any(WalletJpaEntity.class))).thenReturn(wallet);
 //        when(walletMapper.toResponse(wallet)).thenReturn(response);
 //
 //        //When
@@ -277,7 +277,7 @@
 //        assertThat(result.getWalletStatus()).isEqualTo(WalletStatus.CLOSED);
 //        assertThat(admin).isNotEqualTo(admin);
 //
-//        verify(walletRepository, times(1)).save(any(Wallet.class));
+//        verify(walletRepository, times(1)).save(any(WalletJpaEntity.class));
 //        verify(userRepository, times(1)).findByUserUuid(adminUuid);
 //        verify(walletRepository, times(1)).findByWalletUuid(UUID.fromString(walletUuid));
 //        verify(userValidator).requireAdminRole(admin);
@@ -292,12 +292,12 @@
 //
 //        User admin = createMockUser(adminUuid, UserRole.ADMIN);
 //        Customer customer = createMockCustomer(admin);
-//        Wallet wallet = createMockWallet(UUID.fromString(walletUuid), customer, new BigDecimal(1000000.00), WalletStatus.ACTIVE);
+//        WalletJpaEntity wallet = createMockWallet(UUID.fromString(walletUuid), customer, new BigDecimal(1000000.00), WalletStatus.ACTIVE);
 //        WalletResponseDto response = WalletResponseDto.builder().walletUuid(wallet.getWalletUuid()).balance(wallet.getBalance()).walletStatus(wallet.getWalletStatus()).build();
 //
 //        when(userRepository.findByUserUuid(adminUuid)).thenReturn(Optional.ofNullable(admin));
 //        when(walletRepository.findByWalletUuid(UUID.fromString(walletUuid))).thenReturn(Optional.ofNullable(wallet));
-//        when(walletRepository.save(any(Wallet.class))).thenReturn(wallet);
+//        when(walletRepository.save(any(WalletJpaEntity.class))).thenReturn(wallet);
 //        when(walletMapper.toResponse(wallet)).thenReturn(response);
 //
 //        //When
@@ -308,7 +308,7 @@
 //        assertThat(result.getWalletStatus()).isEqualTo(WalletStatus.ACTIVE);
 //        assertThat(admin).isNotEqualTo(admin);
 //
-//        verify(walletRepository, times(1)).save(any(Wallet.class));
+//        verify(walletRepository, times(1)).save(any(WalletJpaEntity.class));
 //        verify(userRepository, times(1)).findByUserUuid(adminUuid);
 //        verify(walletRepository, times(1)).findByWalletUuid(UUID.fromString(walletUuid));
 //        verify(userValidator).requireAdminRole(admin);

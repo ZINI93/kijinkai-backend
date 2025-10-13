@@ -1,7 +1,8 @@
 package com.kijinkai.domain.delivery.application.dto;
 
-import com.kijinkai.domain.delivery.adpater.out.persistence.entity.Carrier;
+import com.kijinkai.domain.delivery.domain.model.Carrier;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 

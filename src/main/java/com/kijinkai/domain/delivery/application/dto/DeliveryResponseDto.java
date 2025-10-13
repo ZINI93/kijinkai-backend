@@ -1,8 +1,9 @@
 package com.kijinkai.domain.delivery.application.dto;
 
-import com.kijinkai.domain.delivery.adpater.out.persistence.entity.Carrier;
-import com.kijinkai.domain.delivery.adpater.out.persistence.entity.DeliveryStatus;
+import com.kijinkai.domain.delivery.domain.model.Carrier;
+import com.kijinkai.domain.delivery.domain.model.DeliveryStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -12,6 +13,7 @@ import java.util.UUID;
 
 @Getter
 @Builder
+@AllArgsConstructor
 public class DeliveryResponseDto {
 
 
@@ -75,26 +77,5 @@ public class DeliveryResponseDto {
     @Schema(description = "배송 취소/실패 사유", example = "고객이 배송취소 요청")
     private String cancelReason;
 
-    @Builder
-    public DeliveryResponseDto(UUID deliveryUuid, UUID orderUuid, UUID customerUuid, DeliveryStatus deliveryStatus, String recipientName, String recipientPhoneNumber, String country, String zipcode, String state, String city, String street, Carrier carrier, String trackingNumber, BigDecimal deliveryFee, LocalDateTime estimatedDeliveryAt, LocalDateTime shippedAt, LocalDateTime deliveredAt, String deliveryRequest, String cancelReason) {
-        this.deliveryUuid = deliveryUuid;
-        this.orderUuid = orderUuid;
-        this.customerUuid = customerUuid;
-        this.deliveryStatus = deliveryStatus;
-        this.recipientName = recipientName;
-        this.recipientPhoneNumber = recipientPhoneNumber;
-        this.country = country;
-        this.zipcode = zipcode;
-        this.state = state;
-        this.city = city;
-        this.street = street;
-        this.carrier = carrier;
-        this.trackingNumber = trackingNumber;
-        this.deliveryFee = deliveryFee;
-        this.estimatedDeliveryAt = estimatedDeliveryAt;
-        this.shippedAt = shippedAt;
-        this.deliveredAt = deliveredAt;
-        this.deliveryRequest = deliveryRequest;
-        this.cancelReason = cancelReason;
-    }
+
 }

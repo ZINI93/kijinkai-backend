@@ -4,9 +4,8 @@ import com.kijinkai.domain.address.application.port.out.AddressPersistencePort;
 import com.kijinkai.domain.address.domain.model.Address;
 import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPersistencePort;
 import com.kijinkai.domain.customer.domain.model.Customer;
-import com.kijinkai.domain.delivery.adpater.out.persistence.entity.Carrier;
-import com.kijinkai.domain.delivery.adpater.out.persistence.entity.DeliveryStatus;
-import com.kijinkai.domain.delivery.application.dto.DeliveryCountResponseDto;
+import com.kijinkai.domain.delivery.domain.model.Carrier;
+import com.kijinkai.domain.delivery.domain.model.DeliveryStatus;
 import com.kijinkai.domain.delivery.application.dto.DeliveryRequestDto;
 import com.kijinkai.domain.delivery.application.dto.DeliveryResponseDto;
 import com.kijinkai.domain.delivery.application.dto.DeliveryUpdateDto;
@@ -15,7 +14,7 @@ import com.kijinkai.domain.delivery.application.out.DeliveryPersistencePort;
 import com.kijinkai.domain.delivery.application.validator.DeliveryValidator;
 import com.kijinkai.domain.delivery.domain.factory.DeliveryFactory;
 import com.kijinkai.domain.delivery.domain.model.Delivery;
-import com.kijinkai.domain.order.validator.OrderValidator;
+import com.kijinkai.domain.order.application.validator.OrderValidator;
 import com.kijinkai.domain.payment.domain.entity.OrderPayment;
 import com.kijinkai.domain.payment.domain.repository.OrderPaymentRepository;
 import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
@@ -37,8 +36,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -232,7 +229,7 @@ class DeliveryApplicationServiceTest {
         when(deliveryMapper.toResponse(deliveryAdmin)).thenReturn(deliveryResponseDtoAdmin);
 
         //when
-        DeliveryResponseDto result = deliveryApplicationService.deliveryShipped(admin.getUserUuid(), deliveryAdmin.getDeliveryUuid());
+        DeliveryResponseDto result = deliveryApplicationService.shipDelivery(admin.getUserUuid(), deliveryAdmin.getDeliveryUuid());
 
         //then
         assertThat(result).isNotNull();
