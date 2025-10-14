@@ -7,6 +7,7 @@ import com.kijinkai.domain.payment.domain.repository.DepositRequestRepository;
 import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
 import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletStatus;
 import com.kijinkai.domain.wallet.domain.exception.WalletNotActiveException;
+import com.kijinkai.domain.wallet.domain.model.Wallet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +34,7 @@ public class PaymentValidator {
 
 
 
-    public void validateDepositEligibility(BigDecimal originalAmount, WalletJpaEntity wallet) {
+    public void validateDepositEligibility(BigDecimal originalAmount, Wallet wallet) {
 
         if (!wallet.getWalletStatus().equals(WalletStatus.ACTIVE)){
             throw new WalletNotActiveException("Inactive wallets can not be deposited");

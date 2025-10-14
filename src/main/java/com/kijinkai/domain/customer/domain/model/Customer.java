@@ -20,9 +20,6 @@ public class Customer {
     private CustomerTier customerTier;
     private UUID userUuid;
 
-
-
-
     /**
      * 고객 정보 업데이트
      * @param customerUpdateDto

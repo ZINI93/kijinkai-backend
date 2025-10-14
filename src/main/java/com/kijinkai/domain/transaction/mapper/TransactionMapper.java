@@ -13,8 +13,8 @@ public class TransactionMapper {
 
         return TransactionResponseDto.builder()
                 .transactionUuid(transaction.getTransactionUuid())
-                .walletUuid(transaction.getWallet().getWalletUuid())
-                .orderUuid(transaction.getOrder().getOrderUuid())
+                .walletUuid(transaction.getWalletUuid())
+                .orderUuid(transaction.getOrderUuid())
                 .transactionType(transaction.getTransactionType())
                 .amount(transaction.getAmount())
                 .balanceBefore(transaction.getBalanceBefore())

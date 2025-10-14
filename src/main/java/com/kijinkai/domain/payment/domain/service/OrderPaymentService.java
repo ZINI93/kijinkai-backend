@@ -6,6 +6,7 @@ import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
 import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
 import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
+import com.kijinkai.domain.wallet.domain.model.Wallet;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -23,7 +24,7 @@ public class OrderPaymentService {
 
     // 1차 결제 생성
     public OrderPayment crateOrderPayment(
-            Customer customer, WalletJpaEntity wallet
+            Customer customer, Wallet wallet
     ) {
         OrderPayment orderPayment = paymentFactory.createOrderFirstPayment(
                 customer, wallet
@@ -48,7 +49,7 @@ public class OrderPaymentService {
 
 //    // 유저가 결제 2차 결제 생성
 //    public OrderPayment crateSecuondOrderPayment(
-//            Customer customer, WalletJpaEntity wallet
+//            Customer customer, Wallet wallet
 //    ) {
 //        OrderPayment orderPayment = paymentFactory.createOrderSecondPayment(
 //                customer, wallet
@@ -59,7 +60,7 @@ public class OrderPaymentService {
 
     // 배송비 지불 결제 생성
 
-    public OrderPayment createSecondOrderPayment(Customer customer, BigDecimal paymentAmount, User admin, WalletJpaEntity wallet) {
+    public OrderPayment createSecondOrderPayment(Customer customer, BigDecimal paymentAmount, User admin, Wallet wallet) {
         userValidator.requireAdminRole(admin);
         OrderPayment orderPayment = paymentFactory.createOrderSecondPayment(customer, paymentAmount, wallet, admin.getUserUuid());
 

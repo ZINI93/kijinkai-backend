@@ -6,7 +6,7 @@ import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.orderitem.domain.model.OrderItem;
 import com.kijinkai.domain.payment.domain.entity.*;
 import com.kijinkai.domain.payment.domain.enums.*;
-import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
+import com.kijinkai.domain.wallet.domain.model.Wallet;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -16,7 +16,7 @@ import java.util.UUID;
 public class PaymentFactory {
 
     public DepositRequest createDepositRequest(
-            Customer customer, WalletJpaEntity wallet, BigDecimal originalAmount, Currency originalCurrency,
+            Customer customer, Wallet wallet, BigDecimal originalAmount, Currency originalCurrency,
             BigDecimal convertAmount, BigDecimal exchangeRate, String depositorName, BankType bankType
     ) {
 
@@ -33,7 +33,7 @@ public class PaymentFactory {
     }
 
     public WithdrawRequest createWithdrawRequest(
-            Customer customer, WalletJpaEntity wallet, BigDecimal requestAmount, Currency tagetCurrency
+            Customer customer, Wallet wallet, BigDecimal requestAmount, Currency tagetCurrency
             , BigDecimal withdrawFee, String bankName, String accountHolder, BigDecimal convertedAmount, String accountNumber,
             BigDecimal exchangeRate) {
 
@@ -53,7 +53,7 @@ public class PaymentFactory {
 
 
     public RefundRequest createRefundPayment(
-            Customer customer, WalletJpaEntity wallet, OrderItem orderItem
+            Customer customer, Wallet wallet, OrderItem orderItem
             , BigDecimal refundAmount, UUID adminUuid, String refundReason, RefundType refundType) {
 
         return RefundRequest.builder()
@@ -68,7 +68,7 @@ public class PaymentFactory {
     }
 
     public OrderPayment createOrderFirstPayment(
-            Customer customer, WalletJpaEntity wallet) {
+            Customer customer, Wallet wallet) {
         return OrderPayment.builder()
                 .customerUuid(customer.getCustomerUuid())
                 .walletUuid(wallet.getWalletUuid())
@@ -79,7 +79,7 @@ public class PaymentFactory {
                 .build();
     }
     public OrderPayment createOrderSecondPayment(
-            Customer customer, BigDecimal paymentAmount, WalletJpaEntity wallet, UUID adminUuid) {
+            Customer customer, BigDecimal paymentAmount, com.kijinkai.domain.wallet.domain.model.Wallet wallet, UUID adminUuid) {
         return OrderPayment.builder()
                 .customerUuid(customer.getCustomerUuid())
                 .paymentType(PaymentType.SHIPPING_PAYMENT)

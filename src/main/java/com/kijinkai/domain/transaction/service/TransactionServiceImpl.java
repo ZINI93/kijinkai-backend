@@ -18,6 +18,8 @@ import com.kijinkai.domain.user.application.port.out.persistence.UserPersistence
 import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
 import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
+import com.kijinkai.domain.wallet.application.port.out.WalletPersistencePort;
+import com.kijinkai.domain.wallet.domain.exception.WalletNotFoundException;
 import com.kijinkai.domain.wallet.domain.model.Wallet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +39,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final CustomerPersistencePort customerPersistencePort;
     private final UserPersistencePort userPersistencePort;
+    private final WalletPersistencePort walletPersistencePort;
 
     private final TransactionMapper transactionMapper;
     private final TransactionFactory transactionFactory;
@@ -56,10 +59,14 @@ public class TransactionServiceImpl implements TransactionService {
      * @return
      */
     @Override
-    public Transaction createTransactionWithValidate(UUID userUuid, Wallet wallet, Order order, TransactionType transactionType, BigDecimal amount, BigDecimal balanceBefore, BigDecimal balanceAfter, TransactionStatus transactionStatus) {
-        Customer customer = findCustomerByUserUuid(userUuid);
+    public Transaction createTransactionWithValidate(UUID userUuid, UUID walletUuid, UUID orderUuid, TransactionType transactionType, BigDecimal amount, BigDecimal balanceBefore, BigDecimal balanceAfter, TransactionStatus transactionStatus) {
 
-        Transaction transaction = transactionFactory.createTransaction(customer.getCustomerUuid(), wallet, order, transactionType, amount, balanceBefore, balanceAfter, transactionStatus);
+        Customer customer = findCustomerByUserUuid(userUuid);
+        Wallet wallet = walletPersistencePort.findByCustomerUuid(customer.getCustomerUuid())
+                .orElseThrow(() -> new WalletNotFoundException(String.format("Wallet not found for walletUuid: %s", walletUuid)));
+
+
+        Transaction transaction = transactionFactory.createTransaction(customer.getCustomerUuid(), walletUuid, orderUuid, transactionType, amount, balanceBefore, balanceAfter, transactionStatus);
 
         return transactionRepository.save(transaction);
     }

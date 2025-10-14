@@ -337,7 +337,7 @@ public class OrderApplicationService implements CreateOrderUseCase, GetOrderUseC
 
         Wallet updateWallet = walletPersistencePort.findByWalletId(wallet.getWalletId()).orElseThrow(() -> new WalletNotFoundException(String.format("WalletJpaEntity not found for wallet id: %s", wallet.getWalletId())));
         BigDecimal balanceAfter = updateWallet.getBalance();
-        transactionService.createTransactionWithValidate(userUuid, wallet, order, TransactionType.PAYMENT, amountToPay, wallet.getBalance(), balanceAfter, TransactionStatus.COMPLETED);
+        transactionService.createTransactionWithValidate(userUuid, wallet.getWalletUuid(), orderUuid, TransactionType.PAYMENT, amountToPay, wallet.getBalance(), balanceAfter, TransactionStatus.COMPLETED);
 
         log.info("Completed order for order uuid:{}", savedOrder.getOrderUuid());
 

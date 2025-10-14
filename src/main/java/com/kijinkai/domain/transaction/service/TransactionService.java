@@ -14,7 +14,7 @@ import java.util.UUID;
 
 public interface TransactionService {
 
-    Transaction createTransactionWithValidate(UUID userUuid, Wallet wallet, Order order, TransactionType transactionType, BigDecimal amount, BigDecimal balanceBefore, BigDecimal balanceAfter, TransactionStatus transactionStatus);
+    Transaction createTransactionWithValidate(UUID userUuid, UUID walletUuid, UUID orderUuid, TransactionType transactionType, BigDecimal amount, BigDecimal balanceBefore, BigDecimal balanceAfter, TransactionStatus transactionStatus);
     TransactionResponseDto updateTransactionWithValidate(UUID userUuid, UUID transactionUuid);
     TransactionResponseDto getTransactionInfo(UUID userUuid, UUID transactionUuid);
     TransactionResponseDto getTransactionInfoByAdmin(UUID userUuid, UUID transactionUuid);

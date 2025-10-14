@@ -16,13 +16,13 @@ import java.util.UUID;
 @Component
 public class TransactionFactory {
 
-    public Transaction createTransaction(UUID customerUuid, Wallet wallet, Order order, TransactionType transactionType, BigDecimal amount, BigDecimal balanceBefore, BigDecimal balanceAfter, TransactionStatus transactionStatus){
+    public Transaction createTransaction(UUID customerUuid, UUID walletUuid, UUID orderUuid, TransactionType transactionType, BigDecimal amount, BigDecimal balanceBefore, BigDecimal balanceAfter, TransactionStatus transactionStatus){
 
         return Transaction.builder()
                 .transactionUuid(UUID.randomUUID())
                 .customerUuid(customerUuid)
-                .wallet(wallet)
-                .order(order)
+                .walletUuid(walletUuid)
+                .orderUuid(orderUuid)
                 .transactionType(transactionType)
                 .amount(amount)
                 .balanceBefore(balanceBefore)

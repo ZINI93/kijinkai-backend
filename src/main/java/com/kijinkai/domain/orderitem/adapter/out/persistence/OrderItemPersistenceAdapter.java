@@ -47,7 +47,7 @@ public class OrderItemPersistenceAdapter implements OrderItemPersistencePort {
 
     @Override
     public Optional<OrderItem> findByOrderUuid(UUID orderUuid) {
-        return orderItemRepository.findByOrderUuid(orderUuid)
+        return orderItemRepository.findByOrderOrderUuid(orderUuid)
                 .map(orderItemPersistenceMapper::toOrderItem);
     }
 

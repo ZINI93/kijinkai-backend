@@ -15,7 +15,9 @@ import java.util.UUID;
 public interface OrderItemRepository extends JpaRepository<OrderItemJpaEntity, Long> {
 
     Optional<OrderItemJpaEntity> findByOrderItemUuid(UUID orderItemUuid);
-    Optional<OrderItemJpaEntity> findByOrderUuid(UUID orderUuid);
+
+
+    Optional<OrderItemJpaEntity> findByOrderOrderUuid(UUID orderUuid);
 
     Page<OrderItemJpaEntity> findAllByCustomerUuidOrderByOrderCreatedAtDesc(UUID customerUuid, Pageable pageable);
 
@@ -23,10 +25,10 @@ public interface OrderItemRepository extends JpaRepository<OrderItemJpaEntity, L
 
     List<OrderItemJpaEntity> findByOrderItemUuidInAndCustomerUuid(List<UUID> orderItemUuids, UUID customerUuid);
 
-    @Query("SELECT COUNT(oi) FROM OrderItem oi WHERE oi.customerUuid = :customerUuid AND oi.orderItemStatus = :orderItemStatus ORDER BY oi.createdAt DESC")
+    @Query("SELECT COUNT(oi) FROM OrderItemJpaEntity oi WHERE oi.customerUuid = :customerUuid AND oi.orderItemStatus = :orderItemStatus ORDER BY oi.createdAt DESC")
     int findOrderItemCountByStatus(@Param("customerUuid") UUID customerUuid, @Param("orderItemStatus") OrderItemStatus orderItemStatus);
 
-    @Query("SELECT COUNT(oi) FROM OrderItem oi WHERE oi.customerUuid = :customerUuid ORDER BY oi.createdAt DESC")
+    @Query("SELECT COUNT(oi) FROM OrderItemJpaEntity oi WHERE oi.customerUuid = :customerUuid ORDER BY oi.createdAt DESC")
     int findOrderItemCount(@Param("customerUuid") UUID customerUuid);
 }
 

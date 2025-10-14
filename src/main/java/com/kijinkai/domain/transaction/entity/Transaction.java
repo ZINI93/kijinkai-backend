@@ -27,21 +27,23 @@ public class Transaction extends BaseEntity {
     @Column(name = "transaction_uuid", nullable = false)
     public UUID transactionUuid;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "customer_id", nullable = false, updatable = false)
-//    public CustomerJpaEntity customerJpaEntity;
-
-
     @Column(name = "customer_uuid")
     private UUID customerUuid;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "wallet_id", nullable = false, updatable = false)
-    public Wallet wallet;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "wallet_id", nullable = false, updatable = false)
+//    public Wallet wallet;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false ,updatable = false)
-    public Order order;
+
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "order_id", nullable = false ,updatable = false)
+//    public Order order;
+
+    @Column(name = "wallet_uuid")
+    public UUID walletUuid;
+
+    @Column(name = "order_uuid")
+    public UUID orderUuid;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "transaction_type", nullable = false)
@@ -69,11 +71,11 @@ public class Transaction extends BaseEntity {
 
 
     @Builder
-    public Transaction(UUID transactionUuid, UUID customerUuid, Wallet wallet, Order order, TransactionType transactionType, BigDecimal amount, BigDecimal balanceBefore, BigDecimal balanceAfter, Currency currency , TransactionStatus transactionStatus, String memo) {
+    public Transaction(UUID transactionUuid, UUID customerUuid, UUID walletUuid, UUID orderUuid, TransactionType transactionType, BigDecimal amount, BigDecimal balanceBefore, BigDecimal balanceAfter, Currency currency, TransactionStatus transactionStatus, String memo) {
         this.transactionUuid = transactionUuid != null ? transactionUuid : UUID.randomUUID();
         this.customerUuid = customerUuid;
-        this.wallet = wallet;
-        this.order = order;
+        this.walletUuid = walletUuid;
+        this.orderUuid = orderUuid;
         this.transactionType = transactionType;
         this.amount = amount;
         this.balanceBefore = balanceBefore;

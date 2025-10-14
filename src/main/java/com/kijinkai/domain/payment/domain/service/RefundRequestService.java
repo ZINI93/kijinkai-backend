@@ -8,6 +8,7 @@ import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
 import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
 import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
+import com.kijinkai.domain.wallet.domain.model.Wallet;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -36,7 +37,7 @@ public class RefundRequestService {
      * @return
      */
     public RefundRequest createRefundRequest(
-            Customer customer, WalletJpaEntity wallet, OrderItem orderItem
+            Customer customer, Wallet wallet, OrderItem orderItem
             , BigDecimal refundAmount, UUID adminUuid, String refundReason, RefundType refundType
     ){
         RefundRequest request = paymentFactory.createRefundPayment(
