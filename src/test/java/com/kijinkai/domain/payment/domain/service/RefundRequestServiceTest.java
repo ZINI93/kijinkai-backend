@@ -2,7 +2,7 @@
 //
 //import com.kijinkai.domain.customer.adapter.out.persistence.entity.Customer;
 //import com.kijinkai.domain.orderitem.entity.OrderItem;
-//import com.kijinkai.domain.payment.domain.entity.RefundRequest;
+//import com.kijinkai.domain.payment.adapter.out.persistence.entity.RefundRequestJpaEntity;
 //import com.kijinkai.domain.payment.domain.enums.RefundType;
 //import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
 //import com.kijinkai.domain.user.adapter.in.web.validator.UserValidator;
@@ -38,7 +38,7 @@
 //    private OrderItem orderItem;
 //
 //    @Mock
-//    private RefundRequest refundRequest;
+//    private RefundRequestJpaEntity refundRequest;
 //
 //    @Mock
 //    private User admin;
@@ -65,7 +65,7 @@
 //        )).thenReturn(refundRequest);
 //
 //        // When
-//        RefundRequest result = refundRequestService.createRefundRequest(
+//        RefundRequestJpaEntity result = refundRequestService.createRefundRequest(
 //                customer, wallet, orderItem, refundAmount, adminUuid, refundReason, refundType
 //        );
 //
@@ -88,7 +88,7 @@
 //        )).thenReturn(refundRequest);
 //
 //        // When
-//        RefundRequest result = refundRequestService.createRefundRequest(
+//        RefundRequestJpaEntity result = refundRequestService.createRefundRequest(
 //                customer, wallet, orderItem, refundAmount, adminUuid, null, refundType
 //        );
 //
@@ -112,7 +112,7 @@
 //        )).thenReturn(refundRequest);
 //
 //        // When
-//        RefundRequest result = refundRequestService.createRefundRequest(
+//        RefundRequestJpaEntity result = refundRequestService.createRefundRequest(
 //                customer, wallet, orderItem, refundAmount, adminUuid, refundReason, refundType
 //        );
 //
@@ -154,7 +154,7 @@
 //        doNothing().when(userValidator).requireAdminRole(admin);
 //
 //        // When
-//        RefundRequest result = refundRequestService.processRefundRequest(refundRequest, admin, memo);
+//        RefundRequestJpaEntity result = refundRequestService.processRefundRequest(refundRequest, admin, memo);
 //
 //        // Then
 //        assertNotNull(result);
@@ -185,7 +185,7 @@
 //        doNothing().when(userValidator).requireAdminRole(admin);
 //
 //        // When
-//        RefundRequest result = refundRequestService.processRefundRequest(refundRequest, admin, null);
+//        RefundRequestJpaEntity result = refundRequestService.processRefundRequest(refundRequest, admin, null);
 //
 //        // Then
 //        assertNotNull(result);
@@ -201,7 +201,7 @@
 //        doNothing().when(userValidator).requireAdminRole(admin);
 //
 //        // When
-//        RefundRequest result = refundRequestService.processRefundRequest(refundRequest, admin, emptyMemo);
+//        RefundRequestJpaEntity result = refundRequestService.processRefundRequest(refundRequest, admin, emptyMemo);
 //
 //        // Then
 //        assertNotNull(result);
@@ -233,7 +233,7 @@
 //        doNothing().when(userValidator).requireAdminRole(admin);
 //
 //        // When
-//        RefundRequest result = refundRequestService.getRefundInfoByAdmin(refundRequest, admin);
+//        RefundRequestJpaEntity result = refundRequestService.getRefundInfoByAdmin(refundRequest, admin);
 //
 //        // Then
 //        assertNotNull(result);
@@ -258,7 +258,7 @@
 //    @Test
 //    void getRefundInfo_ShouldReturnInfo() {
 //        // When
-//        RefundRequest result = refundRequestService.getRefundInfo(refundRequest);
+//        RefundRequestJpaEntity result = refundRequestService.getRefundInfo(refundRequest);
 //
 //        // Then
 //        assertNotNull(result);
@@ -283,17 +283,17 @@
 //        doNothing().when(userValidator).requireAdminRole(admin);
 //
 //        // When - Create refund request
-//        RefundRequest createdRequest = refundRequestService.createRefundRequest(
+//        RefundRequestJpaEntity createdRequest = refundRequestService.createRefundRequest(
 //                customer, wallet, orderItem, refundAmount, adminUuid, refundReason, refundType
 //        );
 //
 //        // When - Process refund request
-//        RefundRequest processedRequest = refundRequestService.processRefundRequest(
+//        RefundRequestJpaEntity processedRequest = refundRequestService.processRefundRequest(
 //                createdRequest, admin, processingMemo
 //        );
 //
 //        // When - Get refund info by admin
-//        RefundRequest retrievedRequest = refundRequestService.getRefundInfoByAdmin(
+//        RefundRequestJpaEntity retrievedRequest = refundRequestService.getRefundInfoByAdmin(
 //                processedRequest, admin
 //        );
 //
@@ -325,7 +325,7 @@
 //        )).thenReturn(refundRequest);
 //
 //        // When
-//        RefundRequest result = refundRequestService.createRefundRequest(
+//        RefundRequestJpaEntity result = refundRequestService.createRefundRequest(
 //                customer, wallet, orderItem, largeRefundAmount, adminUuid, refundReason, refundType
 //        );
 //
@@ -349,7 +349,7 @@
 //        )).thenReturn(refundRequest);
 //
 //        // When
-//        RefundRequest result = refundRequestService.createRefundRequest(
+//        RefundRequestJpaEntity result = refundRequestService.createRefundRequest(
 //                customer, wallet, orderItem, refundAmount, adminUuid, longRefundReason, refundType
 //        );
 //
@@ -368,7 +368,7 @@
 //        doNothing().when(userValidator).requireAdminRole(admin);
 //
 //        // When
-//        RefundRequest result = refundRequestService.processRefundRequest(refundRequest, admin, longMemo);
+//        RefundRequestJpaEntity result = refundRequestService.processRefundRequest(refundRequest, admin, longMemo);
 //
 //        // Then
 //        assertNotNull(result);

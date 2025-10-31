@@ -15,10 +15,10 @@
 //import com.kijinkai.domain.payment.application.dto.response.WithdrawResponseDto;
 //import com.kijinkai.domain.payment.application.mapper.PaymentMapper;
 //import com.kijinkai.domain.payment.application.port.out.*;
-//import com.kijinkai.domain.payment.domain.entity.DepositRequest;
-//import com.kijinkai.domain.payment.domain.entity.OrderPayment;
-//import com.kijinkai.domain.payment.domain.entity.RefundRequest;
-//import com.kijinkai.domain.payment.domain.entity.WithdrawRequest;
+//import com.kijinkai.domain.payment.adapter.out.persistence.entity.DepositRequestJpaEntity;
+//import com.kijinkai.domain.payment.adapter.out.persistence.entity.OrderPaymentJpaEntity;
+//import com.kijinkai.domain.payment.adapter.out.persistence.entity.RefundRequestJpaEntity;
+//import com.kijinkai.domain.payment.adapter.out.persistence.entity.WithdrawRequestJpaEntity;
 //import com.kijinkai.domain.payment.domain.enums.DepositStatus;
 //import com.kijinkai.domain.payment.domain.enums.RefundType;
 //import com.kijinkai.domain.payment.domain.exception.*;
@@ -120,16 +120,16 @@
 //    private OrderItem orderItem;
 //
 //    @Mock
-//    private DepositRequest depositRequest;
+//    private DepositRequestJpaEntity depositRequest;
 //
 //    @Mock
-//    private WithdrawRequest withdrawRequest;
+//    private WithdrawRequestJpaEntity withdrawRequest;
 //
 //    @Mock
-//    private RefundRequest refundRequest;
+//    private RefundRequestJpaEntity refundRequest;
 //
 //    @Mock
-//    private OrderPayment orderPayment;
+//    private OrderPaymentJpaEntity orderPayment;
 //
 //    // DTOs
 //    @Mock
@@ -302,8 +302,8 @@
 //    @Test
 //    void expireOldRequests_ShouldExpireRequests_WhenPendingRequestsExist() {
 //        // Given
-//        List<DepositRequest> pendingRequests = Arrays.asList(depositRequest);
-//        List<DepositRequest> expiredRequests = Arrays.asList(depositRequest);
+//        List<DepositRequestJpaEntity> pendingRequests = Arrays.asList(depositRequest);
+//        List<DepositRequestJpaEntity> expiredRequests = Arrays.asList(depositRequest);
 //
 //        when(depositRequestRepository.findByStatus(DepositStatus.PENDING_ADMIN_APPROVAL))
 //                .thenReturn(pendingRequests);

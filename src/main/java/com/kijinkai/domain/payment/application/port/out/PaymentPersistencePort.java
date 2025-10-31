@@ -1,8 +1,7 @@
 package com.kijinkai.domain.payment.application.port.out;
 
-import com.kijinkai.domain.payment.domain.entity.DepositRequest;
-import com.kijinkai.domain.payment.domain.entity.WithdrawRequest;
-import lombok.RequiredArgsConstructor;
+import com.kijinkai.domain.payment.adapter.out.persistence.entity.DepositRequestJpaEntity;
+import com.kijinkai.domain.payment.adapter.out.persistence.entity.WithdrawRequestJpaEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -11,7 +10,7 @@ import java.util.UUID;
 public interface PaymentPersistencePort {
 
 
-    DepositRequest saveDepositRequest(DepositRequest request);
-    DepositRequest findDepositRequest(UUID requestUuid);
-    WithdrawRequest saveWithdrawRequest(WithdrawRequest request);
+    DepositRequestJpaEntity saveDepositRequest(DepositRequestJpaEntity request);
+    DepositRequestJpaEntity findDepositRequest(UUID requestUuid);
+    WithdrawRequestJpaEntity saveWithdrawRequest(WithdrawRequestJpaEntity request);
 }

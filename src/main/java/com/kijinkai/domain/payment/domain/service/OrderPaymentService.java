@@ -1,11 +1,11 @@
 package com.kijinkai.domain.payment.domain.service;
 
 import com.kijinkai.domain.customer.domain.model.Customer;
-import com.kijinkai.domain.payment.domain.entity.OrderPayment;
+import com.kijinkai.domain.payment.adapter.out.persistence.entity.OrderPaymentJpaEntity;
 import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
+import com.kijinkai.domain.payment.domain.model.OrderPayment;
 import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
 import com.kijinkai.domain.user.domain.model.User;
-import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
 import com.kijinkai.domain.wallet.domain.model.Wallet;
 
 import java.math.BigDecimal;
@@ -23,15 +23,15 @@ public class OrderPaymentService {
 
 
     // 1차 결제 생성
-    public OrderPayment crateOrderPayment(
-            Customer customer, Wallet wallet
-    ) {
-        OrderPayment orderPayment = paymentFactory.createOrderFirstPayment(
-                customer, wallet
-        );
-
-        return orderPayment;
-    }
+//    public OrderPayment crateOrderPayment(
+//            Customer customer, Wallet wallet
+//    ) {
+//        OrderPayment orderPayment = paymentFactory.createOrderFirstPayment(
+//                customer, wallet
+//        );
+//
+//        return orderPayment;
+//    }
 
 
     /**
@@ -59,13 +59,13 @@ public class OrderPaymentService {
 //    }
 
     // 배송비 지불 결제 생성
-
-    public OrderPayment createSecondOrderPayment(Customer customer, BigDecimal paymentAmount, User admin, Wallet wallet) {
-        userValidator.requireAdminRole(admin);
-        OrderPayment orderPayment = paymentFactory.createOrderSecondPayment(customer, paymentAmount, wallet, admin.getUserUuid());
-
-        return orderPayment;
-    }
+//
+//    public OrderPayment createSecondOrderPayment(Customer customer, BigDecimal paymentAmount, User admin, Wallet wallet) {
+//        userValidator.requireAdminRole(admin);
+//        OrderPayment orderPayment = paymentFactory.createOrderSecondPayment(customer, paymentAmount, wallet, admin.getUserUuid());
+//
+//        return orderPayment;
+//    }
 
     // 유저가 결제
 
@@ -82,10 +82,10 @@ public class OrderPaymentService {
      * @param orderPayment
      * @return
      */
-    public OrderPayment getOrderPaymentInfoByAdmin(User admin, OrderPayment orderPayment) {
-        userValidator.requireAdminRole(admin);
-        return orderPayment;
-    }
+//    public OrderPayment getOrderPaymentInfoByAdmin(User admin, OrderPayment orderPayment) {
+//        userValidator.requireAdminRole(admin);
+//        return orderPayment;
+//    }
 
 
     // 관리자의 결제정보 확인

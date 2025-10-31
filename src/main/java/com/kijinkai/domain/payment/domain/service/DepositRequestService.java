@@ -1,15 +1,15 @@
 package com.kijinkai.domain.payment.domain.service;
 
 import com.kijinkai.domain.customer.domain.model.Customer;
-import com.kijinkai.domain.payment.domain.entity.DepositRequest;
+import com.kijinkai.domain.payment.adapter.out.persistence.entity.DepositRequestJpaEntity;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.exchange.service.PriceCalculationService;
 import com.kijinkai.domain.payment.domain.enums.BankType;
 import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
+import com.kijinkai.domain.payment.domain.model.DepositRequest;
 import com.kijinkai.domain.payment.domain.validator.PaymentValidator;
 import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
 import com.kijinkai.domain.user.domain.model.User;
-import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
 import com.kijinkai.domain.wallet.domain.model.Wallet;
 
 import java.math.BigDecimal;
@@ -53,17 +53,17 @@ public class DepositRequestService {
         return paymentFactory.createDepositRequest(customer, wallet, originalAmount, originalCurrency, convertedAmount, exchangeRate, depositorName, bankType);
     }
 
-    /**
-     *  입금요청 승인
-     * @param depositRequest
-     * @param adminUuid
-     * @param memo
-     * @return
-     */
-    public DepositRequest approveDepositRequest(DepositRequest depositRequest, UUID adminUuid, String memo) {
-        depositRequest.approve(adminUuid, memo);
-        return depositRequest;
-    }
+//    /**
+//     *  입금요청 승인
+//     * @param depositRequest
+//     * @param adminUuid
+//     * @param memo
+//     * @return
+//     */
+//    public DepositRequest approveDepositRequest(DepositRequest depositRequest, UUID adminUuid, String memo) {
+//        depositRequest.approve(adminUuid, memo);
+//        return depositRequest;
+//    }
 
     /**
      * 관리자의 입금정보 조회
@@ -71,20 +71,20 @@ public class DepositRequestService {
      * @param user
      * @return
      */
-    public DepositRequest getDepositInfoByAdmin(DepositRequest depositRequest, User user) {
+    public DepositRequestJpaEntity getDepositInfoByAdmin(DepositRequestJpaEntity depositRequest, User user) {
 
         userValidator.requireAdminRole(user);
 
         return depositRequest;
     }
 
-    public DepositRequest getDepositsByStatus(DepositRequest depositRequest, User user){
+    public DepositRequestJpaEntity getDepositsByStatus(DepositRequestJpaEntity depositRequest, User user){
         userValidator.requireAdminRole(user);
         return depositRequest;
     }
 
 
-    public DepositRequest getDepositInfo(DepositRequest depositRequest, Customer customer) {
+    public DepositRequestJpaEntity getDepositInfo(DepositRequestJpaEntity depositRequest, Customer customer) {
         return depositRequest;
     }
 
@@ -92,18 +92,18 @@ public class DepositRequestService {
         depositRequest.markAsFailed(reason);
     }
 
-    /**
-     * 만료된 요청 일괄 처리
-     *
-     * @return
-     */
-    public List<DepositRequest> expireOldRequests(List<DepositRequest> pendingRequests) {
-
-        List<DepositRequest> expiredRequests = pendingRequests.stream()
-                .filter(DepositRequest::isExpired)
-                .peek(DepositRequest::expire)
-                .collect(Collectors.toList());
-
-        return expiredRequests;
-    }
+//    /**
+//     * 만료된 요청 일괄 처리
+//     *
+//     * @return
+//     */
+//    public List<DepositRequest> expireOldRequests(List<DepositRequest> pendingRequests) {
+//
+//        List<DepositRequest> expiredRequests = pendingRequests.stream()
+//                .filter(DepositRequest::isExpired)
+//                .peek(DepositRequest::expire)
+//                .collect(Collectors.toList());
+//
+//        return expiredRequests;
+//    }
 }

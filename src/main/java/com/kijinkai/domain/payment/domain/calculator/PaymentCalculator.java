@@ -3,7 +3,7 @@ package com.kijinkai.domain.payment.domain.calculator;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.exchange.dto.ExchangeRateResponseDto;
 import com.kijinkai.domain.exchange.service.ExchangeRateService;
-import com.kijinkai.domain.payment.infrastructure.adapter.persistence.SpringDataJpaOrderPaymentRepository;
+import com.kijinkai.domain.payment.adapter.out.persistence.repository.SpringDataJpaOrderPaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

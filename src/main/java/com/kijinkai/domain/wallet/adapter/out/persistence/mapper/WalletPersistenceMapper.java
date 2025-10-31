@@ -12,7 +12,7 @@ public interface WalletPersistenceMapper {
     Wallet toWallet(WalletJpaEntity walletJpaEntity);
     WalletJpaEntity toWalletJpaEntity(Wallet wallet);
 
-    List<Wallet> toWallets(List<Wallet> wallets);
-    List<WalletJpaEntity> toWalletsJpaEntity(List<WalletJpaEntity> wallets);
+    List<Wallet> toWallets(List<WalletJpaEntity> wallets);
+    List<WalletJpaEntity> toWalletsJpaEntity(List<Wallet> wallets);
 
 }

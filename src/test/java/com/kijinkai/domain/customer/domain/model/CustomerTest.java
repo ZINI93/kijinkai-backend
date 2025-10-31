@@ -19,7 +19,6 @@ class CustomerTest {
 
 
         //given
-
         Customer customer = Customer.builder()
                 .firstName("JINHEE")
                 .lastName("PARK")

@@ -4,8 +4,15 @@ package com.kijinkai.domain.payment.domain.factory;
 import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.orderitem.domain.model.OrderItem;
-import com.kijinkai.domain.payment.domain.entity.*;
+import com.kijinkai.domain.payment.adapter.out.persistence.entity.DepositRequestJpaEntity;
+import com.kijinkai.domain.payment.adapter.out.persistence.entity.OrderPaymentJpaEntity;
+import com.kijinkai.domain.payment.adapter.out.persistence.entity.RefundRequestJpaEntity;
+import com.kijinkai.domain.payment.adapter.out.persistence.entity.WithdrawRequestJpaEntity;
 import com.kijinkai.domain.payment.domain.enums.*;
+import com.kijinkai.domain.payment.domain.model.DepositRequest;
+import com.kijinkai.domain.payment.domain.model.OrderPayment;
+import com.kijinkai.domain.payment.domain.model.RefundRequest;
+import com.kijinkai.domain.payment.domain.model.WithdrawRequest;
 import com.kijinkai.domain.wallet.domain.model.Wallet;
 import org.springframework.stereotype.Component;
 

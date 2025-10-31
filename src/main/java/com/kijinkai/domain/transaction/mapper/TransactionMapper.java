@@ -18,7 +18,7 @@ public class TransactionMapper {
                 .transactionType(transaction.getTransactionType())
                 .amount(transaction.getAmount())
                 .balanceBefore(transaction.getBalanceBefore())
-                .balanceAfter(transaction.balanceAfter)
+                .balanceAfter(transaction.getBalanceAfter())
                 .currency(transaction.getCurrency())
                 .transactionStatus(transaction.getTransactionStatus())
                 .build();

@@ -2,7 +2,7 @@
 //
 //import com.kijinkai.domain.customer.adapter.out.persistence.entity.Customer;
 //import com.kijinkai.domain.order.entity.OrderJpaEntity;
-//import com.kijinkai.domain.payment.domain.entity.OrderPayment;
+//import com.kijinkai.domain.payment.adapter.out.persistence.entity.OrderPaymentJpaEntity;
 //import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
 //import com.kijinkai.domain.user.adapter.in.web.validator.UserValidator;
 //import com.kijinkai.domain.wallet.entity.WalletJpaEntity;
@@ -37,7 +37,7 @@
 //    private OrderJpaEntity order;
 //
 //    @Mock
-//    private OrderPayment orderPayment;
+//    private OrderPaymentJpaEntity orderPayment;
 //
 //    @Mock
 //    private User admin;
@@ -61,7 +61,7 @@
 //                .thenReturn(orderPayment);
 //
 //        // When
-//        OrderPayment result = orderPaymentService.crateOrderPayment(
+//        OrderPaymentJpaEntity result = orderPaymentService.crateOrderPayment(
 //                customer, wallet, order, paymentAmount, admin
 //        );
 //
@@ -121,7 +121,7 @@
 //                .thenReturn(orderPayment);
 //
 //        // When
-//        OrderPayment result = orderPaymentService.crateOrderPayment(
+//        OrderPaymentJpaEntity result = orderPaymentService.crateOrderPayment(
 //                customer, wallet, order, zeroAmount, admin
 //        );
 //
@@ -136,7 +136,7 @@
 //    @Test
 //    void completePayment_ShouldCompleteSuccessfully() {
 //        // When
-//        OrderPayment result = orderPaymentService.completePayment(orderPayment);
+//        OrderPaymentJpaEntity result = orderPaymentService.completePayment(orderPayment);
 //
 //        // Then
 //        assertNotNull(result);
@@ -170,7 +170,7 @@
 //                .thenReturn(orderPayment);
 //
 //        // When
-//        OrderPayment result = orderPaymentService.createSecondOrderPayment(
+//        OrderPaymentJpaEntity result = orderPaymentService.createSecondOrderPayment(
 //                customer, wallet, order, paymentAmount, admin
 //        );
 //
@@ -223,7 +223,7 @@
 //    @Test
 //    void completeSecondOrderPayment_ShouldCompleteSuccessfully() {
 //        // When
-//        OrderPayment result = orderPaymentService.completeSecondOrderPayment(orderPayment);
+//        OrderPaymentJpaEntity result = orderPaymentService.completeSecondOrderPayment(orderPayment);
 //
 //        // Then
 //        assertNotNull(result);
@@ -252,7 +252,7 @@
 //        doNothing().when(userValidator).requireAdminRole(admin);
 //
 //        // When
-//        OrderPayment result = orderPaymentService.getOrderPaymentInfoByAdmin(admin, orderPayment);
+//        OrderPaymentJpaEntity result = orderPaymentService.getOrderPaymentInfoByAdmin(admin, orderPayment);
 //
 //        // Then
 //        assertNotNull(result);
@@ -278,7 +278,7 @@
 //    @Test
 //    void getOrderPaymentInfo_ShouldReturnInfo() {
 //        // When
-//        OrderPayment result = orderPaymentService.getOrderPaymentInfo(orderPayment);
+//        OrderPaymentJpaEntity result = orderPaymentService.getOrderPaymentInfo(orderPayment);
 //
 //        // Then
 //        assertNotNull(result);
@@ -294,7 +294,7 @@
 //        String reason = "Payment processing failed";
 //
 //        // When
-//        OrderPayment result = orderPaymentService.markAsFailed(orderPayment, reason);
+//        OrderPaymentJpaEntity result = orderPaymentService.markAsFailed(orderPayment, reason);
 //
 //        // Then
 //        assertNotNull(result);
@@ -305,7 +305,7 @@
 //    @Test
 //    void markAsFailed_ShouldHandleNullReason() {
 //        // When
-//        OrderPayment result = orderPaymentService.markAsFailed(orderPayment, null);
+//        OrderPaymentJpaEntity result = orderPaymentService.markAsFailed(orderPayment, null);
 //
 //        // Then
 //        assertNotNull(result);
@@ -319,7 +319,7 @@
 //        String emptyReason = "";
 //
 //        // When
-//        OrderPayment result = orderPaymentService.markAsFailed(orderPayment, emptyReason);
+//        OrderPaymentJpaEntity result = orderPaymentService.markAsFailed(orderPayment, emptyReason);
 //
 //        // Then
 //        assertNotNull(result);
@@ -354,15 +354,15 @@
 //                .thenReturn(orderPayment);
 //
 //        // When - Create first payment
-//        OrderPayment createdPayment = orderPaymentService.crateOrderPayment(
+//        OrderPaymentJpaEntity createdPayment = orderPaymentService.crateOrderPayment(
 //                customer, wallet, order, paymentAmount, admin
 //        );
 //
 //        // When - Complete first payment
-//        OrderPayment completedPayment = orderPaymentService.completePayment(createdPayment);
+//        OrderPaymentJpaEntity completedPayment = orderPaymentService.completePayment(createdPayment);
 //
 //        // When - Get payment info by admin
-//        OrderPayment retrievedPayment = orderPaymentService.getOrderPaymentInfoByAdmin(admin, completedPayment);
+//        OrderPaymentJpaEntity retrievedPayment = orderPaymentService.getOrderPaymentInfoByAdmin(admin, completedPayment);
 //
 //        // Then
 //        assertNotNull(createdPayment);
@@ -389,15 +389,15 @@
 //                .thenReturn(orderPayment);
 //
 //        // When - Create second payment
-//        OrderPayment createdSecondPayment = orderPaymentService.createSecondOrderPayment(
+//        OrderPaymentJpaEntity createdSecondPayment = orderPaymentService.createSecondOrderPayment(
 //                customer, wallet, order, shippingAmount, admin
 //        );
 //
 //        // When - Complete second payment
-//        OrderPayment completedSecondPayment = orderPaymentService.completeSecondOrderPayment(createdSecondPayment);
+//        OrderPaymentJpaEntity completedSecondPayment = orderPaymentService.completeSecondOrderPayment(createdSecondPayment);
 //
 //        // When - Get payment info
-//        OrderPayment retrievedPayment = orderPaymentService.getOrderPaymentInfo(completedSecondPayment);
+//        OrderPaymentJpaEntity retrievedPayment = orderPaymentService.getOrderPaymentInfo(completedSecondPayment);
 //
 //        // Then
 //        assertNotNull(createdSecondPayment);
@@ -425,15 +425,15 @@
 //                .thenReturn(orderPayment);
 //
 //        // When - Create payment
-//        OrderPayment createdPayment = orderPaymentService.crateOrderPayment(
+//        OrderPaymentJpaEntity createdPayment = orderPaymentService.crateOrderPayment(
 //                customer, wallet, order, paymentAmount, admin
 //        );
 //
 //        // When - Mark as failed
-//        OrderPayment failedPayment = orderPaymentService.markAsFailed(createdPayment, failureReason);
+//        OrderPaymentJpaEntity failedPayment = orderPaymentService.markAsFailed(createdPayment, failureReason);
 //
 //        // When - Get payment info by admin
-//        OrderPayment retrievedPayment = orderPaymentService.getOrderPaymentInfoByAdmin(admin, failedPayment);
+//        OrderPaymentJpaEntity retrievedPayment = orderPaymentService.getOrderPaymentInfoByAdmin(admin, failedPayment);
 //
 //        // Then
 //        assertNotNull(createdPayment);
@@ -461,7 +461,7 @@
 //                .thenReturn(orderPayment);
 //
 //        // When
-//        OrderPayment result = orderPaymentService.crateOrderPayment(
+//        OrderPaymentJpaEntity result = orderPaymentService.crateOrderPayment(
 //                customer, wallet, order, largeAmount, admin
 //        );
 //
@@ -482,7 +482,7 @@
 //                .thenReturn(orderPayment);
 //
 //        // When
-//        OrderPayment result = orderPaymentService.createSecondOrderPayment(
+//        OrderPaymentJpaEntity result = orderPaymentService.createSecondOrderPayment(
 //                customer, wallet, order, minimalAmount, admin
 //        );
 //
@@ -498,7 +498,7 @@
 //        String longReason = "This is a very detailed failure reason that explains exactly what went wrong during the payment processing, including technical details and potential solutions for the future.";
 //
 //        // When
-//        OrderPayment result = orderPaymentService.markAsFailed(orderPayment, longReason);
+//        OrderPaymentJpaEntity result = orderPaymentService.markAsFailed(orderPayment, longReason);
 //
 //        // Then
 //        assertNotNull(result);

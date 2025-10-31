@@ -7,7 +7,7 @@ CREATE TABLE `users` (
     `password` VARCHAR(255) NOT NULL COMMENT '사용자 비밀번호 (해시값 저장 권장)',
     `nick_name` VARCHAR(50) NOT NULL UNIQUE COMMENT '사용자 닉네임',
     `user_role` VARCHAR(20) NOT NULL COMMENT '사용자 역할 (예: USER, ADMIN)',
-    `email_verified` BOOLEAN NOT NULL COMMENT '사용자 메일 등록 확인 여부',\
+    `email_verified` BOOLEAN NOT NULL COMMENT '사용자 메일 등록 확인 여부',
     `email_verified_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '이메일 등록 시간',
     `user_status` VARCHAR(20) NOT NULL COMMENT '사용자 계정 상태',
 
@@ -75,22 +75,6 @@ CREATE INDEX `idx_wallets_wallet_uuid` ON `wallets` (`wallet_uuid`);
 CREATE INDEX `idx_wallets_currency` ON `wallets` (`currency`);
 
 
- -- 플렛폼 삭제
-CREATE TABLE `platforms` (
-    `platform_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '플랫폼 ID',
-    `platform_uuid` BINARY(16) UNIQUE COMMENT '플랫폼 고유 UUID',
-    `user_id` BIGINT NOT NULL COMMENT '사용자 ID',
-    `base_url` VARCHAR(255) NOT NULL COMMENT '플랫폼 기본 URL',
-
-    `created_by` VARCHAR(50) COMMENT '생성자',
-    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시간',
-
-    `updated_by` VARCHAR(50) COMMENT '최종 수정자',
-    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
-
-    CONSTRAINT `fk_platforms_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE `addresses` (
     `address_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '주소 ID',
     `address_uuid` BINARY(16) NOT NULL UNIQUE COMMENT '주소 고유 UUID', -- VARCHAR(36) 대신 BINARY(16) 사용 권장
@@ -155,21 +139,22 @@ CREATE TABLE `order_items` (
     `product_link` VARCHAR(255) NOT NULL COMMENT '상품 링크',
     `quantity` INT NOT NULL COMMENT '수량',
     `price_original` DECIMAL(19, 4) NOT NULL COMMENT '원본 통화(엔화) 기준 상품 단가',
-    `price_converted` DECIMAL(19, 4) NOT NULL COMMENT '변환된 통화 기준 상품 단가',
-    `order_item_currency_original` VARCHAR(20) NOT NULL COMMENT '원본 통화 코드 (ISO 4217)',
-    `order_item_currency_converted` VARCHAR(20) NOT NULL COMMENT '변환된 통화 코드 (ISO 4217)',
-    `exchange_rate` DECIMAL(10, 6) NOT NULL COMMENT '환율',
+    `currency_original` VARCHAR(20) NOT NULL COMMENT '원본 통화 코드 JPY',
     `memo` TEXT COMMENT '상품 항목 관련 메모',
     `order_item_status` VARCHAR(20) NOT NULL COMMENT '상품의 상태',
 
-
+    `created_by` VARCHAR(50) COMMENT '생성자',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시간',
+
+    `updated_by` VARCHAR(50) COMMENT '최종 수정자',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
+
+    CONSTRAINT `quantity_positive` CHECK (`quantity` > 0),
+    CONSTRAINT `price_original_positive` CHECK(`price_original` > 0),
 
     CONSTRAINT `chk_order_item_status` CHECK (`order_item_status` IN ('PENDING', 'PENDING_APPROVAL', 'PRODUCT_PURCHASE', 'PRODUCT_PURCHASE_COMPLETE', 'PRODUCT_PAYMENT_COMPLETED'
    , 'DELIVERY_FEE_PAYMENT_REQUEST', 'DELIVERY_FEE_PAYMENT_COMPLETED', 'COMPLETED', 'CANCELLED', 'REJECTED')),
-    CONSTRAINT `chk_order_item_currency_original` CHECK (`order_item_currency_original` IN ('JPY', 'KRW', 'CLP', 'USD')),
-    CONSTRAINT `chk_order_item_currency_converted` CHECK (`order_item_currency_converted` IN ('JPY', 'KRW', 'CLP', 'USD')),
+    CONSTRAINT `currency_original` CHECK (`currency_original` IN ('JPY', 'KRW', 'CLP', 'USD')),
     CONSTRAINT `fk_order_items_order_id` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -233,10 +218,11 @@ CREATE TABLE `deposit_requests` (
     `bank_account` VARCHAR(50) NOT NULL COMMENT '입금 계좌',
     `status` VARCHAR(30) NOT NULL COMMENT '입금 상태',
     `expires_at` DATETIME NOT NULL COMMENT '만료 일시',
-    `processed_by_admin` BINARY(16) COMMENT '처리한 관리자 UUID',
+    `processed_by_admin_uuid` BINARY(16) COMMENT '처리한 관리자 UUID',
     `processed_at` DATETIME COMMENT '처리 일시',
     `admin_memo` TEXT COMMENT '관리자 메모',
     `rejection_reason` TEXT COMMENT '거절 사유',
+    `bank_type` VARCHAR(50) NOT NULL COMMENT '은행 종류',
     `version` BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
 
     `created_by` VARCHAR(50) COMMENT '생성자',
@@ -245,7 +231,8 @@ CREATE TABLE `deposit_requests` (
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
 
     CONSTRAINT `chk_deposit_status` CHECK (`status` IN ('PENDING_ADMIN_APPROVAL', 'APPROVED', 'REJECTED', 'EXPIRED')),
-    CONSTRAINT `chk_deposit_currency_original` CHECK (`currency_original` IN ('JPY', 'KRW', 'CLP', 'USD')),
+    CONSTRAINT `chk_currency_original` CHECK (`currency_original` IN ('JPY', 'KRW', 'CLP', 'USD')),
+    CONSTRAINT `chk_bank_type` CHECK (`bank_type` IN ('KOOKMIN','NONGHYUP','WOORI','SHINHAN','HANA','KAKAO')),
     CONSTRAINT `chk_deposit_amount_original_positive` CHECK (`amount_original` > 0),
     CONSTRAINT `chk_deposit_amount_converted_positive` CHECK (`amount_converted` > 0),
     CONSTRAINT `chk_deposit_exchange_rate_positive` CHECK (`exchange_rate` > 0),
@@ -276,9 +263,10 @@ CREATE TABLE `withdraw_requests` (
     `converted_amount` DECIMAL(19, 4) NOT NULL COMMENT '변환된 출금 금액',
     `exchange_rate` DECIMAL(18, 8) NOT NULL COMMENT '환율',
     `bank_name` VARCHAR(100) NOT NULL COMMENT '은행명',
+    `account_number` VARCHAR(100) NOT NULL COMMENT '계좌번호',
     `account_holder` VARCHAR(100) NOT NULL COMMENT '계좌 소유자명',
     `status` VARCHAR(30) NOT NULL COMMENT '출금 상태',
-    `processed_by_admin` BINARY(16) COMMENT '처리한 관리자 UUID',
+    `processed_by_admin_uuid` BINARY(16) COMMENT '처리한 관리자 UUID',
     `processed_at` DATETIME COMMENT '처리 일시',
     `admin_memo` TEXT COMMENT '관리자 메모',
     `rejection_reason` TEXT COMMENT '거절 사유',
@@ -287,10 +275,11 @@ CREATE TABLE `withdraw_requests` (
 
     `created_by` VARCHAR(50) COMMENT '생성자',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시간',
+
     `updated_by` VARCHAR(50) COMMENT '최종 수정자',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
 
-    -- 제약조건
+
     CONSTRAINT `chk_withdraw_status` CHECK (`status` IN ('PENDING_ADMIN_APPROVAL', 'APPROVED', 'BANK_TRANSFER_PENDING', 'COMPLETED', 'REJECTED', 'FAILED')),
     CONSTRAINT `chk_withdraw_target_currency` CHECK (`target_currency` IN ('JPY', 'KRW', 'CLP', 'USD')),
     CONSTRAINT `chk_withdraw_request_amount_positive` CHECK (`request_amount` > 0),
@@ -321,7 +310,6 @@ CREATE TABLE `refund_requests` (
 
     -- 환불 금액 정보
     `refund_amount` DECIMAL(19, 4) NOT NULL COMMENT '환불 금액',
-    `refund_currency` VARCHAR(10) NOT NULL DEFAULT 'JPY' COMMENT '환불 통화', -- 누락된 컬럼 추가
 
     -- 환불 정보
     `refund_reason` VARCHAR(255) NOT NULL COMMENT '환불 사유',
@@ -331,11 +319,9 @@ CREATE TABLE `refund_requests` (
     `status` VARCHAR(30) NOT NULL COMMENT '환불 상태',
 
     -- 관리자 처리 정보
-    `requested_by_admin` BINARY(16) NOT NULL COMMENT '요청한 관리자 UUID', -- 누락된 컬럼 추가
-    `processed_by_admin` BINARY(16) COMMENT '처리한 관리자 UUID',
+    `processed_by_admin_uuid` BINARY(16) NOT NULL COMMENT '요청한 관리자 UUID',
     `processed_at` DATETIME COMMENT '처리 일시',
     `admin_memo` TEXT COMMENT '관리자 메모',
-    `rejection_reason` TEXT COMMENT '거절 사유', -- 누락된 컬럼 추가
 
     -- 낙관적 잠금
     `version` BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
@@ -348,7 +334,6 @@ CREATE TABLE `refund_requests` (
 
     -- 제약조건 (수정됨)
     CONSTRAINT `chk_refund_status` CHECK (`status` IN ('PROCESSING', 'COMPLETED', 'FAILED')),
-    CONSTRAINT `chk_refund_currency` CHECK (`refund_currency` IN ('JPY', 'KRW', 'CLP', 'USD')),
     CONSTRAINT `chk_refund_type` CHECK (`refund_type` IN ('STOCK_OUT', 'PURCHASE_CANCELLED', 'DEFECTIVE_PRODUCT', 'ADMIN_DECISION')),
     CONSTRAINT `chk_refund_amount_positive` CHECK (`refund_amount` > 0),
     CONSTRAINT `chk_refund_version_non_negative` CHECK (`version` >= 0)
@@ -365,41 +350,7 @@ CREATE INDEX `idx_refund_requests_processed_by_admin` ON `refund_requests` (`pro
 CREATE INDEX `idx_refund_requests_customer_refund` ON `refund_requests` (`customer_uuid`, `refund_uuid`);
 
 -- OrderPayment 테이블 생성 (완전 수정됨)
-CREATE TABLE `order_payments` (
-    `order_payment_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '주문 결제 ID',
-    `payment_uuid` BINARY(16) NOT NULL UNIQUE COMMENT '결제 고유 UUID',
-    `customer_uuid` BINARY(16) NOT NULL COMMENT '고객 UUID',
-    `wallet_uuid` BINARY(16) NOT NULL COMMENT '지갑 UUID',
-    `order_uuid` BINARY(16) COMMENT '주문 UUID',
-
-    -- 결제 정보
-    `payment_amount` DECIMAL(19, 4) NOT NULL COMMENT '결제 금액',
-    `payment_order` VARCHAR(20) NOT NULL COMMENT '결제 순서 (FIRST, SECOND)', -- 누락된 컬럼 추가
-
-    -- 상태 관리
-    `order_payment_status` VARCHAR(30) NOT NULL COMMENT '결제 상태',
-    `payment_type` VARCHAR(30) NOT NULL COMMENT '결제 유형 (PRODUCT_PAYMENT, SHIPPING_PAYMENT)',
-
-    -- 처리 정보
-    `rejection_reason` TEXT COMMENT '거절 사유',
-    `paid_at` DATETIME COMMENT NOT NULL '지불 일시',
-    `created_by_admin_uuid` BINARY(16) COMMENT '생성한 관리자 UUID', -- 컬럼명 수정
-
-    -- 낙관적 잠금
-    `version` BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
-
-    -- BaseEntity 필드들
-    `created_by` VARCHAR(50) COMMENT '생성자',
-    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시간',
-    `updated_by` VARCHAR(50) COMMENT '최종 수정자',
-    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
-
-    -- 제약조건 (수정됨)
-    CONSTRAINT `chk_order_payment_status` CHECK (`status` IN ('PENDING', 'COMPLETED', 'FAILED')),
-    CONSTRAINT `chk_order_payment_type` CHECK (`payment_type` IN ('PRODUCT_PAYMENT', 'SHIPPING_PAYMENT')),
-    CONSTRAINT `chk_order_payment_order` CHECK (`payment_order` IN ('FIRST', 'SECOND')),
-    CONSTRAINT `chk_order_payment_version_non_negative` CHECK (`version` >= 0)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+\ ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 인덱스 추가 (수정됨)
 CREATE INDEX `idx_order_payments_payment_uuid` ON `order_payments` (`payment_uuid`);
@@ -417,10 +368,10 @@ CREATE INDEX `idx_order_payments_order_payment_order` ON `order_payments` (`orde
 CREATE TABLE `transactions` (
     `transaction_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '트랜잭션 ID',
     `transaction_uuid` BINARY(16) NOT NULL UNIQUE COMMENT '트랜잭션 고유 UUID',
-    `customer_id` BIGINT NOT NULL COMMENT '고객 ID',
-    `wallet_id` BIGINT NOT NULL COMMENT '지갑 ID',
-    `order_id` BIGINT NOT NULL COMMENT '주문 ID',
-    `transaction_type` VARCHAR(20) NOT NULL COMMENT '트랜잭션 유형 (예: DEPOSIT, WITHDRAWAL, PAYMENT)',
+    `customer_uuid` BINARY(16) NOT NULL COMMENT '고객 고유 UUID',
+    `wallet_uuid` BINARY(16) NOT NULL COMMENT '지갑 고유 UUID',
+    `order_uuid` BINARY(16) NOT NULL COMMENT '주문 고유 UUID',
+    `transaction_type` VARCHAR(20) NOT NULL COMMENT '트랜잭션 유형 ',
     `amount` DECIMAL(19, 4) NOT NULL COMMENT '거래 금액',
     `balance_before` DECIMAL(19, 4) NOT NULL COMMENT '거래 전 잔액',
     `balance_after` DECIMAL(19, 4) NOT NULL COMMENT '거래 후 잔액',
@@ -436,10 +387,7 @@ CREATE TABLE `transactions` (
 
     CONSTRAINT `chk_transaction_type` CHECK (`transaction_type` IN ('PAYMENT', 'REFUND', 'CHARGE', 'WITHDRAWAL', 'ADMIN_ADJUSTMENT')),
     CONSTRAINT `chk_transaction_currency` CHECK (`currency` IN ('JPY', 'KRW', 'CLP', 'USD')),
-    CONSTRAINT `chk_transaction_status` CHECK (`transaction_status` IN ('PENDING', 'COMPLETED', 'FAILED')),
-    CONSTRAINT `fk_transactions_customer_id` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`),
-    CONSTRAINT `fk_transactions_wallet_id` FOREIGN KEY (`wallet_id`) REFERENCES `wallets` (`wallet_id`),
-    CONSTRAINT `fk_transactions_order_id` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`)
+    CONSTRAINT `chk_transaction_status` CHECK (`transaction_status` IN ('PENDING', 'COMPLETED', 'FAILED'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 인덱스 추가 (성능 고려)
@@ -456,11 +404,12 @@ CREATE TABLE `exchange_rates` (
     `exchange_rate_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '환율 ID',
     `currency` VARCHAR(10) NOT NULL COMMENT '기준 통화 (예: USD)',
     `rate` DECIMAL(18, 8) NOT NULL COMMENT '환율',
-    `fetched_at` DATETIME NOT NULL COMMENT '환율 조회 일시',
+    `fetch_at` DATETIME NOT NULL COMMENT '환율 조회 일시',
 
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시간',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 업데이트 시간',
 
+    CONSTRAINT `chk_currency` CHECK (`currency` IN ('JPY', 'KRW', 'CLP', 'USD')),
     CONSTRAINT `uq_exchange_rates_currency_pair_fetched_at` UNIQUE (`currency`, `fetched_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

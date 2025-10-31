@@ -38,8 +38,8 @@ public interface PaymentUseCase {
 
     // 상품 결제 관련
 
-    OrderPaymentResponseDto completeFirstPayment(UUID userUuid, OrderPaymentRequestDto requestDto);
     OrderPaymentResponseDto createSecondPayment(UUID adminUuid, OrderPaymentRequestDto requestDto);
+    OrderPaymentResponseDto completeFirstPayment(UUID userUuid, OrderPaymentRequestDto requestDto);
     OrderPaymentResponseDto completeSecondPayment(UUID userUuid, OrderPaymentDeliveryRequestDto requestDto);
     OrderPaymentResponseDto getOrderPaymentInfoByAdmin(UUID adminUuid, UUID paymentUuid);
     OrderPaymentResponseDto getOrderPaymentInfo(UUID userUuid, UUID paymentUuid);

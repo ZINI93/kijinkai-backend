@@ -3,7 +3,7 @@
 //import com.kijinkai.domain.customer.adapter.out.persistence.entity.Customer;
 //import com.kijinkai.domain.exchange.doamin.Currency;
 //import com.kijinkai.domain.exchange.service.PriceCalculationService;
-//import com.kijinkai.domain.payment.domain.entity.DepositRequest;
+//import com.kijinkai.domain.payment.adapter.out.persistence.entity.DepositRequestJpaEntity;
 //import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
 //import com.kijinkai.domain.payment.domain.validator.PaymentValidator;
 //import com.kijinkai.domain.user.adapter.in.web.validator.UserValidator;
@@ -49,7 +49,7 @@
 //    private Currency originalCurrency;
 //
 //    @Mock
-//    private DepositRequest depositRequest;
+//    private DepositRequestJpaEntity depositRequest;
 //
 //    @Mock
 //    private User user;
@@ -86,7 +86,7 @@
 //        )).thenReturn(depositRequest);
 //
 //        // When
-//        DepositRequest result = depositRequestService.createDepositRequest(
+//        DepositRequestJpaEntity result = depositRequestService.createDepositRequest(
 //                customer, wallet, originalAmount, originalCurrency, exchangeRate, depositorName, bankAccount
 //        );
 //
@@ -162,7 +162,7 @@
 //        )).thenReturn(depositRequest);
 //
 //        // When
-//        DepositRequest result = depositRequestService.createDepositRequest(
+//        DepositRequestJpaEntity result = depositRequestService.createDepositRequest(
 //                customer, wallet, originalAmount, originalCurrency, exchangeRate, null, null
 //        );
 //
@@ -192,7 +192,7 @@
 //        )).thenReturn(depositRequest);
 //
 //        // When
-//        DepositRequest result = depositRequestService.createDepositRequest(
+//        DepositRequestJpaEntity result = depositRequestService.createDepositRequest(
 //                customer, wallet, zeroAmount, originalCurrency, exchangeRate, depositorName, bankAccount
 //        );
 //
@@ -209,7 +209,7 @@
 //        String memo = "Approved by admin";
 //
 //        // When
-//        DepositRequest result = depositRequestService.approveDepositRequest(depositRequest, adminUuid, memo);
+//        DepositRequestJpaEntity result = depositRequestService.approveDepositRequest(depositRequest, adminUuid, memo);
 //
 //        // Then
 //        assertNotNull(result);
@@ -223,7 +223,7 @@
 //        UUID adminUuid = UUID.randomUUID();
 //
 //        // When
-//        DepositRequest result = depositRequestService.approveDepositRequest(depositRequest, adminUuid, null);
+//        DepositRequestJpaEntity result = depositRequestService.approveDepositRequest(depositRequest, adminUuid, null);
 //
 //        // Then
 //        assertNotNull(result);
@@ -254,7 +254,7 @@
 //        doNothing().when(userValidator).requireAdminRole(user);
 //
 //        // When
-//        DepositRequest result = depositRequestService.getDepositInfoByAdmin(depositRequest, user);
+//        DepositRequestJpaEntity result = depositRequestService.getDepositInfoByAdmin(depositRequest, user);
 //
 //        // Then
 //        assertNotNull(result);
@@ -280,7 +280,7 @@
 //    @Test
 //    void getDepositInfo_ShouldReturnInfo() {
 //        // When
-//        DepositRequest result = depositRequestService.getDepositInfo(depositRequest, customer);
+//        DepositRequestJpaEntity result = depositRequestService.getDepositInfo(depositRequest, customer);
 //
 //        // Then
 //        assertNotNull(result);
@@ -342,18 +342,18 @@
 //    @Test
 //    void expireOldRequests_ShouldExpireExpiredRequests() {
 //        // Given
-//        DepositRequest expiredRequest1 = mock(DepositRequest.class);
-//        DepositRequest expiredRequest2 = mock(DepositRequest.class);
-//        DepositRequest validRequest = mock(DepositRequest.class);
+//        DepositRequestJpaEntity expiredRequest1 = mock(DepositRequestJpaEntity.class);
+//        DepositRequestJpaEntity expiredRequest2 = mock(DepositRequestJpaEntity.class);
+//        DepositRequestJpaEntity validRequest = mock(DepositRequestJpaEntity.class);
 //
 //        when(expiredRequest1.isExpired()).thenReturn(true);
 //        when(expiredRequest2.isExpired()).thenReturn(true);
 //        when(validRequest.isExpired()).thenReturn(false);
 //
-//        List<DepositRequest> pendingRequests = Arrays.asList(expiredRequest1, validRequest, expiredRequest2);
+//        List<DepositRequestJpaEntity> pendingRequests = Arrays.asList(expiredRequest1, validRequest, expiredRequest2);
 //
 //        // When
-//        List<DepositRequest> result = depositRequestService.expireOldRequests(pendingRequests);
+//        List<DepositRequestJpaEntity> result = depositRequestService.expireOldRequests(pendingRequests);
 //
 //        // Then
 //        assertNotNull(result);
@@ -373,16 +373,16 @@
 //    @Test
 //    void expireOldRequests_ShouldReturnEmptyList_WhenNoExpiredRequests() {
 //        // Given
-//        DepositRequest validRequest1 = mock(DepositRequest.class);
-//        DepositRequest validRequest2 = mock(DepositRequest.class);
+//        DepositRequestJpaEntity validRequest1 = mock(DepositRequestJpaEntity.class);
+//        DepositRequestJpaEntity validRequest2 = mock(DepositRequestJpaEntity.class);
 //
 //        when(validRequest1.isExpired()).thenReturn(false);
 //        when(validRequest2.isExpired()).thenReturn(false);
 //
-//        List<DepositRequest> pendingRequests = Arrays.asList(validRequest1, validRequest2);
+//        List<DepositRequestJpaEntity> pendingRequests = Arrays.asList(validRequest1, validRequest2);
 //
 //        // When
-//        List<DepositRequest> result = depositRequestService.expireOldRequests(pendingRequests);
+//        List<DepositRequestJpaEntity> result = depositRequestService.expireOldRequests(pendingRequests);
 //
 //        // Then
 //        assertNotNull(result);
@@ -397,10 +397,10 @@
 //    @Test
 //    void expireOldRequests_ShouldReturnEmptyList_WhenInputIsEmpty() {
 //        // Given
-//        List<DepositRequest> emptyList = Collections.emptyList();
+//        List<DepositRequestJpaEntity> emptyList = Collections.emptyList();
 //
 //        // When
-//        List<DepositRequest> result = depositRequestService.expireOldRequests(emptyList);
+//        List<DepositRequestJpaEntity> result = depositRequestService.expireOldRequests(emptyList);
 //
 //        // Then
 //        assertNotNull(result);
@@ -410,18 +410,18 @@
 //    @Test
 //    void expireOldRequests_ShouldExpireAllRequests_WhenAllAreExpired() {
 //        // Given
-//        DepositRequest expiredRequest1 = mock(DepositRequest.class);
-//        DepositRequest expiredRequest2 = mock(DepositRequest.class);
-//        DepositRequest expiredRequest3 = mock(DepositRequest.class);
+//        DepositRequestJpaEntity expiredRequest1 = mock(DepositRequestJpaEntity.class);
+//        DepositRequestJpaEntity expiredRequest2 = mock(DepositRequestJpaEntity.class);
+//        DepositRequestJpaEntity expiredRequest3 = mock(DepositRequestJpaEntity.class);
 //
 //        when(expiredRequest1.isExpired()).thenReturn(true);
 //        when(expiredRequest2.isExpired()).thenReturn(true);
 //        when(expiredRequest3.isExpired()).thenReturn(true);
 //
-//        List<DepositRequest> pendingRequests = Arrays.asList(expiredRequest1, expiredRequest2, expiredRequest3);
+//        List<DepositRequestJpaEntity> pendingRequests = Arrays.asList(expiredRequest1, expiredRequest2, expiredRequest3);
 //
 //        // When
-//        List<DepositRequest> result = depositRequestService.expireOldRequests(pendingRequests);
+//        List<DepositRequestJpaEntity> result = depositRequestService.expireOldRequests(pendingRequests);
 //
 //        // Then
 //        assertNotNull(result);
@@ -454,17 +454,17 @@
 //        doNothing().when(userValidator).requireAdminRole(user);
 //
 //        // When - Create deposit request
-//        DepositRequest createdRequest = depositRequestService.createDepositRequest(
+//        DepositRequestJpaEntity createdRequest = depositRequestService.createDepositRequest(
 //                customer, wallet, originalAmount, originalCurrency, exchangeRate, depositorName, bankAccount
 //        );
 //
 //        // When - Approve deposit request
-//        DepositRequest approvedRequest = depositRequestService.approveDepositRequest(
+//        DepositRequestJpaEntity approvedRequest = depositRequestService.approveDepositRequest(
 //                createdRequest, adminUuid, memo
 //        );
 //
 //        // When - Get deposit info by admin
-//        DepositRequest retrievedRequest = depositRequestService.getDepositInfoByAdmin(
+//        DepositRequestJpaEntity retrievedRequest = depositRequestService.getDepositInfoByAdmin(
 //                approvedRequest, user
 //        );
 //
@@ -504,7 +504,7 @@
 //        )).thenReturn(depositRequest);
 //
 //        // When - Create deposit request
-//        DepositRequest createdRequest = depositRequestService.createDepositRequest(
+//        DepositRequestJpaEntity createdRequest = depositRequestService.createDepositRequest(
 //                customer, wallet, originalAmount, originalCurrency, exchangeRate, depositorName, bankAccount
 //        );
 //
@@ -512,7 +512,7 @@
 //        depositRequestService.markAsFailed(createdRequest, failureReason);
 //
 //        // When - Get deposit info
-//        DepositRequest retrievedRequest = depositRequestService.getDepositInfo(createdRequest, customer);
+//        DepositRequestJpaEntity retrievedRequest = depositRequestService.getDepositInfo(createdRequest, customer);
 //
 //        // Then
 //        assertNotNull(createdRequest);
@@ -542,7 +542,7 @@
 //        )).thenReturn(depositRequest);
 //
 //        // When
-//        DepositRequest result = depositRequestService.createDepositRequest(
+//        DepositRequestJpaEntity result = depositRequestService.createDepositRequest(
 //                customer, wallet, largeAmount, originalCurrency, exchangeRate, depositorName, bankAccount
 //        );
 //

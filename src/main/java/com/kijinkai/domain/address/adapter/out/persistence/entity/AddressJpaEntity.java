@@ -17,42 +17,37 @@ public class AddressJpaEntity extends TimeBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(nullable = false)
+    @Column(name = "address_id", nullable = false)
     private Long addressId;
 
     @Column(name = "address_uuid", nullable = false, updatable = false, unique = true)
     private UUID addressUuid;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "customer_id", nullable = false, updatable = false)
-//    private Customer customer;
 
-    @Column(name = "customer_uuid")
+    @Column(name = "customer_uuid", nullable = false)
     private UUID customerUuid;
 
-    @Column(name = "recipient_name", nullable = false)
+    @Column(name = "recipient_name", nullable = false, length = 100)
     private String recipientName;
 
-    @Column(name = "recipient_phone_number", nullable = false)
+    @Column(name = "recipient_phone_number", nullable = false, length = 20)
     private String recipientPhoneNumber;
 
-    @Column(name = "country", nullable = false)
+    @Column(name = "country", nullable = false, length = 100)
     private String country;
 
-    @Column(name = "zipcode", nullable = false)
+    @Column(name = "zipcode", nullable = false, length = 20)
     private String zipcode;
 
-    @Column(name = "state", nullable = false)
+    @Column(name = "state", nullable = false, length = 100)
     private String state;
 
-    @Column(name = "city", nullable = false)
+    @Column(name = "city", nullable = false, length = 100)
     private String city;
 
-    @Column(name = "street", nullable = false)
+    @Column(name = "street", nullable = false, length = 255)
     private String street;
 
     @Column(name = "is_default", nullable = false)
     private Boolean isDefault;
-
-
 }

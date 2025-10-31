@@ -3,12 +3,12 @@ package com.kijinkai.domain.payment.domain.service;
 
 import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.exchange.doamin.Currency;
-import com.kijinkai.domain.payment.domain.entity.WithdrawRequest;
+import com.kijinkai.domain.payment.adapter.out.persistence.entity.WithdrawRequestJpaEntity;
 import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
+import com.kijinkai.domain.payment.domain.model.WithdrawRequest;
 import com.kijinkai.domain.payment.domain.validator.PaymentValidator;
 import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
 import com.kijinkai.domain.user.domain.model.User;
-import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
 import com.kijinkai.domain.wallet.domain.model.Wallet;
 
 import java.math.BigDecimal;
@@ -59,10 +59,10 @@ public class WithdrawRequestService {
      * @param exchangeRate
      * @return
      */
-    public WithdrawRequest approveWithdrawRequest(WithdrawRequest request, UUID adminUuid, String memo, BigDecimal exchangeRate) {
-        request.approve(adminUuid, memo);
-        return request;
-    }
+//    public WithdrawRequest approveWithdrawRequest(WithdrawRequest request, UUID adminUuid, String memo, BigDecimal exchangeRate) {
+//        request.approve(adminUuid, memo);
+//        return request;
+//    }
 
     /**
      * 관리자의 유저 출금 정보 조회

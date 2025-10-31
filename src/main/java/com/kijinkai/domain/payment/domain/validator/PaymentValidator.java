@@ -3,8 +3,6 @@ package com.kijinkai.domain.payment.domain.validator;
 import com.kijinkai.domain.payment.application.dto.PaymentDepositRequestDto;
 import com.kijinkai.domain.payment.application.dto.WithdrawalRequestDto;
 import com.kijinkai.domain.payment.domain.exception.PaymentAmountException;
-import com.kijinkai.domain.payment.domain.repository.DepositRequestRepository;
-import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
 import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletStatus;
 import com.kijinkai.domain.wallet.domain.exception.WalletNotActiveException;
 import com.kijinkai.domain.wallet.domain.model.Wallet;
@@ -17,7 +15,7 @@ import java.math.BigDecimal;
 @Component
 public class PaymentValidator {
 
-    private DepositRequestRepository depositRequestRepository;
+
 
 
     public void validateAmount(PaymentDepositRequestDto requestDto) {

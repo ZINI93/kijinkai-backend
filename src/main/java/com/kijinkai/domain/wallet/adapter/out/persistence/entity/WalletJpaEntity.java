@@ -28,28 +28,25 @@ public class WalletJpaEntity extends BaseEntity {
     @Column(name = "wallet_uuid", nullable = false, updatable = false, unique = true)
     private UUID walletUuid;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "customer_id", nullable = false, updatable = false, unique = true)
-//    private Customer customer;
-
-    @Column(name = "customer_uuid")
+    @Column(name = "customer_uuid", nullable = false, unique = true, updatable = false)
     private UUID customerUuid;
 
-    @Column(nullable = false,  precision = 16 ,scale = 4)
+    @Column(name = "balance", nullable = false,  precision = 16 ,scale = 4)
     private BigDecimal balance;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "currency", nullable = false, length = 10)
     private Currency currency;
 
-    @Column(name = "wallet_status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "wallet_status", nullable = false, length = 20)
     private WalletStatus walletStatus;
 
-    @Column(name = "freeze_reason")
+    @Column(name = "freeze_reason", length = 255)
     private String freezeReason;
 
     @Version
-    @Column(nullable = false)
+    @Column(name = "version", nullable = false)
     private Long version;
 
 

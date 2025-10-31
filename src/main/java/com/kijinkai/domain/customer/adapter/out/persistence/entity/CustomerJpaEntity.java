@@ -38,15 +38,8 @@ public class CustomerJpaEntity extends BaseEntity {
     @Column(name = "customer_tier", nullable = false)
     private CustomerTier customerTier;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "user_id", nullable = false, updatable = false, unique = true)
-//    private UserJpaEntity user;
-
-    // FK
     @Column(name = "user_uuid", nullable = false, unique = true)
     private UUID userUuid;
-
-
 
 }
 

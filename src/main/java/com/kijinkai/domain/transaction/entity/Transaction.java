@@ -8,14 +8,15 @@ import com.kijinkai.domain.order.domain.model.Order;
 import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
 import com.kijinkai.domain.wallet.domain.model.Wallet;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Getter
 @Table(name = "transactions")
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 public class Transaction extends BaseEntity {
 
@@ -24,50 +25,41 @@ public class Transaction extends BaseEntity {
     @Column(name = "transaction_id", nullable = false)
     private Long transactionId;
 
-    @Column(name = "transaction_uuid", nullable = false)
-    public UUID transactionUuid;
+    @Column(name = "transaction_uuid", nullable = false, unique = true)
+    private UUID transactionUuid;
 
-    @Column(name = "customer_uuid")
+    @Column(name = "customer_uuid", nullable = false)
     private UUID customerUuid;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "wallet_id", nullable = false, updatable = false)
-//    public Wallet wallet;
+    @Column(name = "wallet_uuid",nullable = false)
+    private UUID walletUuid;
 
-
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "order_id", nullable = false ,updatable = false)
-//    public Order order;
-
-    @Column(name = "wallet_uuid")
-    public UUID walletUuid;
-
-    @Column(name = "order_uuid")
-    public UUID orderUuid;
+    @Column(name = "order_uuid", nullable = false)
+    private UUID orderUuid;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "transaction_type", nullable = false)
-    public TransactionType transactionType;
+    @Column(name = "transaction_type", nullable = false, length = 20)
+    private TransactionType transactionType;
 
-    @Column(nullable = false, updatable = false)
-    public BigDecimal amount;
+    @Column(name = "amount", nullable = false, updatable = false, precision = 19, scale = 4)
+    private BigDecimal amount;
 
-    @Column(name = "balance_before", nullable = false, updatable = false)
-    public BigDecimal balanceBefore;
+    @Column(name = "balance_before", nullable = false, precision = 19, scale = 4)
+    private BigDecimal balanceBefore;
 
-    @Column(name = "balance_after", nullable = false, updatable = false)
-    public BigDecimal balanceAfter;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, updatable = false)
-    public Currency currency;
+    @Column(name = "balance_after", nullable = false, updatable = false, precision = 19, scale = 4)
+    private BigDecimal balanceAfter;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "transaction_status", nullable = false)
-    public TransactionStatus transactionStatus;
+    @Column(name = "currency", nullable = false, updatable = false, length = 20)
+    private Currency currency;
 
-    @Column(columnDefinition = "TEXT")
-    public String memo;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "transaction_status", nullable = false, length = 20)
+    private TransactionStatus transactionStatus;
+
+    @Column(name = "memo", columnDefinition = "TEXT")
+    private String memo;
 
 
     @Builder

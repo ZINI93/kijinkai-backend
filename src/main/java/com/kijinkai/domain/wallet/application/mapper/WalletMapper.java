@@ -15,11 +15,11 @@ public class WalletMapper {
 
         return WalletResponseDto.builder()
                 .walletUuid(wallet.getWalletUuid())
+                .customerUuid(wallet.getCustomerUuid())
                 .balance(wallet.getBalance())
                 .walletStatus(wallet.getWalletStatus())
                 .build();
     }
-
 
     public WalletBalanceResponseDto balanceMapper(BigDecimal balance){
 

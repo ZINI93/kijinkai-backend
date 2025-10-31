@@ -5,7 +5,6 @@ import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.delivery.domain.model.Delivery;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.exchange.service.PriceCalculationService;
-import com.kijinkai.domain.order.adapter.out.persistence.entity.OrderJpaEntity;
 import com.kijinkai.domain.order.application.validator.OrderValidator;
 import com.kijinkai.domain.order.domain.model.Order;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
@@ -18,7 +17,7 @@ import com.kijinkai.domain.orderitem.application.port.out.OrderItemPersistencePo
 import com.kijinkai.domain.orderitem.application.validator.OrderItemValidator;
 import com.kijinkai.domain.orderitem.domain.factory.OrderItemFactory;
 import com.kijinkai.domain.orderitem.domain.model.OrderItem;
-import com.kijinkai.domain.payment.domain.entity.OrderPayment;
+import com.kijinkai.domain.payment.adapter.out.persistence.entity.OrderPaymentJpaEntity;
 import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.model.User;
@@ -64,7 +63,7 @@ class OrderItemApplicationServiceTest {
     User user;
     OrderItem orderItem;
     Customer customer;
-    OrderPayment orderPayment;
+    OrderPaymentJpaEntity orderPayment;
     Delivery delivery;
     Order order;
     OrderItemRequestDto orderItemRequestDto;
@@ -77,7 +76,7 @@ class OrderItemApplicationServiceTest {
         user = User.builder().userUuid(UUID.randomUUID()).build();
 
         customer = Customer.builder().userUuid(user.getUserUuid()).customerUuid(UUID.randomUUID()).build();
-        orderPayment = OrderPayment.builder().customerUuid(customer.getCustomerUuid()).build();
+        orderPayment = OrderPaymentJpaEntity.builder().customerUuid(customer.getCustomerUuid()).build();
         delivery = Delivery.builder().deliveryUuid(UUID.randomUUID()).build();
         order = Order.builder().orderUuid(UUID.randomUUID()).build();
 
@@ -267,7 +266,7 @@ class OrderItemApplicationServiceTest {
         User user = User.builder().userUuid(UUID.randomUUID()).userRole(UserRole.ADMIN).build();
 
         Customer customer = Customer.builder().userUuid(user.getUserUuid()).customerUuid(UUID.randomUUID()).build();
-        OrderPayment orderPayment = OrderPayment.builder().customerUuid(customer.getCustomerUuid()).build();
+        OrderPaymentJpaEntity orderPayment = OrderPaymentJpaEntity.builder().customerUuid(customer.getCustomerUuid()).build();
         Delivery delivery = Delivery.builder().deliveryUuid(UUID.randomUUID()).build();
         Order order = Order.builder().orderUuid(UUID.randomUUID()).build();
 

@@ -1,5 +1,6 @@
 package com.kijinkai.domain.orderitem.adapter.out.persistence.entity;
 
+import com.kijinkai.domain.common.BaseEntity;
 import com.kijinkai.domain.common.TimeBaseEntity;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.order.adapter.out.persistence.entity.OrderJpaEntity;
@@ -15,7 +16,7 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "order_items")
 @Entity
-public class OrderItemJpaEntity extends TimeBaseEntity {
+public class OrderItemJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,34 +39,24 @@ public class OrderItemJpaEntity extends TimeBaseEntity {
     @Column(name = "delivery_fee_payment_uuid")
     private UUID deliveryFeePaymentUuid;
 
-    @Column(name = "product_link", nullable = false)
+    @Column(name = "product_link", nullable = false, length = 255)
     private String productLink;
 
-    @Column(nullable = false)
+    @Column(name = "quantity", nullable = false)
     private int quantity;
 
-    @Column(name = "price_original", nullable = false)
+    @Column(name = "price_original", nullable = false, precision = 19, scale = 4)
     private BigDecimal priceOriginal;
 
-    @Column(name = "price_converted", nullable = false)
-    private BigDecimal priceConverted;
-
     @Enumerated(EnumType.STRING)
-    @Column(name = "order_item_currency_original", nullable = false)
-    private Currency currencyOriginal; //JYP
+    @Column(name = "currency_original", nullable = false)
+    private Currency currencyOriginal;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "order_item_currency_converted", nullable = false)
-    private Currency currencyConverted;
-
-    @Column(name = "exchange_rate", nullable = false, updatable = false)
-    private BigDecimal exchangeRate;
-
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "memo",columnDefinition = "TEXT")
     private String memo;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "order_item_status", nullable = false)
+    @Column(name = "order_item_status", nullable = false, length = 20)
     private OrderItemStatus orderItemStatus;
 
 }

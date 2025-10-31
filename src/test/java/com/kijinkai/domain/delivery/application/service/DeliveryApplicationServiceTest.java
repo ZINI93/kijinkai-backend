@@ -15,8 +15,9 @@ import com.kijinkai.domain.delivery.application.validator.DeliveryValidator;
 import com.kijinkai.domain.delivery.domain.factory.DeliveryFactory;
 import com.kijinkai.domain.delivery.domain.model.Delivery;
 import com.kijinkai.domain.order.application.validator.OrderValidator;
-import com.kijinkai.domain.payment.domain.entity.OrderPayment;
-import com.kijinkai.domain.payment.domain.repository.OrderPaymentRepository;
+import com.kijinkai.domain.payment.adapter.out.persistence.entity.OrderPaymentJpaEntity;
+import com.kijinkai.domain.payment.application.port.out.OrderPaymentPersistencePort;
+import com.kijinkai.domain.payment.domain.model.OrderPayment;
 import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.model.User;
@@ -56,7 +57,7 @@ class DeliveryApplicationServiceTest {
     @Mock UserApplicationValidator userValidator;
     @Mock OrderValidator orderValidator;
 
-    @Mock OrderPaymentRepository orderPaymentRepository;  // 수정필요
+    @Mock OrderPaymentPersistencePort orderPaymentPersistencePort;  // 수정필요
 
     @InjectMocks DeliveryApplicationService deliveryApplicationService;
 
@@ -64,7 +65,7 @@ class DeliveryApplicationServiceTest {
     //user
     User user;
     Address address;
-    OrderPayment orderPayment;
+    OrderPaymentJpaEntity orderPayment;
     Customer customer;
     Delivery delivery;
     DeliveryRequestDto deliveryRequestDto;
@@ -89,7 +90,7 @@ class DeliveryApplicationServiceTest {
         // user
         user = User.builder().userUuid(UUID.randomUUID()).userRole(UserRole.USER).build();
         customer = Customer.builder().customerUuid(UUID.randomUUID()).userUuid(user.getUserUuid()).build();
-        orderPayment = OrderPayment.builder().customerUuid(customer.getCustomerUuid()).build();
+        orderPayment = OrderPaymentJpaEntity.builder().customerUuid(customer.getCustomerUuid()).build();
         address = Address.builder().customerUuid(customer.getCustomerUuid()).addressUuid(UUID.randomUUID()).build();
 
         delivery = Delivery.builder()
@@ -187,7 +188,7 @@ class DeliveryApplicationServiceTest {
 
         //given
         when(userPersistencePort.findByUserUuid(admin.getUserUuid())).thenReturn(Optional.of(admin));
-        when(orderPaymentRepository.findByPaymentUuid(orderPaymentAdmin.getPaymentUuid())).thenReturn(Optional.of(orderPaymentAdmin));
+        when(orderPaymentPersistencePort.findByPaymentUuid(orderPaymentAdmin.getPaymentUuid())).thenReturn(Optional.of(orderPaymentAdmin));
         when(customerPersistencePort.findByCustomerUuid(orderPaymentAdmin.getCustomerUuid())).thenReturn(Optional.of(customerAdmin));
         when(addressPersistencePort.findByCustomerUuid(customerAdmin.getCustomerUuid())).thenReturn(Optional.of(addressAdmin));
         when(factory.createDelivery(orderPaymentAdmin.getPaymentUuid(), customerAdmin.getCustomerUuid(), addressAdmin, orderPaymentAdmin.getPaymentAmount(), deliveryRequestDtoAdmin)).thenReturn(deliveryAdmin);

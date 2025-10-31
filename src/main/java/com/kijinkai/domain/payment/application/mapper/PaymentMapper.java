@@ -1,12 +1,20 @@
 package com.kijinkai.domain.payment.application.mapper;
 
+import com.kijinkai.domain.payment.adapter.out.persistence.entity.DepositRequestJpaEntity;
+import com.kijinkai.domain.payment.adapter.out.persistence.entity.OrderPaymentJpaEntity;
+import com.kijinkai.domain.payment.adapter.out.persistence.entity.RefundRequestJpaEntity;
+import com.kijinkai.domain.payment.adapter.out.persistence.entity.WithdrawRequestJpaEntity;
 import com.kijinkai.domain.payment.application.dto.response.*;
-import com.kijinkai.domain.payment.domain.entity.*;
+import com.kijinkai.domain.payment.domain.model.DepositRequest;
+import com.kijinkai.domain.payment.domain.model.OrderPayment;
+import com.kijinkai.domain.payment.domain.model.RefundRequest;
+import com.kijinkai.domain.payment.domain.model.WithdrawRequest;
 import com.kijinkai.domain.wallet.application.dto.WalletResponseDto;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Data
 @Component
@@ -25,7 +33,7 @@ public class PaymentMapper {
                 .depositorName(request.getDepositorName())
                 .bankAccount(request.getBankAccount())
                 .expiresAt(request.getExpiresAt())
-                .processedByAdmin(request.getProcessedByAdmin())
+                .processedByAdmin(request.getProcessedByAdminUuid())
                 .processedAt(request.getProcessedAt())
                 .adminMemo(request.getAdminMemo())
                 .rejectionReason(request.getRejectionReason())
@@ -45,7 +53,7 @@ public class PaymentMapper {
                 .depositorName(request.getDepositorName())
                 .bankAccount(request.getBankAccount())
                 .expiresAt(request.getExpiresAt())
-                .processedByAdmin(request.getProcessedByAdmin())
+                .processedByAdmin(request.getProcessedByAdminUuid())
                 .processedAt(request.getProcessedAt())
                 .adminMemo(request.getAdminMemo())
                 .rejectionReason(request.getRejectionReason())
@@ -65,7 +73,7 @@ public class PaymentMapper {
                 .depositorName(request.getDepositorName())
                 .bankAccount(request.getBankAccount())
                 .expiresAt(request.getExpiresAt())
-                .processedByAdmin(request.getProcessedByAdmin())
+                .processedByAdmin(request.getProcessedByAdminUuid())
                 .processedAt(request.getProcessedAt())
                 .adminMemo(request.getAdminMemo())
                 .rejectionReason(request.getRejectionReason())
@@ -89,7 +97,7 @@ public class PaymentMapper {
                 .accountNumber(withdrawRequest.getAccountNumber())
                 .status(withdrawRequest.getStatus())
                 .accountHolder(withdrawRequest.getAccountHolder())
-                .processedByAdmin(withdrawRequest.getProcessedByAdmin())
+                .processedByAdmin(withdrawRequest.getProcessedByAdminUuid())
                 .processedAt(withdrawRequest.getProcessedAt())
                 .adminMemo(withdrawRequest.getAdminMemo())
                 .rejectionReason(withdrawRequest.getRejectionReason())
@@ -112,7 +120,7 @@ public class PaymentMapper {
                 .accountNumber(withdrawRequest.getAccountNumber())
                 .status(withdrawRequest.getStatus())
                 .accountHolder(withdrawRequest.getAccountHolder())
-                .processedByAdmin(withdrawRequest.getProcessedByAdmin())
+                .processedByAdmin(withdrawRequest.getProcessedByAdminUuid())
                 .processedAt(withdrawRequest.getProcessedAt())
                 .adminMemo(withdrawRequest.getAdminMemo())
                 .rejectionReason(withdrawRequest.getRejectionReason())
@@ -134,7 +142,7 @@ public class PaymentMapper {
                 .accountNumber(withdrawRequest.getAccountNumber())
                 .status(withdrawRequest.getStatus())
                 .accountHolder(withdrawRequest.getAccountHolder())
-                .processedByAdmin(withdrawRequest.getProcessedByAdmin())
+                .processedByAdmin(withdrawRequest.getProcessedByAdminUuid())
                 .processedAt(withdrawRequest.getProcessedAt())
                 .adminMemo(withdrawRequest.getAdminMemo())
                 .rejectionReason(withdrawRequest.getRejectionReason())
@@ -197,12 +205,12 @@ public class PaymentMapper {
 
     }
 
-    public OrderPaymentResponseDto completeOrderPayment(OrderPayment orderPayment, WalletResponseDto wallet){
+    public OrderPaymentResponseDto completeOrderPayment(OrderPayment orderPayment, WalletResponseDto walletResponseDto){
 
         return OrderPaymentResponseDto.builder()
                 .paymentUuid(orderPayment.getPaymentUuid())
                 .customerUuid(orderPayment.getCustomerUuid())
-                .walletUuid(wallet.getWalletUuid())
+                .walletUuid(walletResponseDto.getWalletUuid())
                 .orderUuid(orderPayment.getOrderUuid())
                 .paymentAmount(orderPayment.getPaymentAmount())
                 .status(orderPayment.getOrderPaymentStatus())

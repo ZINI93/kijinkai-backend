@@ -3,6 +3,7 @@ package com.kijinkai.domain.customer.domain.factory;
 import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
 import com.kijinkai.domain.customer.application.dto.CustomerRequestDto;
 import com.kijinkai.domain.customer.domain.model.Customer;
+import com.kijinkai.domain.customer.domain.model.CustomerTier;
 import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
 import org.springframework.stereotype.Component;
 
@@ -20,10 +21,10 @@ public class CustomerFactory {
                 .firstName(requestDto.getFirstName())
                 .lastName(requestDto.getLastName())
                 .phoneNumber(requestDto.getPhoneNumber())
+                .customerTier(CustomerTier.BRONZE)
                 .userUuid(userUuid)
                 .build();
     }
-
 
     private void validateCreateInput(UUID UserUuid, CustomerRequestDto requestDto){
         if (UserUuid == null){
@@ -32,8 +33,6 @@ public class CustomerFactory {
         if (requestDto == null){
             throw new IllegalArgumentException("Customer request can't be null");
         }
-
-
 
     }
 }

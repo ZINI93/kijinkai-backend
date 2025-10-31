@@ -24,9 +24,10 @@ import com.kijinkai.domain.delivery.domain.exception.DeliveryUpdateException;
 import com.kijinkai.domain.delivery.domain.factory.DeliveryFactory;
 import com.kijinkai.domain.delivery.domain.model.Delivery;
 import com.kijinkai.domain.order.application.validator.OrderValidator;
-import com.kijinkai.domain.payment.domain.entity.OrderPayment;
+import com.kijinkai.domain.payment.adapter.out.persistence.entity.OrderPaymentJpaEntity;
+import com.kijinkai.domain.payment.application.port.out.OrderPaymentPersistencePort;
 import com.kijinkai.domain.payment.domain.exception.OrderPaymentNotFoundException;
-import com.kijinkai.domain.payment.domain.repository.OrderPaymentRepository;
+import com.kijinkai.domain.payment.domain.model.OrderPayment;
 import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
@@ -62,7 +63,7 @@ public class DeliveryApplicationService implements CreateDeliveryUseCase, Delete
     private final UserApplicationValidator userValidator;
     private final OrderValidator orderValidator;
 
-    private final OrderPaymentRepository orderPaymentRepository;  // 수정필요
+    private final OrderPaymentPersistencePort orderPaymentPersistencePort;  // 수정필요
 
 
     /**
@@ -80,7 +81,7 @@ public class DeliveryApplicationService implements CreateDeliveryUseCase, Delete
         User user = findUserByUserUuid(userUuid);
         user.validateAdminRole();
 
-        OrderPayment secondOrderPayment = orderPaymentRepository.findByPaymentUuid(orderPaymentUuid)
+        OrderPayment secondOrderPayment = orderPaymentPersistencePort.findByPaymentUuid(orderPaymentUuid)
                 .orElseThrow(() -> new OrderPaymentNotFoundException(String.format("OrderJpaEntity payment not found exception for orderPaymentUuid: %s", orderPaymentUuid)));
 
         Customer customer = customerPersistencePort.findByCustomerUuid(secondOrderPayment.getCustomerUuid())

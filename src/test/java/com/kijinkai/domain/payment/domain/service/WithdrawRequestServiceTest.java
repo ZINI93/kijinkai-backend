@@ -2,7 +2,7 @@
 //
 //import com.kijinkai.domain.customer.adapter.out.persistence.entity.Customer;
 //import com.kijinkai.domain.exchange.doamin.Currency;
-//import com.kijinkai.domain.payment.domain.entity.WithdrawRequest;
+//import com.kijinkai.domain.payment.adapter.out.persistence.entity.WithdrawRequestJpaEntity;
 //import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
 //import com.kijinkai.domain.payment.domain.validator.PaymentValidator;
 //import com.kijinkai.domain.user.adapter.in.web.validator.UserValidator;
@@ -38,7 +38,7 @@
 //    private WalletJpaEntity wallet;
 //
 //    @Mock
-//    private WithdrawRequest withdrawRequest;
+//    private WithdrawRequestJpaEntity withdrawRequest;
 //
 //    @Mock
 //    private User user;
@@ -72,7 +72,7 @@
 //        )).thenReturn(withdrawRequest);
 //
 //        // When
-//        WithdrawRequest result = withdrawRequestService.createWithdrawRequest(
+//        WithdrawRequestJpaEntity result = withdrawRequestService.createWithdrawRequest(
 //                customer, wallet, requestAmount, targetCurrency,
 //                bankName, accountHolder, withdrawFee, convertedAmount
 //        );
@@ -119,7 +119,7 @@
 //        BigDecimal exchangeRate = new BigDecimal("1.2");
 //
 //        // When
-//        WithdrawRequest result = withdrawRequestService.approveWithdrawRequest(
+//        WithdrawRequestJpaEntity result = withdrawRequestService.approveWithdrawRequest(
 //                withdrawRequest, adminUuid, memo, exchangeRate
 //        );
 //
@@ -135,7 +135,7 @@
 //        doNothing().when(userValidator).requireAdminRole(user);
 //
 //        // When
-//        WithdrawRequest result = withdrawRequestService.getWithdrawInfoByAdmin(withdrawRequest, user);
+//        WithdrawRequestJpaEntity result = withdrawRequestService.getWithdrawInfoByAdmin(withdrawRequest, user);
 //
 //        // Then
 //        assertNotNull(result);
@@ -160,7 +160,7 @@
 //    @Test
 //    void getWithdrawInfo_ShouldReturnInfo() {
 //        // When
-//        WithdrawRequest result = withdrawRequestService.getWithdrawInfo(withdrawRequest);
+//        WithdrawRequestJpaEntity result = withdrawRequestService.getWithdrawInfo(withdrawRequest);
 //
 //        // Then
 //        assertNotNull(result);
@@ -192,7 +192,7 @@
 //        )).thenReturn(withdrawRequest);
 //
 //        // When
-//        WithdrawRequest result = withdrawRequestService.createWithdrawRequest(
+//        WithdrawRequestJpaEntity result = withdrawRequestService.createWithdrawRequest(
 //                customer, wallet, requestAmount, targetCurrency,
 //                null, null, withdrawFee, convertedAmount
 //        );
@@ -213,7 +213,7 @@
 //        BigDecimal exchangeRate = new BigDecimal("1.2");
 //
 //        // When
-//        WithdrawRequest result = withdrawRequestService.approveWithdrawRequest(
+//        WithdrawRequestJpaEntity result = withdrawRequestService.approveWithdrawRequest(
 //                withdrawRequest, adminUuid, null, exchangeRate
 //        );
 //
@@ -253,13 +253,13 @@
 //        )).thenReturn(withdrawRequest);
 //
 //        // When - Create request
-//        WithdrawRequest createdRequest = withdrawRequestService.createWithdrawRequest(
+//        WithdrawRequestJpaEntity createdRequest = withdrawRequestService.createWithdrawRequest(
 //                customer, wallet, requestAmount, targetCurrency,
 //                bankName, accountHolder, withdrawFee, convertedAmount
 //        );
 //
 //        // When - Approve request
-//        WithdrawRequest approvedRequest = withdrawRequestService.approveWithdrawRequest(
+//        WithdrawRequestJpaEntity approvedRequest = withdrawRequestService.approveWithdrawRequest(
 //                createdRequest, adminUuid, memo, exchangeRate
 //        );
 //

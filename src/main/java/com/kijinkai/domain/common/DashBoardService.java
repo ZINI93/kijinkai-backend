@@ -8,9 +8,9 @@ import com.kijinkai.domain.delivery.domain.model.DeliveryStatus;
 import com.kijinkai.domain.delivery.adpater.out.persistence.repository.DeliveryRepository;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.repostiory.OrderItemRepository;
+import com.kijinkai.domain.payment.application.port.out.OrderPaymentPersistencePort;
 import com.kijinkai.domain.payment.domain.enums.OrderPaymentStatus;
 import com.kijinkai.domain.payment.domain.enums.PaymentType;
-import com.kijinkai.domain.payment.domain.repository.OrderPaymentRepository;
 import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
 import com.kijinkai.domain.wallet.domain.exception.WalletNotFoundException;
 import com.kijinkai.domain.wallet.adapter.out.persistence.repository.WalletRepository;
@@ -27,7 +27,7 @@ public class DashBoardService {
 
 
     private final CustomerRepository customerRepository;
-    private final OrderPaymentRepository orderPaymentRepository;
+    private final OrderPaymentPersistencePort orderPaymentPersistencePort;
     private final DeliveryRepository deliveryRepository;
     private final WalletRepository walletRepository;
     private final OrderItemRepository orderItemRepository;
@@ -49,9 +49,9 @@ public class DashBoardService {
         int deliveredCount = deliveryRepository.findByDeliveryStatusCount(customerJpaEntity.getCustomerUuid(), DeliveryStatus.DELIVERED);
 
 
-        int firstCompleted = orderPaymentRepository.findByOrderPaymentStatusCount(customerJpaEntity.getCustomerUuid(), OrderPaymentStatus.COMPLETED, PaymentType.PRODUCT_PAYMENT);
-        int secondPending = orderPaymentRepository.findByOrderPaymentStatusCount(customerJpaEntity.getCustomerUuid(), OrderPaymentStatus.PENDING, PaymentType.SHIPPING_PAYMENT);
-        int secondCompleted = orderPaymentRepository.findByOrderPaymentStatusCount(customerJpaEntity.getCustomerUuid(), OrderPaymentStatus.COMPLETED, PaymentType.SHIPPING_PAYMENT);
+        int firstCompleted = orderPaymentPersistencePort.findByOrderPaymentStatusCount(customerJpaEntity.getCustomerUuid(), OrderPaymentStatus.COMPLETED, PaymentType.PRODUCT_PAYMENT);
+        int secondPending = orderPaymentPersistencePort.findByOrderPaymentStatusCount(customerJpaEntity.getCustomerUuid(), OrderPaymentStatus.PENDING, PaymentType.SHIPPING_PAYMENT);
+        int secondCompleted = orderPaymentPersistencePort.findByOrderPaymentStatusCount(customerJpaEntity.getCustomerUuid(), OrderPaymentStatus.COMPLETED, PaymentType.SHIPPING_PAYMENT);
 
 
         int orderItemPendingCount = orderItemRepository.findOrderItemCountByStatus(customerJpaEntity.getCustomerUuid(), OrderItemStatus.PENDING);

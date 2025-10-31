@@ -1,42 +1,21 @@
 services:
-  # MySQL 서비스
-  mysql: # <-- 서비스 이름은 'mysql'
+  mysql:
     container_name: mysql_db
     image: mysql:8.0.30
-    volumes:
-      - ./db/conf.d:/etc/mysql/conf.d
-      - ./db/initdb.d:/docker-entrypoint-initdb.d
     ports:
       - "3307:3306"
     environment:
       MYSQL_ROOT_PASSWORD: reservation0320
-      MYSQL_DATABASE: kijinkai_local
+      MYSQL_DATABASE: kijinkai
       MYSQL_USER: kijinkai_local_user
       MYSQL_PASSWORD: 251001
 
-  # Redis 서비스
-  redis: # <-- 서비스 이름은 'redis'
-    container_name: my-local-redis
-    image: redis/redis-stack-server:latest
-    ports:
-      - "6379:6379"
-
-  # Spring Boot 애플리케이션 서비스
-  kijinkai: # <-- 서비스 이름은 'kijinkai'
+  kijinkai:
     build: .
     ports:
       - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      # --- 여기를 수정합니다 ---
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/kijinkai_local?zeroDateTimeBehavior=convertToNull&characterEncoding=UTF-8&serverTimezone=Asia/Seoul # <-- 'mysql_db'를 'mysql'로 변경
-      SPRING_DATA_REDIS_HOST: my-local-redis # 이 부분은 컨테이너 이름으로 접근해도 됩니다. (서비스 이름 'redis'도 가능)
-      SPRING_DATA_REDIS_PORT: 6379
-      # ... (다른 환경 변수) ...
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/kijinkai_local?zeroDateTimeBehavior=convertToNull&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
     depends_on:
-      - mysql # 서비스 이름
-      - redis # 서비스 이름
-
-# 볼륨 정의 (선택 사항)
-# volumes:
-#   redis_data:
+      - mysql

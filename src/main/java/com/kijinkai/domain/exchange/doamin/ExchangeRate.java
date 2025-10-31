@@ -10,8 +10,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
-@Table(name = "exchange_rates",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"from_currency", "to_currency"}))
+@Table(name = "exchange_rates")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -23,10 +22,10 @@ public class ExchangeRate extends TimeBaseEntity{
     private Long exchangeRateId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "currency", nullable = false)
+    @Column(name = "currency", nullable = false, length = 10)
     private Currency currency;
 
-    @Column(nullable = false)
+    @Column(name = "rate", nullable = false, precision = 18, scale = 8)
     private BigDecimal rate;
 
     @Column(name = "fetch_at", nullable = false)

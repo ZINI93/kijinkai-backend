@@ -6,7 +6,7 @@ import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.order.domain.model.Order;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
 import com.kijinkai.domain.orderitem.application.dto.OrderItemUpdateDto;
-import com.kijinkai.domain.payment.domain.entity.OrderPayment;
+import com.kijinkai.domain.payment.adapter.out.persistence.entity.OrderPaymentJpaEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,7 +25,7 @@ class OrderItemTest {
 
     OrderItem orderItem;
     Customer customer;
-    OrderPayment orderPayment;
+    OrderPaymentJpaEntity orderPayment;
     Delivery delivery;
     Order order;
 
@@ -33,7 +33,7 @@ class OrderItemTest {
     void setUp(){
 
         customer = Customer.builder().customerUuid(UUID.randomUUID()).build();
-        orderPayment = OrderPayment.builder().customerUuid(customer.getCustomerUuid()).build();
+        orderPayment = OrderPaymentJpaEntity.builder().customerUuid(customer.getCustomerUuid()).build();
         delivery = Delivery.builder().deliveryUuid(UUID.randomUUID()).build();
         order = Order.builder().orderUuid(UUID.randomUUID()).build();
 
