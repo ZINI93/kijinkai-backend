@@ -24,7 +24,6 @@ import com.kijinkai.domain.payment.domain.exception.OrderPaymentStatusException;
 import com.kijinkai.domain.payment.domain.exception.PaymentProcessingException;
 import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
 import com.kijinkai.domain.payment.domain.model.OrderPayment;
-import com.kijinkai.domain.payment.domain.service.OrderPaymentService;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
 import com.kijinkai.domain.user.domain.model.User;
@@ -60,7 +59,6 @@ public class OrderPaymentApplicationService implements CreateOderPaymentUseCase,
     private final OrderItemPersistencePort orderItemPersistencePort;
     private final UserPersistencePort userPersistencePort;
 
-    private final OrderPaymentService orderPaymentService;
     private final UpdateWalletUseCase updateWalletUseCase;
     private final OrderPaymentPersistencePort orderPaymentPersistencePort;
     private final PaymentFactory paymentFactory;
@@ -209,22 +207,23 @@ public class OrderPaymentApplicationService implements CreateOderPaymentUseCase,
                     totalAmount
             );
 
-            orderPayments.forEach(orderPaymentService::completeSecondOrderPayment);
+            orderPayments.forEach(OrderPayment::complete);
 
             List<OrderPayment> savedOrderPayments = orderPaymentPersistencePort.saveAll(orderPayments);
-
 
             return paymentMapper.completeOrderPayment(savedOrderPayments.get(0), wallet);
         } catch (InsufficientBalanceException e) {
             log.error("잔액 부족으로 인한 결제 실패 - 고객: {}, 요청 금액: {}",
                     customer.getCustomerUuid(), totalAmount);
-            orderPaymentService.markAsFailed(orderPayments, "잔액 부족:" + e.getMessage());
+
+            orderPayments.forEach(orderPayment -> orderPayment.markAsFailed("잔액 부족" + e.getMessage()));
             throw new OrderPaymentCompletionException("잔액이 부족합니다.");
 
         } catch (WalletNotActiveException e) {
             log.error("비활성화된 지갑으로 인한 결제 실패 - 고객: {}, 지갑: {}",
                     customer.getCustomerUuid(), findWallet.getWalletUuid(), e);
-            orderPaymentService.markAsFailed(orderPayments, "비활성된 지갑: " + e.getMessage());
+
+            orderPayments.forEach(orderPayment -> orderPayment.markAsFailed("비활성된 지갑: " + e.getMessage()));
             throw new WalletNotActiveException("지갑이 비활성 상태입니다", e);
 
         } catch (OrderPaymentNotFoundException | OrderPaymentStatusException e) {
@@ -237,7 +236,7 @@ public class OrderPaymentApplicationService implements CreateOderPaymentUseCase,
         } catch (Exception e) {
             log.error("결제 완료 중 예상치 못한 오류 - 고객: {}, 결제 UUID들: {}",
                     customer.getCustomerUuid(), requestDto.getOrderPaymentUuids(), e);
-            orderPaymentService.markAsFailed(orderPayments, "시스템 오류: " + e.getMessage());
+            orderPayments.forEach(orderPayment -> orderPayment.markAsFailed("시스템 오류: " + e.getMessage()));
             throw new PaymentProcessingException("결제 완료 중 예상치 못한 오류가 발생했습니다", e);
         }
     }

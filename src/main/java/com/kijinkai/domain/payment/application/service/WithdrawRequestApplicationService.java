@@ -21,7 +21,6 @@ import com.kijinkai.domain.payment.domain.exception.WithdrawRequestNotFoundExcep
 import com.kijinkai.domain.payment.domain.exception.WithdrawRequestStatusException;
 import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
 import com.kijinkai.domain.payment.domain.model.WithdrawRequest;
-import com.kijinkai.domain.payment.domain.service.WithdrawRequestService;
 import com.kijinkai.domain.payment.domain.util.PaymentContents;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
@@ -59,7 +58,6 @@ public class WithdrawRequestApplicationService implements CreateWithdrawUseCase,
 
     private final ExchangeRateService exchangeRateService;
     private final PaymentCalculator paymentCalculator;
-    private final WithdrawRequestService withdrawRequestService;
     private final PaymentMapper paymentMapper;
     private final PaymentFactory paymentFactory;
 
@@ -132,11 +130,11 @@ public class WithdrawRequestApplicationService implements CreateWithdrawUseCase,
 
         } catch (InsufficientBalanceException e) {
             log.error("Insufficient balance for deposit approval: {}", requestUuid, e);
-            withdrawRequestService.markAsFailed(withdrawRequest, "잔액 부족:" + e.getMessage());
+            withdrawRequest.markAsFailed( "잔액 부족:" + e.getMessage());
             throw new WithdrawApprovalException("잔액이 부족합니다", e);
         } catch (WalletNotActiveException e) {
             log.error("WalletJpaEntity not active for deposit approval: {}", requestUuid, e);
-            withdrawRequestService.markAsFailed(withdrawRequest, "비활성된 지갑: " + e.getMessage());
+            withdrawRequest.markAsFailed( "비활성된 지갑:" + e.getMessage());
             throw new WalletNotActiveException("지갑이 비활성 상태입니다", e);
         } catch (WithdrawRequestNotFoundException | WithdrawRequestStatusException e) {
             log.error("Invalid withdraw request for approval: {} ", requestUuid, e);
@@ -145,7 +143,7 @@ public class WithdrawRequestApplicationService implements CreateWithdrawUseCase,
             throw new ConcurrentModificationException("다른 관리자가 동시에 처리 중 입니다. 새로고침 후 다시 시도해주세요");
         } catch (Exception e) {
             log.error("Unexpected error during deposit approval: {}", requestUuid, e);
-            withdrawRequestService.markAsFailed(withdrawRequest, "시스템 오류: " + e.getMessage());
+            withdrawRequest.markAsFailed( "시스템 오류:" + e.getMessage());
             throw new PaymentProcessingException("출금 승인 중 예상치 못한 오류가 발생했습니다", e);
         }
 

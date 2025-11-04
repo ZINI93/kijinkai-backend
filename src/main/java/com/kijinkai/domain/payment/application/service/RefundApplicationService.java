@@ -19,7 +19,6 @@ import com.kijinkai.domain.payment.domain.exception.PaymentProcessingException;
 import com.kijinkai.domain.payment.domain.exception.RefundNotFoundException;
 import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
 import com.kijinkai.domain.payment.domain.model.RefundRequest;
-import com.kijinkai.domain.payment.domain.service.RefundRequestService;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
 import com.kijinkai.domain.user.domain.model.User;
@@ -54,7 +53,6 @@ public class RefundApplicationService implements CreateRefundUseCase, GetRefundU
 
     private final RefundPersistencePort refundPersistencePort;
 
-    private final RefundRequestService refundRequestService;
     private final PaymentMapper paymentMapper;
     private final PaymentFactory paymentFactory;
 

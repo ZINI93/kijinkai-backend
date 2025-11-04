@@ -1,99 +1,99 @@
-package com.kijinkai.domain.payment.domain.service;
-
-
-import com.kijinkai.domain.customer.domain.model.Customer;
-import com.kijinkai.domain.exchange.doamin.Currency;
-import com.kijinkai.domain.payment.adapter.out.persistence.entity.WithdrawRequestJpaEntity;
-import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
-import com.kijinkai.domain.payment.domain.model.WithdrawRequest;
-import com.kijinkai.domain.payment.domain.validator.PaymentValidator;
-import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
-import com.kijinkai.domain.user.domain.model.User;
-import com.kijinkai.domain.wallet.domain.model.Wallet;
-
-import java.math.BigDecimal;
-import java.util.UUID;
-
-
-public class WithdrawRequestService {
-
-    private final PaymentValidator paymentValidator;
-    private final UserApplicationValidator userValidator;
-    private final PaymentFactory paymentFactory;
-
-    public WithdrawRequestService(PaymentValidator paymentValidator, UserApplicationValidator userValidator, PaymentFactory paymentFactory) {
-        this.paymentValidator = paymentValidator;
-        this.userValidator = userValidator;
-        this.paymentFactory = paymentFactory;
-    }
-
-    /**
-     * 출금 요청 생성
-     *
-     * @param customerJpaEntity
-     * @param wallet
-     * @param requestAmount
-     * @param tagetCurrency
-     * @param bankName
-     * @param accountHolder
-     * @return
-     */
-    public WithdrawRequest createWithdrawRequest(
-            Customer customer, Wallet wallet, BigDecimal requestAmount, Currency tagetCurrency
-            , String bankName, String accountHolder, BigDecimal withdrawFee, BigDecimal convertedAmount,
-            String accountNumber, BigDecimal exchangeRate
-    ) {
-        paymentValidator.validateWithdrawEligibility(requestAmount);
-        return paymentFactory.createWithdrawRequest(
-                customer, wallet, requestAmount, tagetCurrency, withdrawFee, bankName, accountHolder, convertedAmount
-                ,accountNumber, exchangeRate
-        );
-    }
-
-    /**
-     * 출금 요청 승인
-     *
-     * @param request
-     * @param adminUuid
-     * @param memo
-     * @param exchangeRate
-     * @return
-     */
-//    public WithdrawRequest approveWithdrawRequest(WithdrawRequest request, UUID adminUuid, String memo, BigDecimal exchangeRate) {
-//        request.approve(adminUuid, memo);
-//        return request;
+//package com.kijinkai.domain.payment.domain.service;
+//
+//
+//import com.kijinkai.domain.customer.domain.model.Customer;
+//import com.kijinkai.domain.exchange.doamin.Currency;
+//import com.kijinkai.domain.payment.adapter.out.persistence.entity.WithdrawRequestJpaEntity;
+//import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
+//import com.kijinkai.domain.payment.domain.model.WithdrawRequest;
+//import com.kijinkai.domain.payment.domain.validator.PaymentValidator;
+//import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
+//import com.kijinkai.domain.user.domain.model.User;
+//import com.kijinkai.domain.wallet.domain.model.Wallet;
+//
+//import java.math.BigDecimal;
+//import java.util.UUID;
+//
+//
+//public class WithdrawRequestService {
+//
+//    private final PaymentValidator paymentValidator;
+//    private final UserApplicationValidator userValidator;
+//    private final PaymentFactory paymentFactory;
+//
+//    public WithdrawRequestService(PaymentValidator paymentValidator, UserApplicationValidator userValidator, PaymentFactory paymentFactory) {
+//        this.paymentValidator = paymentValidator;
+//        this.userValidator = userValidator;
+//        this.paymentFactory = paymentFactory;
 //    }
-
-    /**
-     * 관리자의 유저 출금 정보 조회
-     *
-     * @param withdrawRequest
-     * @param user
-     * @return
-     */
-    public WithdrawRequest getWithdrawInfoByAdmin(WithdrawRequest withdrawRequest, User user) {
-        userValidator.requireAdminRole(user);
-        return withdrawRequest;
-    }
-
-    /**
-     * 유저의 출금 정보 조회
-     *
-     * @param withdrawRequest
-     * @return
-     */
-    public WithdrawRequest getWithdrawInfo(WithdrawRequest withdrawRequest) {
-        return withdrawRequest;
-    }
-
-    /**
-     * 결제 실패
-     *
-     * @param withdrawRequest
-     * @param reason
-     */
-    public void markAsFailed(WithdrawRequest withdrawRequest, String reason) {
-        withdrawRequest.markAsFailed(reason);
-    }
-
-}
+//
+//    /**
+//     * 출금 요청 생성
+//     *
+//     * @param customerJpaEntity
+//     * @param wallet
+//     * @param requestAmount
+//     * @param tagetCurrency
+//     * @param bankName
+//     * @param accountHolder
+//     * @return
+//     */
+//    public WithdrawRequest createWithdrawRequest(
+//            Customer customer, Wallet wallet, BigDecimal requestAmount, Currency tagetCurrency
+//            , String bankName, String accountHolder, BigDecimal withdrawFee, BigDecimal convertedAmount,
+//            String accountNumber, BigDecimal exchangeRate
+//    ) {
+//        paymentValidator.validateWithdrawEligibility(requestAmount);
+//        return paymentFactory.createWithdrawRequest(
+//                customer, wallet, requestAmount, tagetCurrency, withdrawFee, bankName, accountHolder, convertedAmount
+//                ,accountNumber, exchangeRate
+//        );
+//    }
+//
+//    /**
+//     * 출금 요청 승인
+//     *
+//     * @param request
+//     * @param adminUuid
+//     * @param memo
+//     * @param exchangeRate
+//     * @return
+//     */
+////    public WithdrawRequest approveWithdrawRequest(WithdrawRequest request, UUID adminUuid, String memo, BigDecimal exchangeRate) {
+////        request.approve(adminUuid, memo);
+////        return request;
+////    }
+//
+//    /**
+//     * 관리자의 유저 출금 정보 조회
+//     *
+//     * @param withdrawRequest
+//     * @param user
+//     * @return
+//     */
+//    public WithdrawRequest getWithdrawInfoByAdmin(WithdrawRequest withdrawRequest, User user) {
+//        userValidator.requireAdminRole(user);
+//        return withdrawRequest;
+//    }
+//
+//    /**
+//     * 유저의 출금 정보 조회
+//     *
+//     * @param withdrawRequest
+//     * @return
+//     */
+//    public WithdrawRequest getWithdrawInfo(WithdrawRequest withdrawRequest) {
+//        return withdrawRequest;
+//    }
+//
+//    /**
+//     * 결제 실패
+//     *
+//     * @param withdrawRequest
+//     * @param reason
+//     */
+//    public void markAsFailed(WithdrawRequest withdrawRequest, String reason) {
+//        withdrawRequest.markAsFailed(reason);
+//    }
+//
+//}

@@ -19,7 +19,6 @@ import com.kijinkai.domain.payment.domain.enums.DepositStatus;
 import com.kijinkai.domain.payment.domain.exception.*;
 import com.kijinkai.domain.payment.domain.factory.DepositRequestFactory;
 import com.kijinkai.domain.payment.domain.model.DepositRequest;
-import com.kijinkai.domain.payment.domain.service.DepositRequestService;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
 import com.kijinkai.domain.user.domain.model.User;
@@ -51,7 +50,6 @@ import java.util.stream.Collectors;
 public class DepositRequestApplicationService implements CreateDepositUseCase, GetDepositUseCase, UpdateDepositUseCase, DeleteDepositUseCase {
 
     private final DepositRequestPersistencePort depositRequestPersistencePort;
-    private final DepositRequestService depositRequestService;
     private final CustomerPersistencePort customerPersistencePort;
     private final WalletPersistencePort walletPersistencePort;
     private final UserPersistencePort userPersistencePort;
@@ -222,12 +220,12 @@ public class DepositRequestApplicationService implements CreateDepositUseCase, G
             return paymentMapper.approveDepositResponse(savedRequest, wallet);
         } catch (InsufficientBalanceException e) {
             log.error("Insufficient balance for deposit approval: {}", requestUuid, e);
-            depositRequestService.markAsFailed(depositRequest, "잔액 부족: " + e.getMessage());
+            depositRequest.markAsFailed("잔액 부족: " + e.getMessage());
             throw new DepositApprovalException("잔액이 부족합니다", e);
 
         } catch (WalletNotActiveException e) {
             log.error("WalletJpaEntity not active for deposit approval: {}", requestUuid, e);
-            depositRequestService.markAsFailed(depositRequest, "비활성 지갑: " + e.getMessage());
+            depositRequest.markAsFailed("비활성 지갑: " + e.getMessage());
             throw new DepositApprovalException("지갑이 비활성 상태입니다", e);
 
         } catch (DepositRequestNotFoundException | DepositRequestStatusException e) {
@@ -239,7 +237,7 @@ public class DepositRequestApplicationService implements CreateDepositUseCase, G
 
         } catch (Exception e) {
             log.error("Unexpected error during deposit approval: {}", requestUuid, e);
-            depositRequestService.markAsFailed(depositRequest, "비활성 지갑: " + e.getMessage());
+            depositRequest.markAsFailed("비활성 지갑: " + e.getMessage());
             throw new PaymentProcessingException("입금 승인 중 예상치 못한 오류가 발생했습니다", e);
         }
     }
