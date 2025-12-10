@@ -37,8 +37,8 @@ public class WithdrawRequest {
     private LocalDateTime expiresAt;
     private Long version;
 
-    private LocalDateTime CreatedAt;
-
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
 
     // 도메인 로직: 승인
@@ -102,14 +102,15 @@ public class WithdrawRequest {
     }
 
     /**
-     * 출금 요청 받은 돈은 2만엔 상이여야 한다.
+     * 출금 요청 받은 돈은 300엔 상이여야 한다. 수수료
      */
     public void validateWithdrawEligibility(WithdrawRequestDto withdrawRequestDto) {
-        BigDecimal minimumAmount = new BigDecimal("20000");
+        BigDecimal minimumAmount = new BigDecimal("300");
         if (withdrawRequestDto.getRequestAmount().compareTo(minimumAmount) < 0) {
-            throw new PaymentAmountException("The minimum withdraw is 20,000 en");
+            throw new PaymentAmountException("The minimum withdraw is 300 en");
         }
     }
+
     private BigDecimal calculateConvertedAmount(BigDecimal exchangeRate) {
         return this.convertedAmount.multiply(exchangeRate);
     }

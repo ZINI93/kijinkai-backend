@@ -1,7 +1,6 @@
 package com.kijinkai.domain.orderitem.domain.model;
 
 import com.kijinkai.domain.exchange.doamin.Currency;
-import com.kijinkai.domain.order.adapter.out.persistence.entity.OrderJpaEntity;
 import com.kijinkai.domain.order.domain.model.Order;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
 import com.kijinkai.domain.orderitem.application.dto.OrderItemUpdateDto;
@@ -10,6 +9,8 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -35,6 +36,8 @@ public class OrderItem {
     private String memo;
     private OrderItemStatus orderItemStatus;
 
+    private LocalDateTime createdAt;
+
 
     public void updateOrderItem(OrderItemUpdateDto updateDto) {
         this.productLink = updateDto.getProductLink();
@@ -57,16 +60,28 @@ public class OrderItem {
         }
     }
 
-    public void isCancel(){
+    public void approveOrderItem() {
+        if (this.orderItemStatus != OrderItemStatus.PENDING) {
+            throw new OrderItemValidateException("대기 중 상품만 승인이 가능합니다.");
+        }
+        // 주문 상품의 상태를 허가로 변경
+        changeStatusToPendingApproval();
+    }
+
+    private void changeStatusToPendingApproval() {
+        this.orderItemStatus = OrderItemStatus.PENDING_APPROVAL;
+    }
+
+    public void isCancel() {
         orderItemStatus = OrderItemStatus.CANCELLED;
     }
 
-    public void markAsPaymentCompleted(UUID fristproductPaymentUuid){
+    public void markAsPaymentCompleted(UUID fristproductPaymentUuid) {
         this.productPaymentUuid = fristproductPaymentUuid;
-        orderItemStatus = OrderItemStatus.PRODUCT_PAYMENT_COMPLETED;
+        this.orderItemStatus = OrderItemStatus.PRODUCT_PAYMENT_COMPLETED;
     }
 
-    public void markAsDeliveryPaymentRequest(UUID deliveryFeePaymentUuid){
+    public void markAsDeliveryPaymentRequest(UUID deliveryFeePaymentUuid) {
         this.deliveryFeePaymentUuid = deliveryFeePaymentUuid;
         this.orderItemStatus = OrderItemStatus.DELIVERY_FEE_PAYMENT_REQUEST;
     }

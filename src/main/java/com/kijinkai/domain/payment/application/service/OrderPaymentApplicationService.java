@@ -11,10 +11,10 @@ import com.kijinkai.domain.payment.application.dto.request.OrderPaymentRequestDt
 import com.kijinkai.domain.payment.application.dto.response.OrderPaymentCountResponseDto;
 import com.kijinkai.domain.payment.application.dto.response.OrderPaymentResponseDto;
 import com.kijinkai.domain.payment.application.mapper.PaymentMapper;
-import com.kijinkai.domain.payment.application.port.in.orderPayment.CreateOderPaymentUseCase;
-import com.kijinkai.domain.payment.application.port.in.orderPayment.DeleteOderPaymentUseCase;
-import com.kijinkai.domain.payment.application.port.in.orderPayment.GetOderPaymentUseCase;
-import com.kijinkai.domain.payment.application.port.in.orderPayment.UpdateOderPaymentUseCase;
+import com.kijinkai.domain.payment.application.port.in.orderPayment.CreateOrderPaymentUseCase;
+import com.kijinkai.domain.payment.application.port.in.orderPayment.DeleteOrderPaymentUseCase;
+import com.kijinkai.domain.payment.application.port.in.orderPayment.GetOrderPaymentUseCase;
+import com.kijinkai.domain.payment.application.port.in.orderPayment.UpdateOrderPaymentUseCase;
 import com.kijinkai.domain.payment.application.port.out.OrderPaymentPersistencePort;
 import com.kijinkai.domain.payment.domain.enums.OrderPaymentStatus;
 import com.kijinkai.domain.payment.domain.enums.PaymentType;
@@ -52,7 +52,7 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
-public class OrderPaymentApplicationService implements CreateOderPaymentUseCase, GetOderPaymentUseCase, UpdateOderPaymentUseCase, DeleteOderPaymentUseCase {
+public class OrderPaymentApplicationService implements CreateOrderPaymentUseCase, GetOrderPaymentUseCase, UpdateOrderPaymentUseCase, DeleteOrderPaymentUseCase {
 
     private final CustomerPersistencePort customerPersistencePort;
     private final WalletPersistencePort walletPersistencePort;
@@ -80,12 +80,13 @@ public class OrderPaymentApplicationService implements CreateOderPaymentUseCase,
     public OrderPaymentResponseDto completeFirstPayment(UUID userUuid, OrderPaymentRequestDto requestDto) {
 
         Customer customer = findCustomerByUserUuid(customerPersistencePort.findByUserUuid(userUuid), userUuid);
+
         Wallet findWallet = findWalletByCustomerUuid(customer.getCustomerUuid());
 
-        OrderPayment orderPayment = paymentFactory.createOrderFirstPayment(customer,findWallet);
+        OrderPayment orderPayment = paymentFactory.createOrderFirstPayment(customer, findWallet, userUuid);
         OrderPayment savedOrderPayment = orderPaymentPersistencePort.saveOrderPayment(orderPayment);
 
-        List<OrderItem> orderItems = orderItemPersistencePort.firstOrderItemPayment(customer.getCustomerUuid(), requestDto, savedOrderPayment.getPaymentUuid());
+        List<OrderItem> orderItems = orderItemPersistencePort.firstOrderItemPayment(customer.getCustomerUuid(), requestDto, savedOrderPayment.getPaymentUuid());orderItemPersistencePort.saveAllOrderItem(orderItems);
 
         //총 결제 금액 계산
         BigDecimal totalPrice = orderItems.stream().map(OrderItem::getPriceOriginal)
@@ -106,6 +107,8 @@ public class OrderPaymentApplicationService implements CreateOderPaymentUseCase,
                     totalPrice
             );
 
+
+
             orderPayment.updateTotalAmount(totalPrice);
 
             return paymentMapper.completeOrderPayment(savedOrderPayment, walletResponseDto);
@@ -120,8 +123,8 @@ public class OrderPaymentApplicationService implements CreateOderPaymentUseCase,
         }
     }
 
-
     /**
+     * 관리자가 생성
      * 상품에 대한 배송비 결제
      * 유저 상품 상태변경, 그리고 요청 금액만 제시하면 될것 같으니까 리팩토링으로 간소화 시키고, 유저가 결제 할때 지갑, 등등을 검증하면 좋을것 같음
      * orderitem 에서 가져올 유저 wallet uuid를 일단 넣고, 나중에, 결제할때 검증용으로 쓰는게 더 안전할거 같기는한데,...
@@ -142,7 +145,7 @@ public class OrderPaymentApplicationService implements CreateOderPaymentUseCase,
         OrderItem orderItem = orderItemPersistencePort.findByOrderItemUuid(secondOrderItemUuid)
                 .orElseThrow(() -> new OrderItemNotFoundException());
 
-        Customer customer= findCustomerByUserUuid(customerPersistencePort.findByCustomerUuid(orderItem.getCustomerUuid()), adminUuid);
+        Customer customer = findCustomerByUserUuid(customerPersistencePort.findByCustomerUuid(orderItem.getCustomerUuid()), adminUuid);
 
         Wallet wallet = findWalletByCustomerUuid(customer.getCustomerUuid());
 
@@ -294,7 +297,8 @@ public class OrderPaymentApplicationService implements CreateOderPaymentUseCase,
 
 
     /**
-     *  본인 유저의 거래내역 조회
+     * 본인 유저의 거래내역 조회
+     *
      * @param userUuid
      * @param pageable
      * @return
@@ -308,7 +312,7 @@ public class OrderPaymentApplicationService implements CreateOderPaymentUseCase,
         Wallet wallet = findWalletByCustomerUuid(customer.getCustomerUuid());
         Page<OrderPayment> orderPayments = orderPaymentPersistencePort.findAllByCustomerUuid(customer.getCustomerUuid(), pageable);
 
-        return orderPayments.map( orderPayment ->  paymentMapper.orderPaymentDetailsInfo(orderPayment, wallet.getBalance()));
+        return orderPayments.map(orderPayment -> paymentMapper.orderPaymentDetailsInfo(orderPayment, wallet.getBalance()));
     }
 
     @Override

@@ -21,6 +21,8 @@ public interface DepositRequestPersistencePort {
 
     List<DepositRequest> findByStatus(DepositStatus status);
 
+    Page<DepositRequest> findAllByStatus(DepositStatus status, Pageable pageable);
+
     List<DepositRequest> saveAllDeposit(List<DepositRequest> depositRequestEntities);
 
     Page<DepositRequest> findByDepositPaymentUuidByStatus(@Param("customerUuid") UUID customerUuid, @Param("bankName") String bankName, @Param("status")DepositStatus status, Pageable pageable);

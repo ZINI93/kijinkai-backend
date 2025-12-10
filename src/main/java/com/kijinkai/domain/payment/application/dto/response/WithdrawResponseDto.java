@@ -34,7 +34,8 @@ public class WithdrawResponseDto {
     String adminMemo;
     String rejectionReason;
 
-    LocalDateTime createAt;
+    LocalDateTime createdAt;
+    LocalDateTime updatedAt;
     BigDecimal afterBalance;
     String type;
 }

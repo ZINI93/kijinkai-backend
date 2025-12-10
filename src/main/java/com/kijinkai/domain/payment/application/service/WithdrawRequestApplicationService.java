@@ -15,10 +15,7 @@ import com.kijinkai.domain.payment.application.port.in.withdraw.UpdateWithdrawUs
 import com.kijinkai.domain.payment.application.port.out.WithdrawPersistenceRequestPort;
 import com.kijinkai.domain.payment.domain.calculator.PaymentCalculator;
 import com.kijinkai.domain.payment.domain.enums.WithdrawStatus;
-import com.kijinkai.domain.payment.domain.exception.PaymentProcessingException;
-import com.kijinkai.domain.payment.domain.exception.WithdrawApprovalException;
-import com.kijinkai.domain.payment.domain.exception.WithdrawRequestNotFoundException;
-import com.kijinkai.domain.payment.domain.exception.WithdrawRequestStatusException;
+import com.kijinkai.domain.payment.domain.exception.*;
 import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
 import com.kijinkai.domain.payment.domain.model.WithdrawRequest;
 import com.kijinkai.domain.payment.domain.util.PaymentContents;
@@ -79,18 +76,33 @@ public class WithdrawRequestApplicationService implements CreateWithdrawUseCase,
         log.info("Creating withdraw request for user uuid: {}", userUuid);
 
         Customer customer = findCustomerByUserUuid(userUuid);
+
         Wallet wallet = findWalletByCustomerUuid(customer.getCustomerUuid());
-        BigDecimal withdrawFee = PaymentContents.WITHDRAWAL_FEE;
+        wallet.isActive(); // 지갑 활성화 상태
+
+        BigDecimal withdrawFee;
+
+        // 요청 금액이 3만엔 이상일 경우 수수료 0, 이하일경우 300엔
+        if (requestDto.getRequestAmount().compareTo(new BigDecimal(30000)) > 0 ){
+            withdrawFee = BigDecimal.ZERO;
+        } else  {
+            withdrawFee = PaymentContents.WITHDRAWAL_FEE;
+        }
+
         ExchangeRateResponseDto exchangeRate = exchangeRateService.getExchangeRateInfoByCurrency(requestDto.getCurrency());
 
-
         BigDecimal convertedAmount = paymentCalculator.calculateWithdrawInJyp(requestDto.getCurrency(), requestDto.getRequestAmount());
+
 
         WithdrawRequest withdrawRequest = paymentFactory.createWithdrawRequest(
                 customer, wallet, requestDto.getRequestAmount(), requestDto.getCurrency(), withdrawFee,
                 requestDto.getBankName(), requestDto.getAccountHolder(), convertedAmount, requestDto.getAccountNumber(), exchangeRate.getRate()
         );
-        withdrawRequest.validateWithdrawEligibility(requestDto);
+        withdrawRequest.validateWithdrawEligibility(requestDto);  // 2만엔 보다 적을시 출금 요청 제한
+
+        if (wallet.getBalance().compareTo(withdrawRequest.getRequestAmount().add(withdrawFee)) <= 0){
+            throw new PaymentAmountException("현재 잔액보다 큰 금액은 출금하지 못합니다.");
+        }
 
         WithdrawRequest savedWithdrawRequest = withdrawPersistenceRequestPort.saveWithdrawRequest(withdrawRequest);
 
@@ -112,6 +124,7 @@ public class WithdrawRequestApplicationService implements CreateWithdrawUseCase,
     public WithdrawResponseDto approveWithdrawRequest(UUID requestUuid, UUID adminUuid, WithdrawRequestDto requestDto) {
         log.info("Start withdraw approval process for request uuid: {}", requestUuid);
 
+        //　관리자 조회 후 검증
         User admin = findUserByUserUuid(adminUuid);
         admin.validateAdminRole();
 

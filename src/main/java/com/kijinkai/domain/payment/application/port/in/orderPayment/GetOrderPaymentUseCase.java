@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.UUID;
 
-public interface GetOderPaymentUseCase {
+public interface GetOrderPaymentUseCase {
     OrderPaymentResponseDto getOrderPaymentInfoByAdmin(UUID adminUuid, UUID paymentUuid);
     OrderPaymentResponseDto getOrderPaymentInfo(UUID userUuid, UUID paymentUuid);
     Page<OrderPaymentResponseDto> getOrderPaymentsByStatusAndType(UUID userUuid, OrderPaymentStatus status, PaymentType paymentType, Pageable pageable);

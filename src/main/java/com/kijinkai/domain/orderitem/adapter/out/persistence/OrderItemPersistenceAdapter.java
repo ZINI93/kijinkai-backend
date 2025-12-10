@@ -75,6 +75,12 @@ public class OrderItemPersistenceAdapter implements OrderItemPersistencePort {
     }
 
     @Override
+    public List<OrderItem> findAllByOrderItemUuidIn(List<UUID> orderItemUuids) {
+        return orderItemRepository.findAllByOrderItemUuidIn(orderItemUuids)
+                .stream().map(orderItemPersistenceMapper::toOrderItem).toList();
+    }
+
+    @Override
     public int findOrderItemCountByStatus(UUID customerUuid, OrderItemStatus orderItemStatus) {
         return orderItemRepository.findOrderItemCountByStatus(customerUuid,orderItemStatus);
     }

@@ -4,14 +4,10 @@ import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPer
 import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.exchange.service.PriceCalculationService;
-import com.kijinkai.domain.order.adapter.out.persistence.entity.OrderJpaEntity;
 import com.kijinkai.domain.order.application.validator.OrderValidator;
 import com.kijinkai.domain.order.domain.model.Order;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
-import com.kijinkai.domain.orderitem.application.dto.OrderItemCountResponseDto;
-import com.kijinkai.domain.orderitem.application.dto.OrderItemRequestDto;
-import com.kijinkai.domain.orderitem.application.dto.OrderItemResponseDto;
-import com.kijinkai.domain.orderitem.application.dto.OrderItemUpdateDto;
+import com.kijinkai.domain.orderitem.application.dto.*;
 import com.kijinkai.domain.orderitem.application.port.in.CreateOrderItemUseCase;
 import com.kijinkai.domain.orderitem.application.port.in.DeleteOrderItemUseCase;
 import com.kijinkai.domain.orderitem.application.port.in.GetOrderItemUseCase;
@@ -25,6 +21,7 @@ import com.kijinkai.domain.orderitem.domain.model.OrderItem;
 import com.kijinkai.domain.payment.application.dto.request.OrderPaymentRequestDto;
 import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidator;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
+import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
 import com.kijinkai.domain.user.domain.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +32,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 
@@ -168,7 +164,7 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
     public OrderItem updateOrderItemByAdmin(UUID userUuid, UUID orderItemUuid, OrderItemUpdateDto updateDto) {
 
         User user = userPersistencePort.findByUserUuid(userUuid)
-                .orElseThrow(() -> new CustomerNotFoundException(String.format("User not found for user uuid: %s")));
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for user uuid: %s", userUuid)));
         user.validateAdminRole();
 
         OrderItem orderItem = findOrderItemByOrderItemUuid(orderItemUuid);
@@ -178,20 +174,41 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
         return orderItem;
     }
 
+    /**
+     * 유저가 구입을 원하는 상품들을 승인처리
+     * @param userUuid
+     * @param requestDto
+     * @return
+     */
     @Override
-    public Optional<OrderItem> approveOrderItemByAdmin() {
-        return Optional.empty();
+    @Transactional
+    public List<OrderItemResponseDto> approveOrderItemByAdmin(UUID userUuid, OrderItemApprovalRequestDto requestDto) {
+
+        //1. 관리자 검증
+        User user = userPersistencePort.findByUserUuid(userUuid)
+                .orElseThrow(() -> new UserNotFoundException(String.format("User not found for user Uuid: %s", userUuid)));
+        user.validateAdminRole();
+
+        List<OrderItem> orderItems = orderItemPersistencePort.findAllByOrderItemUuidIn(requestDto.getOrderItemUuids());
+
+        //2.주문상품들을 구매승인으로 전환
+        orderItems.forEach(OrderItem::approveOrderItem);
+
+        List<OrderItem> savedOrderItems = orderItemPersistencePort.saveAllOrderItem(orderItems);
+
+        return orderItemMapper.toResponseDtoList(savedOrderItems);
     }
 
     @Override
     @Transactional
     public List<OrderItem> firstOrderItemPayment(UUID customerUuid, OrderPaymentRequestDto request, UUID productPaymentUuid) {
+
         List<OrderItem> orderItems = orderItemValidator.validateOrderItems(customerUuid, request.getOrderItemUuids(), OrderItemStatus.PENDING_APPROVAL);
 
-        orderItems.forEach(orderItem -> orderItem.markAsPaymentCompleted(productPaymentUuid));
-
-        List<OrderItem> savedOrderItems = orderItemPersistencePort.saveAllOrderItem(orderItems);
-        return savedOrderItems;
+        for (OrderItem orderItem : orderItems) {
+            orderItem.markAsPaymentCompleted(productPaymentUuid);
+        }
+        return orderItemPersistencePort.saveAllOrderItem(orderItems);
     }
 
     //helper

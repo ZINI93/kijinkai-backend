@@ -10,7 +10,7 @@ import java.util.UUID;
 public interface GetDepositUseCase {
     DepositRequestResponseDto getDepositRequestInfo(UUID requestUuid, UUID userUuid);
     DepositRequestResponseDto getDepositRequestInfoByAdmin(UUID requestUuid, UUID adminUuid);
-    Page<DepositRequestResponseDto> getDepositsByApprovalPending(UUID adminUuid, String depositorName, Pageable pageable);
+    Page<DepositRequestResponseDto> getDepositsByApprovalPendingByAdmin(UUID adminUuid, Pageable pageable);
     Page<DepositRequestResponseDto> getDeposits(UUID userUuid, Pageable pageable);
     List<DepositRequestResponseDto> expireOldRequests();
 }

@@ -55,7 +55,7 @@ public class OrderPaymentJpaEntity extends BaseEntity {
     private String rejectReason;
 
     // 결제 완료 정보
-    @Column(name = "paid_at", nullable = false)
+    @Column(name = "paid_at")
     private LocalDateTime paidAt;
 
     @Column(name = "create_by_admin_uuid", updatable = false)

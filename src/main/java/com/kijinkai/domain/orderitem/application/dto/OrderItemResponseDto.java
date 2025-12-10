@@ -7,6 +7,7 @@ import lombok.Value;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Value
@@ -21,4 +22,8 @@ public class OrderItemResponseDto {
     String memo;
     BigDecimal priceOriginal;
     OrderItemStatus orderItemStatus;
+    LocalDateTime createdAt;
+
+    List<UUID> orderItemUuids;
+
 }

@@ -25,6 +25,8 @@ public interface SpringDataJpaDepositRequestRepository extends JpaRepository<Dep
     @Query("SELECT dr FROM DepositRequestJpaEntity dr WHERE dr.customerUuid = :customerUuid AND dr.status = :status AND (:depositorName IS NULL OR dr.depositorName = :depositorName)")
     Page<DepositRequestJpaEntity> findByCustomerUuidAndBankNameAndStatus(@Param("customerUuid") UUID customerUuid, @Param("depositorName") String depositorName, @Param("status")DepositStatus status, Pageable pageable);
 
+    @Query("SELECT dr FROM DepositRequestJpaEntity dr WHERE dr.status = :status ORDER BY createdAt desc")
+    Page<DepositRequestJpaEntity> findAllByStatus(@Param("status") DepositStatus status, Pageable pageable);
 
     Page<DepositRequestJpaEntity> findAllByCustomerUuid(UUID customerUuid, Pageable pageable);
 

@@ -100,6 +100,7 @@ public class CustomerApplicationService implements CreateCustomerUseCase, GetCus
     @Override
     public CustomerResponseDto getCustomerInfo(UUID userUuid) {
         Customer customer = findCustomerByUserUuid(userUuid);
+
         return customerMapper.toResponse(customer);
     }
 

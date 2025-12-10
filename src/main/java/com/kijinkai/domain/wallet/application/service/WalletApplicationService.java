@@ -100,15 +100,14 @@ public class WalletApplicationService implements CreateWalletUseCase, GetWalletU
         int updateRows = walletPersistencePort.increaseBalanceAtomic(wallet.getWalletUuid(), amount);
         if (updateRows == 0) {
             throw new InsufficientBalanceException("지갑 잔액 충전에 실패했습니다.");
-        }  // doamin로직으로 가는게 좋을듯
+        }
 
         Wallet updateWallet = findWalletByWalletUuid(wallet.getWalletUuid());
-        Wallet savedWallet = walletPersistencePort.saveWallet(updateWallet);
 
 
-        log.info("Successfully deposited {} to wallet: {}. New balance: {}", amount, wallet.getWalletUuid(), savedWallet.getBalance());
+        log.info("Successfully deposited {} to wallet: {}. New balance: {}", amount, wallet.getWalletUuid(), updateWallet.getBalance());
 
-        return walletMapper.toResponse(savedWallet);
+        return walletMapper.toResponse(updateWallet);
     }
 
     /**
@@ -134,10 +133,10 @@ public class WalletApplicationService implements CreateWalletUseCase, GetWalletU
         }
 
         Wallet updateWallet = findWalletByWalletUuid(wallet.getWalletUuid());
-        Wallet saevedWallet = walletPersistencePort.saveWallet(updateWallet);
+
         log.info("Successfully Withdrawal {} to wallet: {}. New balance: {}", amount, wallet.getWalletUuid(), updateWallet.getBalance());
 
-        return walletMapper.toResponse(saevedWallet);
+        return walletMapper.toResponse(updateWallet);
     }
 
     /**

@@ -22,7 +22,6 @@ import com.kijinkai.domain.user.domain.model.UserRole;
 import com.kijinkai.domain.wallet.application.dto.WalletResponseDto;
 import com.kijinkai.domain.wallet.application.port.in.UpdateWalletUseCase;
 import com.kijinkai.domain.wallet.application.port.out.WalletPersistencePort;
-import com.kijinkai.domain.wallet.application.service.WalletApplicationService;
 import com.kijinkai.domain.wallet.domain.model.Wallet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,7 +33,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -205,7 +203,7 @@ class DepositRequestApplicationServiceTest {
         when(depositRequestPersistencePort.findByDepositPaymentUuidByStatus(customer.getCustomerUuid(), depositRequestDto.getDepositorName(), DepositStatus.PENDING_ADMIN_APPROVAL, pageable)).thenReturn(mockPage);
 
         //when
-        Page<DepositRequestResponseDto> result = depositRequestApplicationService.getDepositsByApprovalPending(user.getUserUuid(), depositRequest.getDepositorName(), pageable);
+        Page<DepositRequestResponseDto> result = depositRequestApplicationService.getDepositsByApprovalPendingByAdmin(user.getUserUuid(), depositRequest.getDepositorName(), pageable);
 
         //then
         assertThat(result.getTotalElements()).isEqualTo(1);

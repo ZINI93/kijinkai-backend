@@ -18,16 +18,15 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class DepositRequest {
 
-    private Long depositRequestId;
-    private UUID requestUuid;
-    private UUID customerUuid;
-    private UUID walletUuid;
+    private Long depositRequestId;  // 식별자
+    private UUID requestUuid; // 입금 식별자
+    private UUID customerUuid; // 고객 식별자
+    private UUID walletUuid; // 지갑 식별자
     private BigDecimal amountOriginal;
     private Currency currencyOriginal;
     private BigDecimal amountConverted;
     private BigDecimal exchangeRate;
     private String depositorName;
-    private String bankAccount;
     private DepositStatus status;
     private LocalDateTime expiresAt;
     private UUID processedByAdminUuid;
@@ -57,7 +56,7 @@ public class DepositRequest {
         this.status = DepositStatus.APPROVED;
         this.processedByAdminUuid = adminUuid;
         this.processedAt = LocalDateTime.now();
-        this.adminMemo = memo;
+        this.adminMemo = memo == null ? "특이사항 없음" : memo;
     }
 
     public void reject(UUID adminUuid, String reason) {

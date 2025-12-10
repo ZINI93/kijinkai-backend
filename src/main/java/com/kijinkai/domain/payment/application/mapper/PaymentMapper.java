@@ -31,7 +31,6 @@ public class PaymentMapper {
                 .amountConverted(request.getAmountConverted())
                 .exchangeRate(request.getExchangeRate())
                 .depositorName(request.getDepositorName())
-                .bankAccount(request.getBankAccount())
                 .expiresAt(request.getExpiresAt())
                 .processedByAdmin(request.getProcessedByAdminUuid())
                 .processedAt(request.getProcessedAt())
@@ -51,12 +50,12 @@ public class PaymentMapper {
                 .amountConverted(request.getAmountConverted())
                 .exchangeRate(request.getExchangeRate())
                 .depositorName(request.getDepositorName())
-                .bankAccount(request.getBankAccount())
                 .expiresAt(request.getExpiresAt())
                 .processedByAdmin(request.getProcessedByAdminUuid())
                 .processedAt(request.getProcessedAt())
                 .adminMemo(request.getAdminMemo())
                 .rejectionReason(request.getRejectionReason())
+                .type("입금")
                 .build();
     }
 
@@ -71,7 +70,6 @@ public class PaymentMapper {
                 .amountConverted(request.getAmountConverted())
                 .exchangeRate(request.getExchangeRate())
                 .depositorName(request.getDepositorName())
-                .bankAccount(request.getBankAccount())
                 .expiresAt(request.getExpiresAt())
                 .processedByAdmin(request.getProcessedByAdminUuid())
                 .processedAt(request.getProcessedAt())
@@ -284,6 +282,25 @@ public class PaymentMapper {
     }
 
 
+    public DepositRequestResponseDto depositInfo(DepositRequest depositRequest){
+
+        return DepositRequestResponseDto.builder()
+                .requestUuid(depositRequest.getRequestUuid())
+                .customerUuid(depositRequest.getCustomerUuid())
+                .amountConverted(depositRequest.getAmountConverted())
+                .status(depositRequest.getStatus())
+                .adminMemo(depositRequest.getAdminMemo())
+                .exchangeRate(depositRequest.getExchangeRate())
+                .amountOriginal(depositRequest.getAmountOriginal())
+                .depositorName(depositRequest.getDepositorName())
+                .processedByAdmin(depositRequest.getProcessedByAdminUuid())
+                .processedAt(depositRequest.getProcessedAt())
+                .createAt(depositRequest.getCreatedAt())
+                .type("입금")
+                .build();
+    }
+
+
     public WithdrawResponseDto withdrawDetailsInfo(WithdrawRequest withdrawRequest, BigDecimal walletBalance){
 
         return WithdrawResponseDto.builder()
@@ -292,7 +309,8 @@ public class PaymentMapper {
                 .requestAmount(withdrawRequest.getRequestAmount())
                 .status(withdrawRequest.getStatus())
                 .processedAt(withdrawRequest.getProcessedAt())
-                .createAt(withdrawRequest.getCreatedAt())
+                .createdAt(withdrawRequest.getCreatedAt())
+                .updatedAt(withdrawRequest.getUpdatedAt())
                 .afterBalance(walletBalance.subtract(withdrawRequest.getRequestAmount()))
                 .type("출금")
                 .build();

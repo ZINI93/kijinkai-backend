@@ -24,6 +24,8 @@ public interface OrderItemRepository extends JpaRepository<OrderItemJpaEntity, L
     Page<OrderItemJpaEntity> findAllByCustomerUuidAndOrderItemStatusOrderByOrderCreatedAtDesc(UUID customerUuid, OrderItemStatus status, Pageable pageable);
 
     List<OrderItemJpaEntity> findByOrderItemUuidInAndCustomerUuid(List<UUID> orderItemUuids, UUID customerUuid);
+    List<OrderItemJpaEntity> findAllByOrderItemUuidIn(List<UUID> orderItemUuids);
+
 
     @Query("SELECT COUNT(oi) FROM OrderItemJpaEntity oi WHERE oi.customerUuid = :customerUuid AND oi.orderItemStatus = :orderItemStatus ORDER BY oi.createdAt DESC")
     int findOrderItemCountByStatus(@Param("customerUuid") UUID customerUuid, @Param("orderItemStatus") OrderItemStatus orderItemStatus);

@@ -17,6 +17,7 @@ import com.kijinkai.domain.wallet.domain.model.Wallet;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Component
@@ -45,16 +46,20 @@ public class PaymentFactory {
             BigDecimal exchangeRate) {
 
         return WithdrawRequest.builder()
+                .requestUuid(UUID.randomUUID())
                 .customerUuid(customer.getCustomerUuid())
+                .status(WithdrawStatus.PENDING_ADMIN_APPROVAL)
                 .walletUuid(wallet.getWalletUuid())
                 .requestAmount(requestAmount)
                 .withdrawFee(withdrawFee)
                 .targetCurrency(tagetCurrency)
                 .exchangeRate(exchangeRate)
+                .totalDeductAmount(requestAmount.add(withdrawFee))
                 .convertedAmount(convertedAmount)
                 .accountNumber(accountNumber)
                 .bankName(bankName)
                 .accountHolder(accountHolder)
+                .expiresAt(LocalDateTime.now().plusDays(3))
                 .build();
     }
 
@@ -75,14 +80,16 @@ public class PaymentFactory {
     }
 
     public OrderPayment createOrderFirstPayment(
-            Customer customer, Wallet wallet) {
+            Customer customer, Wallet wallet, UUID adminUuid) {
         return OrderPayment.builder()
+                .paymentUuid(UUID.randomUUID())
                 .customerUuid(customer.getCustomerUuid())
                 .walletUuid(wallet.getWalletUuid())
                 .paymentAmount(BigDecimal.ZERO)
                 .paymentType(PaymentType.PRODUCT_PAYMENT)
                 .orderPaymentStatus(OrderPaymentStatus.COMPLETED)
                 .paymentOrder(PaymentOrder.FIRST)
+                .createdByAdminUuid(adminUuid)
                 .build();
     }
     public OrderPayment createOrderSecondPayment(

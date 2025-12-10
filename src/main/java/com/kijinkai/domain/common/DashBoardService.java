@@ -1,23 +1,25 @@
 package com.kijinkai.domain.common;
 
 
-import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
-import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
-import com.kijinkai.domain.customer.adapter.out.persistence.repository.CustomerRepository;
+import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPersistencePort;
+import com.kijinkai.domain.customer.domain.model.Customer;
+import com.kijinkai.domain.delivery.application.out.DeliveryPersistencePort;
 import com.kijinkai.domain.delivery.domain.model.DeliveryStatus;
-import com.kijinkai.domain.delivery.adpater.out.persistence.repository.DeliveryRepository;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
-import com.kijinkai.domain.orderitem.adapter.out.persistence.repostiory.OrderItemRepository;
+import com.kijinkai.domain.orderitem.application.port.out.OrderItemPersistencePort;
 import com.kijinkai.domain.payment.application.port.out.OrderPaymentPersistencePort;
 import com.kijinkai.domain.payment.domain.enums.OrderPaymentStatus;
 import com.kijinkai.domain.payment.domain.enums.PaymentType;
-import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
+import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
+import com.kijinkai.domain.wallet.application.port.out.WalletPersistencePort;
 import com.kijinkai.domain.wallet.domain.exception.WalletNotFoundException;
-import com.kijinkai.domain.wallet.adapter.out.persistence.repository.WalletRepository;
+import com.kijinkai.domain.wallet.domain.model.Wallet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.UUID;
 
 @Transactional(readOnly = true)
@@ -25,39 +27,52 @@ import java.util.UUID;
 @Service
 public class DashBoardService {
 
-
-    private final CustomerRepository customerRepository;
+    private final CustomerPersistencePort customerPersistencePort;
+    private final WalletPersistencePort walletPersistencePort;
     private final OrderPaymentPersistencePort orderPaymentPersistencePort;
-    private final DeliveryRepository deliveryRepository;
-    private final WalletRepository walletRepository;
-    private final OrderItemRepository orderItemRepository;
 
+    private final DeliveryPersistencePort deliveryPersistencePort;
+    private final OrderItemPersistencePort orderItemPersistencePort;
 
     private final DashBoardMapper dashBoardMapper;
 
 
-
+    /**
+     * 메인 화면 dashboard
+     * 문제 - customer 가 있어야 등록이 보임 등록이 되어 있지 않아도 화면을 볼수 있어야 함
+     * @param userUuid
+     * @return
+     */
     public DashBoardCountResponseDto  getDashboardCount(UUID userUuid){
 
-        CustomerJpaEntity customerJpaEntity = customerRepository.findByUserUuid(userUuid)
-                .orElseThrow(() -> new CustomerNotFoundException(""));
+        Optional<Customer> customerOpt = customerPersistencePort.findByUserUuid(userUuid);
+//                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found exception for user uuid: %s", userUuid)));
 
-        WalletJpaEntity wallet = walletRepository.findByCustomerUuid(customerJpaEntity.getCustomerUuid())
-                .orElseThrow(() -> new WalletNotFoundException(""));
+        if (customerOpt.isEmpty()) {
+            // Customer 미등록 상태 — 빈 대시보드 반환
+            return dashBoardMapper.getDashboardCountResponse(
+                    BigDecimal.ZERO,
+                    0, 0, 0, 0, 0,
+                    0, 0, 0, 0
+            );
+        }
 
-        int shippedCount = deliveryRepository.findByDeliveryStatusCount(customerJpaEntity.getCustomerUuid(), DeliveryStatus.SHIPPED);
-        int deliveredCount = deliveryRepository.findByDeliveryStatusCount(customerJpaEntity.getCustomerUuid(), DeliveryStatus.DELIVERED);
+        Customer customer = customerOpt.get();
 
+        Wallet wallet = walletPersistencePort.findByCustomerUuid(customer.getCustomerUuid())
+                .orElseThrow(() -> new WalletNotFoundException(String.format("Wallet not found exception for user uuid: %s", userUuid)));
 
-        int firstCompleted = orderPaymentPersistencePort.findByOrderPaymentStatusCount(customerJpaEntity.getCustomerUuid(), OrderPaymentStatus.COMPLETED, PaymentType.PRODUCT_PAYMENT);
-        int secondPending = orderPaymentPersistencePort.findByOrderPaymentStatusCount(customerJpaEntity.getCustomerUuid(), OrderPaymentStatus.PENDING, PaymentType.SHIPPING_PAYMENT);
-        int secondCompleted = orderPaymentPersistencePort.findByOrderPaymentStatusCount(customerJpaEntity.getCustomerUuid(), OrderPaymentStatus.COMPLETED, PaymentType.SHIPPING_PAYMENT);
+        int shippedCount = deliveryPersistencePort.findByDeliveryStatusCount(customer.getCustomerUuid(), DeliveryStatus.SHIPPED);
+        int deliveredCount = deliveryPersistencePort.findByDeliveryStatusCount(customer.getCustomerUuid(), DeliveryStatus.DELIVERED);
 
+        int firstCompleted = orderPaymentPersistencePort.findByOrderPaymentStatusCount(customer.getCustomerUuid(), OrderPaymentStatus.COMPLETED, PaymentType.PRODUCT_PAYMENT);
+        int secondPending = orderPaymentPersistencePort.findByOrderPaymentStatusCount(customer.getCustomerUuid(), OrderPaymentStatus.PENDING, PaymentType.SHIPPING_PAYMENT);
+        int secondCompleted = orderPaymentPersistencePort.findByOrderPaymentStatusCount(customer.getCustomerUuid(), OrderPaymentStatus.COMPLETED, PaymentType.SHIPPING_PAYMENT);
 
-        int orderItemPendingCount = orderItemRepository.findOrderItemCountByStatus(customerJpaEntity.getCustomerUuid(), OrderItemStatus.PENDING);
-        int orderItemPendingApprovalCount = orderItemRepository.findOrderItemCountByStatus(customerJpaEntity.getCustomerUuid(), OrderItemStatus.PENDING_APPROVAL);
-        int orderItemProductPaymentCompletedCount = orderItemRepository.findOrderItemCountByStatus(customerJpaEntity.getCustomerUuid(), OrderItemStatus.PRODUCT_PAYMENT_COMPLETED);
-        int orderItemAllCount = orderItemRepository.findOrderItemCount(customerJpaEntity.getCustomerUuid());
+        int orderItemPendingCount = orderItemPersistencePort.findOrderItemCountByStatus(customer.getCustomerUuid(), OrderItemStatus.PENDING);
+        int orderItemPendingApprovalCount = orderItemPersistencePort.findOrderItemCountByStatus(customer.getCustomerUuid(), OrderItemStatus.PENDING_APPROVAL);
+        int orderItemProductPaymentCompletedCount = orderItemPersistencePort.findOrderItemCountByStatus(customer.getCustomerUuid(), OrderItemStatus.PRODUCT_PAYMENT_COMPLETED);
+        int orderItemAllCount = orderItemPersistencePort.findOrderItemCount(customer.getCustomerUuid());
 
 
         return dashBoardMapper.getDashboardCountResponse(wallet.getBalance(), shippedCount,deliveredCount, firstCompleted, secondPending ,secondCompleted,

@@ -46,22 +46,27 @@ public class WalletPersistenceAdapter implements WalletPersistencePort {
 
     @Override
     public Optional<Wallet> findByWalletId(Long walletId) {
-        return Optional.empty();
+        return walletRepository.findByWalletId(walletId)
+                .map(walletPersistenceMapper::toWallet);
     }
 
     @Override
     public Optional<Wallet> findByWalletUuid(UUID walletUuid) {
-        return Optional.empty();
+        return walletRepository.findByWalletUuid(walletUuid)
+                .map(walletPersistenceMapper::toWallet);
     }
 
     @Override
     public Optional<Wallet> findByCustomerUuidAndWalletUuid(UUID customerUuid, UUID walletUuid) {
-        return Optional.empty();
+        return walletRepository.findByCustomerUuidAndWalletUuid(customerUuid,walletUuid)
+                .map(walletPersistenceMapper::toWallet);
     }
 
     @Override
     public Optional<Wallet> findByCustomerUuid(UUID customerUuid) {
-        return Optional.empty();
+        return walletRepository.findByCustomerUuid(customerUuid)
+                .map(walletPersistenceMapper::toWallet);
+
     }
 }
 

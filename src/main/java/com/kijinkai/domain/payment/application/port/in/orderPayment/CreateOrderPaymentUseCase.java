@@ -5,6 +5,6 @@ import com.kijinkai.domain.payment.application.dto.response.OrderPaymentResponse
 
 import java.util.UUID;
 
-public interface CreateOderPaymentUseCase {
+public interface CreateOrderPaymentUseCase {
     OrderPaymentResponseDto createSecondPayment(UUID adminUuid, OrderPaymentRequestDto requestDto);
 }

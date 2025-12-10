@@ -49,6 +49,12 @@ public class DepositRequestPersistencePersistenceAdapter implements DepositReque
     }
 
     @Override
+    public Page<DepositRequest> findAllByStatus(DepositStatus status, Pageable pageable) {
+        return springDataJpaDepositRequestRepository.findAllByStatus(status, pageable)
+                .map(depositRequestPersistenceMapper::toDepositRequest);
+    }
+
+    @Override
     public List<DepositRequest> saveAllDeposit(List<DepositRequest> depositRequestEntities) {
         List<DepositRequestJpaEntity> depositRequestsJpaEntity = depositRequestPersistenceMapper.toDepositRequestsJpaEntity(depositRequestEntities);
         return springDataJpaDepositRequestRepository.saveAll(depositRequestsJpaEntity)

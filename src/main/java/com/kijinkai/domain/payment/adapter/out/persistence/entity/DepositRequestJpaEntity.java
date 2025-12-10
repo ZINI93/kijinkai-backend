@@ -57,9 +57,6 @@ public class DepositRequestJpaEntity extends BaseEntity {
     @Column(name = "depositor_name", nullable = false, length = 100)
     private String depositorName;
 
-    @Column(name = "bank_account", length = 50, nullable = false)
-    private String bankAccount;
-
     // 상태 관리
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 30)

@@ -2,6 +2,7 @@ package com.kijinkai.domain.orderitem.adapter.in.web;
 
 
 import com.kijinkai.domain.common.BasicResponseDto;
+import com.kijinkai.domain.orderitem.application.dto.OrderItemApprovalRequestDto;
 import com.kijinkai.domain.orderitem.application.dto.OrderItemCountResponseDto;
 import com.kijinkai.domain.orderitem.application.dto.OrderItemResponseDto;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
@@ -13,7 +14,9 @@ import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -39,6 +43,23 @@ public class OrderItemApiController {
     private final GetOrderItemUseCase getOrderItemUseCase;
     private final UpdateOrderItemUseCase updateOrderItemUseCase;
     private final DeleteOrderItemUseCase deleteOrderItemUseCase;
+
+
+    @PostMapping("/admin/approve")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "상품 승인 처리 성공"),
+            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "상품을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<List<OrderItemResponseDto>>> approveOrderItemByAdmin(
+            Authentication authentication,
+            @RequestBody  OrderItemApprovalRequestDto orderItemApprovalRequestDto
+    ) {
+        UUID userUuid = getUserUuid(authentication);
+        List<OrderItemResponseDto> response = updateOrderItemUseCase.approveOrderItemByAdmin(userUuid, orderItemApprovalRequestDto);
+        return ResponseEntity.ok(BasicResponseDto.success("Successfully approved order item ", response));
+    }
 
 
     @GetMapping("/list")
@@ -142,6 +163,7 @@ public class OrderItemApiController {
 
         return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved platform information", orderItems));
     }
+
 
     @DeleteMapping("{orderUuid}")
     @Operation(summary = "delete order item", description = "delete order item")

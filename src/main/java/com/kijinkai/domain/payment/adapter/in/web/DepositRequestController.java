@@ -155,7 +155,6 @@ public class DepositRequestController {
             @ApiResponse(responseCode = "500", description = "서버오류")
     })
     public ResponseEntity<BasicResponseDto<Page<DepositRequestResponseDto>>> getDepositRequestByPending(
-            @RequestParam(required = false) String depositorName,
             @PageableDefault(size = 20, page = 0) Pageable pageable,
             Authentication authentication
     ) {
@@ -164,7 +163,7 @@ public class DepositRequestController {
         log.info("Deposits request retrieved by admin - admin: {}", userUuid);
 
         try {
-            Page<DepositRequestResponseDto> response = getDepositUseCase.getDepositsByApprovalPending(userUuid, depositorName, pageable);
+            Page<DepositRequestResponseDto> response = getDepositUseCase.getDepositsByApprovalPendingByAdmin(userUuid, pageable);
 
             return createSuccessResponse(DEPOSIT_RETRIEVED_SUCCESS, response);
         } catch (Exception e) {

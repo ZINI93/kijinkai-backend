@@ -139,23 +139,24 @@ public class DepositRequestApplicationService implements CreateDepositUseCase, G
     }
 
     /**
-     * 유저 - 대기중인 거래의 내역 조회
+     * 관리자 - 대기중인 거래의 내역 조회
+     * 유저 검색 -> 관리자 권한 부여 -> Pending 상태의 거래를 page로 조회
      * @param userUuid
-     * @param depositorName
      * @param pageable
      * @return
      */
     @Override
-    public Page<DepositRequestResponseDto> getDepositsByApprovalPending(UUID userUuid, String depositorName, Pageable pageable) {
+    public Page<DepositRequestResponseDto> getDepositsByApprovalPendingByAdmin(UUID userUuid, Pageable pageable) {
 
-        Customer customer = findCustomerByUserUuid(userUuid);
+        User admin = findUserByUserUuid(userUuid);
+        admin.validateAdminRole();
 
-        Wallet wallet = findWalletByCustomerUuid(customer.getCustomerUuid());
+        Page<DepositRequest> depositRequestsByPendingAdminApproval = depositRequestPersistencePort.findAllByStatus(DepositStatus.PENDING_ADMIN_APPROVAL, pageable);
 
-        Page<DepositRequest> depositRequests = depositRequestPersistencePort.findByDepositPaymentUuidByStatus(customer.getCustomerUuid(), depositorName, DepositStatus.PENDING_ADMIN_APPROVAL, pageable);
-
-        return depositRequests.map(depositRequest -> paymentMapper.depositDetailsInfo(depositRequest, wallet.getBalance()));
+        return depositRequestsByPendingAdminApproval.map(paymentMapper::depositInfo);
     }
+
+
 
     @Override
     public Page<DepositRequestResponseDto> getDeposits(UUID userUuid, Pageable pageable) {
@@ -218,6 +219,7 @@ public class DepositRequestApplicationService implements CreateDepositUseCase, G
             log.info("Completed deposit approval process for request uuid: {} , charged amount: {}", requestUuid, depositRequest.getAmountConverted());
 
             return paymentMapper.approveDepositResponse(savedRequest, wallet);
+
         } catch (InsufficientBalanceException e) {
             log.error("Insufficient balance for deposit approval: {}", requestUuid, e);
             depositRequest.markAsFailed("잔액 부족: " + e.getMessage());
