@@ -25,7 +25,6 @@ public class OrderItemFactory {
                 .productLink(requestDto.getProductLink())
                 .quantity(requestDto.getQuantity())
                 .priceOriginal(requestDto.getPriceOriginal())
-                .priceConverted(convertedPrice)
                 .currencyOriginal(Currency.JPY)
                 .orderItemStatus(OrderItemStatus.PENDING)
                 .memo(requestDto.getMemo())

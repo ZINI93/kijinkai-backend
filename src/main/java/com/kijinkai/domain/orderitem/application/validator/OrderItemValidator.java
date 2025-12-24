@@ -19,7 +19,6 @@ import java.util.UUID;
 @Component
 public class OrderItemValidator {
 
-    private final OrderItemPersistencePort orderItemPersistencePort;
 
     public void validateCreateRequest(String userUuid, OrderItemRequestDto dto) {
         if (dto.getQuantity() <= 0) throw new IllegalArgumentException("수량은 1 이상이어야 합니다.");
@@ -51,13 +50,12 @@ public class OrderItemValidator {
     /**
      * 주문 아이템 유효성 검사
      */
-    public List<OrderItem> validateOrderItems(UUID customerUuid, List<UUID> orderItemUuids, OrderItemStatus orderItemStatus) {
+    public void validateOrderItems(List<OrderItem> orderItems, List<UUID> orderItemUuids, OrderItemStatus orderItemStatus) {
 
         if (orderItemUuids == null || orderItemUuids.isEmpty()) {
             throw new IllegalArgumentException("결제할 주문 아이템을 선택해주세요.");
         }
 
-        List<OrderItem> orderItems = orderItemPersistencePort.findByOrderItemUuidInAndCustomerUuid(orderItemUuids, customerUuid);
 
         // 요청한 수량과 조회된 수량 비교
         if (orderItems.size() != orderItemUuids.size()) {
@@ -76,6 +74,5 @@ public class OrderItemValidator {
             throw new IllegalStateException("결제할 수 없는 상태의 주문이 포함되어 있습니다.");
         }
 
-        return orderItems;
     }
 }

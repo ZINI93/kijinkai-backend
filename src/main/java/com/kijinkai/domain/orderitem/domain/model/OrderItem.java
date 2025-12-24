@@ -10,7 +10,6 @@ import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -19,20 +18,15 @@ import java.util.UUID;
 public class OrderItem {
 
     private Long orderItemId;
-    private Order order;
-
     private UUID orderItemUuid;
     private UUID customerUuid;
+    private Order order;
     private UUID productPaymentUuid;
     private UUID deliveryFeePaymentUuid;
-
     private String productLink;
     private int quantity;
     private BigDecimal priceOriginal;
-    private BigDecimal priceConverted;
     private Currency currencyOriginal; //JYP
-    private Currency currencyConverted;
-    private BigDecimal exchangeRate;
     private String memo;
     private OrderItemStatus orderItemStatus;
 
@@ -78,6 +72,10 @@ public class OrderItem {
 
     public void markAsPaymentCompleted(UUID fristproductPaymentUuid) {
         this.productPaymentUuid = fristproductPaymentUuid;
+    }
+
+
+    public void  changeStatusToProductPaymentCompleted(){
         this.orderItemStatus = OrderItemStatus.PRODUCT_PAYMENT_COMPLETED;
     }
 

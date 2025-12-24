@@ -89,16 +89,6 @@ public class OrderItemPersistenceAdapter implements OrderItemPersistencePort {
     public int findOrderItemCount(UUID customerUuid) {
         return orderItemRepository.findOrderItemCount(customerUuid);
     }
-
-    @Override
-    public List<OrderItem> firstOrderItemPayment(UUID customerUuid, OrderPaymentRequestDto request, UUID productPaymentUuid) {
-        return List.of();
-    }
-
-    @Override
-    public List<OrderItem> secondOrderItemPayment(UUID customerUuid, OrderPaymentRequestDto request, UUID deliveryPaymentUuid) {
-        return List.of();
-    }
 }
 
 

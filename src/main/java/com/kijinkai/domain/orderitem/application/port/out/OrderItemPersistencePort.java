@@ -29,9 +29,4 @@ public interface OrderItemPersistencePort {
     int findOrderItemCountByStatus(@Param("customerUuid") UUID customerUuid, @Param("orderItemStatus") OrderItemStatus orderItemStatus);
     int findOrderItemCount(@Param("customerUuid") UUID customerUuid);
 
-
-    List<OrderItem> firstOrderItemPayment(UUID customerUuid, OrderPaymentRequestDto request, UUID productPaymentUuid);
-    List<OrderItem> secondOrderItemPayment(UUID customerUuid, OrderPaymentRequestDto request, UUID deliveryPaymentUuid);
-
-
 }

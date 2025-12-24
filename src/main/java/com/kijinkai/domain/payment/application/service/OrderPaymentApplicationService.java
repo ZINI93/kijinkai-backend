@@ -3,6 +3,8 @@ package com.kijinkai.domain.payment.application.service;
 import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPersistencePort;
 import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.domain.model.Customer;
+import com.kijinkai.domain.orderitem.application.port.in.CreateOrderItemUseCase;
+import com.kijinkai.domain.orderitem.application.port.in.UpdateOrderItemUseCase;
 import com.kijinkai.domain.orderitem.application.port.out.OrderItemPersistencePort;
 import com.kijinkai.domain.orderitem.domain.exception.OrderItemNotFoundException;
 import com.kijinkai.domain.orderitem.domain.model.OrderItem;
@@ -57,10 +59,13 @@ public class OrderPaymentApplicationService implements CreateOrderPaymentUseCase
     private final CustomerPersistencePort customerPersistencePort;
     private final WalletPersistencePort walletPersistencePort;
     private final OrderItemPersistencePort orderItemPersistencePort;
+    private final OrderPaymentPersistencePort orderPaymentPersistencePort;
     private final UserPersistencePort userPersistencePort;
 
+    private final UpdateOrderItemUseCase updateOrderItemUseCase;
     private final UpdateWalletUseCase updateWalletUseCase;
-    private final OrderPaymentPersistencePort orderPaymentPersistencePort;
+    private final CreateOrderItemUseCase createOrderItemUseCase;
+
     private final PaymentFactory paymentFactory;
 
     private final PaymentMapper paymentMapper;
@@ -86,11 +91,16 @@ public class OrderPaymentApplicationService implements CreateOrderPaymentUseCase
         OrderPayment orderPayment = paymentFactory.createOrderFirstPayment(customer, findWallet, userUuid);
         OrderPayment savedOrderPayment = orderPaymentPersistencePort.saveOrderPayment(orderPayment);
 
-        List<OrderItem> orderItems = orderItemPersistencePort.firstOrderItemPayment(customer.getCustomerUuid(), requestDto, savedOrderPayment.getPaymentUuid());orderItemPersistencePort.saveAllOrderItem(orderItems);
+        List<OrderItem> orderItems = updateOrderItemUseCase.firstOrderItemPayment(customer.getCustomerUuid(), requestDto, savedOrderPayment.getPaymentUuid());
+
 
         //총 결제 금액 계산
         BigDecimal totalPrice = orderItems.stream().map(OrderItem::getPriceOriginal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (totalPrice.equals(BigDecimal.ZERO)) {
+            throw new PaymentProcessingException("0원을 지불 할 수 없습니다.");
+        }
 
         //로깅
         orderItems.forEach(item -> {
@@ -107,9 +117,8 @@ public class OrderPaymentApplicationService implements CreateOrderPaymentUseCase
                     totalPrice
             );
 
-
-
             orderPayment.updateTotalAmount(totalPrice);
+
 
             return paymentMapper.completeOrderPayment(savedOrderPayment, walletResponseDto);
         } catch (OptimisticLockException e) {
@@ -125,7 +134,7 @@ public class OrderPaymentApplicationService implements CreateOrderPaymentUseCase
 
     /**
      * 관리자가 생성
-     * 상품에 대한 배송비 결제
+     * 상품에 대한 배송비 결제 요청
      * 유저 상품 상태변경, 그리고 요청 금액만 제시하면 될것 같으니까 리팩토링으로 간소화 시키고, 유저가 결제 할때 지갑, 등등을 검증하면 좋을것 같음
      * orderitem 에서 가져올 유저 wallet uuid를 일단 넣고, 나중에, 결제할때 검증용으로 쓰는게 더 안전할거 같기는한데,...
      *
@@ -151,9 +160,8 @@ public class OrderPaymentApplicationService implements CreateOrderPaymentUseCase
 
         OrderPayment orderPayment = paymentFactory.createOrderSecondPayment(customer, requestDto.getDeliveryFee(), wallet, admin.getUserUuid());
 
-
         OrderPayment savedOrderPayment = orderPaymentPersistencePort.saveOrderPayment(orderPayment);
-        orderItemPersistencePort.secondOrderItemPayment(orderItem.getCustomerUuid(), requestDto, savedOrderPayment.getPaymentUuid());
+        createOrderItemUseCase.secondOrderItemPayment(orderItem.getCustomerUuid(), requestDto, savedOrderPayment.getPaymentUuid());
 
         return paymentMapper.createOrderPayment(savedOrderPayment);
     }

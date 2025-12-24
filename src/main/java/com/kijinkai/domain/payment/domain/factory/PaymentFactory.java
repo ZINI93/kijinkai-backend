@@ -95,8 +95,10 @@ public class PaymentFactory {
     public OrderPayment createOrderSecondPayment(
             Customer customer, BigDecimal paymentAmount, com.kijinkai.domain.wallet.domain.model.Wallet wallet, UUID adminUuid) {
         return OrderPayment.builder()
+                .paymentUuid(UUID.randomUUID())
                 .customerUuid(customer.getCustomerUuid())
                 .paymentType(PaymentType.SHIPPING_PAYMENT)
+                .paymentOrder(PaymentOrder.SECOND)
                 .walletUuid(wallet.getWalletUuid())
                 .orderPaymentStatus(OrderPaymentStatus.PENDING)
                 .paymentAmount(paymentAmount)

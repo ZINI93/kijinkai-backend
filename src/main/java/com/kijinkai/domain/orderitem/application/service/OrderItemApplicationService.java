@@ -75,7 +75,9 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
     @Override
     @Transactional
     public List<OrderItem> secondOrderItemPayment(UUID customerUuid, OrderPaymentRequestDto request, UUID deliveryPaymentUuid) {
-        List<OrderItem> orderItems = orderItemValidator.validateOrderItems(customerUuid, request.getOrderItemUuids(), OrderItemStatus.PRODUCT_PAYMENT_COMPLETED);
+
+        List<OrderItem> orderItems = orderItemPersistencePort.findAllByOrderItemUuidIn(request.getOrderItemUuids());
+        orderItemValidator.validateOrderItems(orderItems, request.getOrderItemUuids(), OrderItemStatus.PRODUCT_PAYMENT_COMPLETED);
         orderItems.forEach(orderItem -> orderItem.markAsDeliveryPaymentRequest(deliveryPaymentUuid));
         return orderItemPersistencePort.saveAllOrderItem(orderItems);
     }
@@ -199,15 +201,26 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
         return orderItemMapper.toResponseDtoList(savedOrderItems);
     }
 
+    /**
+     * 첫번째 결제에 상품에 대한 완료 처리, 검증
+     * @param customerUuid
+     * @param request
+     * @param productPaymentUuid
+     * @return
+     */
     @Override
     @Transactional
     public List<OrderItem> firstOrderItemPayment(UUID customerUuid, OrderPaymentRequestDto request, UUID productPaymentUuid) {
 
-        List<OrderItem> orderItems = orderItemValidator.validateOrderItems(customerUuid, request.getOrderItemUuids(), OrderItemStatus.PENDING_APPROVAL);
+        // 검증 절차
+        List<OrderItem> orderItems = orderItemPersistencePort.findAllByOrderItemUuidIn(request.getOrderItemUuids());
+        orderItemValidator.validateOrderItems(orderItems, request.getOrderItemUuids(), OrderItemStatus.PENDING_APPROVAL);
 
-        for (OrderItem orderItem : orderItems) {
-            orderItem.markAsPaymentCompleted(productPaymentUuid);
-        }
+        // 각각 순회하면서 완료로 상태 변경
+        orderItems.forEach(OrderItem::changeStatusToProductPaymentCompleted);
+        orderItems.forEach((orderItem -> orderItem.markAsPaymentCompleted(productPaymentUuid)));
+
+        // 저장
         return orderItemPersistencePort.saveAllOrderItem(orderItems);
     }
 
