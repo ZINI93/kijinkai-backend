@@ -4,8 +4,10 @@ import com.kijinkai.domain.user.application.dto.UserRequestDto;
 import com.kijinkai.domain.user.application.dto.UserUpdateDto;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.exception.InvalidUserDataException;
+import com.kijinkai.domain.user.domain.exception.InvalidUserStatusException;
 import com.kijinkai.domain.user.domain.exception.UserUpdateException;
 import com.kijinkai.domain.user.domain.model.User;
+import com.kijinkai.domain.user.domain.model.UserStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -43,12 +45,16 @@ public class UserValidator {
 
     }
 
+
+    // 비밀번호에 대한 검증
     private void validatePassword(String password){
         if (password == null || password.trim().isEmpty() || password.length() < 8){
             throw new InvalidUserDataException("Password is required");
         }
 
     }
+
+    // 닉네임에 대한 검증
     private void validateNickname(String nickName){
         if (nickName == null || nickName.trim().isEmpty()){
             throw new InvalidUserDataException("Nickname is required");

@@ -2,6 +2,7 @@ package com.kijinkai.domain.user.adapter.out.persistence.entity;
 
 
 import com.kijinkai.domain.common.BaseEntity;
+import com.kijinkai.domain.user.domain.model.SocialProviderType;
 import com.kijinkai.domain.user.domain.model.UserRole;
 import com.kijinkai.domain.user.domain.model.UserStatus;
 import jakarta.persistence.*;
@@ -49,5 +50,13 @@ public class UserJpaEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "user_status", nullable = false)
     private UserStatus userStatus;
+
+    //social 추가
+    @Column(name = "is_social", nullable = false, updatable = false)
+    private Boolean isSocial;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "social_provider_type", updatable = false)
+    private SocialProviderType socialProviderType;
 
 }

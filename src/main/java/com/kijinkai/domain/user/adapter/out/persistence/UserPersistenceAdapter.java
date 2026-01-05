@@ -5,6 +5,7 @@ import com.kijinkai.domain.user.adapter.out.persistence.mapper.UserPersistenceMa
 import com.kijinkai.domain.user.adapter.out.persistence.repository.UserRepository;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.model.User;
+import com.kijinkai.domain.user.domain.model.UserStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -39,8 +40,21 @@ public class UserPersistenceAdapter implements UserPersistencePort {
     }
 
     @Override
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email)
+    public Optional<User> findByEmailAndIsSocial(String email, Boolean isSocial) {
+        return userRepository.findByEmailAndIsSocial(email, isSocial)
+                .map(userPersistenceMapper::toUser);
+    }
+
+
+    @Override
+    public Optional<User> findByEmailAndUserStatusAndIsSocial(String email, UserStatus userStatus, Boolean isSocial) {
+        return userRepository.findByEmailAndUserStatusAndIsSocial(email, userStatus, isSocial)
+                .map(userPersistenceMapper::toUser);
+    }
+
+    @Override
+    public Optional<User> findByEmailAndUserStatus(String email, UserStatus userStatus) {
+        return userRepository.findByEmailAndUserStatus(email,userStatus)
                 .map(userPersistenceMapper::toUser);
     }
 
@@ -55,5 +69,10 @@ public class UserPersistenceAdapter implements UserPersistencePort {
     public void deleteUser(User user) {
         UserJpaEntity userJpaEntity = userPersistenceMapper.toUserJpaEntity(user);
         userRepository.delete(userJpaEntity);
+    }
+
+    @Override
+    public void deleteByEmail(String email) {
+        userRepository.deleteByEmail(email);
     }
 }
