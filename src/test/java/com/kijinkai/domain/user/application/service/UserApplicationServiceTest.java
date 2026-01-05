@@ -26,12 +26,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
+
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UserApplicationServiceTest {
+public class UserApplicationServiceTest {
 
     @InjectMocks UserApplicationService userApplicationService;
 
@@ -75,11 +75,32 @@ class UserApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("이메일 중복 체크")
+    void existEmail(){
+        //given
+
+        // 중복이 참일때
+        when(userPersistencePort.existsByEmail(user.getEmail())).thenReturn(true);
+
+        //when
+        Boolean result = userApplicationService.existEmailByUser(user.getEmail());
+
+        //then
+        assertThat(result).isNotNull();
+        assertThat(result).isEqualTo(true);
+
+        verify(userPersistencePort, times(1)).existsByEmail(user.getEmail());
+    }
+
+
+
+    @Test
     @DisplayName("회원가입")
     void createUser() {
         //given
         String encodedPassword = passwordEncoder.encode(userRequestDto.getPassword());
 
+        when(userPersistencePort.existsByEmail(user.getEmail())).thenReturn(false);
         when(passwordEncoder.encode("12341234")).thenReturn(encodedPassword);
         when(userFactory.createUser(userRequestDto, encodedPassword)).thenReturn(user);
         when(userPersistencePort.saveUser(any(User.class))).thenReturn(user);
@@ -107,7 +128,7 @@ class UserApplicationServiceTest {
         when(userMapper.toResponse(user)).thenReturn(userResponseDto);
 
         //when
-        UserResponseDto result = userApplicationService.getUserInfo(user.getUserUuid());
+        UserResponseDto result = userApplicationService.getUserInfo();
 
         //then
         assertThat(result).isNotNull();

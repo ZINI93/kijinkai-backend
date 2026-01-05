@@ -9,16 +9,16 @@ import com.kijinkai.domain.exchange.service.ExchangeRateService;
 import com.kijinkai.domain.orderitem.domain.model.OrderItem;
 import com.kijinkai.domain.payment.application.dto.request.RefundRequestDto;
 import com.kijinkai.domain.payment.application.dto.request.WithdrawRequestDto;
-import com.kijinkai.domain.payment.application.dto.response.RefundResponseDto;
+
 import com.kijinkai.domain.payment.application.dto.response.WithdrawResponseDto;
 import com.kijinkai.domain.payment.application.mapper.PaymentMapper;
 import com.kijinkai.domain.payment.application.port.out.WithdrawPersistenceRequestPort;
 import com.kijinkai.domain.payment.domain.calculator.PaymentCalculator;
 import com.kijinkai.domain.payment.domain.enums.WithdrawStatus;
 import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
-import com.kijinkai.domain.payment.domain.model.RefundRequest;
+
 import com.kijinkai.domain.payment.domain.model.WithdrawRequest;
-import com.kijinkai.domain.payment.domain.service.WithdrawRequestService;
+
 import com.kijinkai.domain.payment.domain.util.PaymentContents;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.model.User;
@@ -59,7 +59,7 @@ class WithdrawRequestApplicationServiceTest {
 
     @Mock ExchangeRateService exchangeRateService;
     @Mock PaymentCalculator paymentCalculator;
-    @Mock WithdrawRequestService withdrawRequestService;
+    @Mock WithdrawRequestApplicationService withdrawRequestService;
     @Mock PaymentFactory paymentFactory;
     @Mock PaymentMapper paymentMapper;
 

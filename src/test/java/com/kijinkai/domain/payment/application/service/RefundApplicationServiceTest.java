@@ -11,7 +11,7 @@ import com.kijinkai.domain.payment.application.port.out.RefundPersistencePort;
 import com.kijinkai.domain.payment.domain.enums.RefundStatus;
 import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
 import com.kijinkai.domain.payment.domain.model.RefundRequest;
-import com.kijinkai.domain.payment.domain.service.RefundRequestService;
+
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.user.domain.model.UserRole;
@@ -19,7 +19,7 @@ import com.kijinkai.domain.wallet.application.dto.WalletResponseDto;
 import com.kijinkai.domain.wallet.application.port.out.WalletPersistencePort;
 import com.kijinkai.domain.wallet.application.service.WalletApplicationService;
 import com.kijinkai.domain.wallet.domain.model.Wallet;
-import org.assertj.core.api.Assertions;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,9 +60,11 @@ class RefundApplicationServiceTest {
     @Mock
     PaymentMapper paymentMapper;
 
-    @Mock PaymentFactory paymentFactory;
+    @Mock
+    PaymentFactory paymentFactory;
 
-    @InjectMocks RefundApplicationService refundApplicationService;
+    @InjectMocks
+    RefundApplicationService refundApplicationService;
 
     User user;
     Customer customer;

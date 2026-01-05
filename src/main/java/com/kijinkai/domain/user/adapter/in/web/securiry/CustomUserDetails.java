@@ -1,6 +1,7 @@
 package com.kijinkai.domain.user.adapter.in.web.securiry;
 
-import com.kijinkai.domain.user.adapter.in.web.securiry.dto.UserSecurityDto;
+import com.kijinkai.domain.user.application.dto.UserRequestDto;
+import com.kijinkai.filter.AuthPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,34 +16,30 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CustomUserDetails implements UserDetails {
 
-    private final UserSecurityDto userSecurityDto;
 
+    private final AuthPrincipal principal;
+    private final String password;
+    private final Collection<? extends GrantedAuthority> authorities;
+    private final boolean accountNonLocked;
 
-    public Long getUserId() {
-        return userSecurityDto.getUserId();
-    }
 
     public UUID getUserUuid() {
-        return userSecurityDto.getUserUuid();
-    }
-
-    public String getEmail() {
-        return userSecurityDto.getEmail();
+        return principal.userUuid();
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + userSecurityDto.getUserRole().name()));
+        return authorities;
     }
 
     @Override
     public String getPassword() {
-        return userSecurityDto.getPassword();
+        return password;
     }
 
     @Override
     public String getUsername() {
-        return userSecurityDto.getEmail();
+        return principal.email();
     }
 
     @Override
@@ -52,7 +49,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return accountNonLocked;
     }
 
     @Override

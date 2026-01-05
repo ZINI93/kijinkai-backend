@@ -1,11 +1,15 @@
 package com.kijinkai.domain.user.domain.model;
 
+import com.kijinkai.domain.user.application.dto.UserUpdateDto;
+import com.kijinkai.domain.user.domain.exception.InvalidUserDataException;
 import com.kijinkai.domain.user.domain.exception.InvalidUserStatusException;
 import com.kijinkai.domain.user.domain.exception.UserRoleValidateException;
 import lombok.*;
+import org.springframework.util.function.SupplierUtils;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+
 
 
 @Getter
@@ -23,6 +27,10 @@ public class User {
     private boolean emailVerified;
     private LocalDateTime emailVerifiedAt;
     private UserStatus userStatus;
+
+    //Social 추가
+    private Boolean isSocial;
+    private SocialProviderType socialProviderType;
 
     /**
      * 이메일 인증 처리
@@ -50,7 +58,7 @@ public class User {
     /**
      * 게정 활성화 체크
      */
-    public void validateRegistrationEligibility(){
+    public void validateActive(){
         if (this.userStatus != UserStatus.ACTIVE){
             throw new InvalidUserStatusException("User is not eligible for customer registration");
         }
@@ -66,13 +74,18 @@ public class User {
     /**
      * 유저 프로필 업데이트
      *
-     * @param nickName
+     * @param nickname
      * @param encodedPassword
      */
-    public void updateUser(String nickName, String encodedPassword) {
+    public void updateUser(String nickname, String encodedPassword) {
         this.password = encodedPassword;
-        this.nickname = nickName;
+        this.nickname = nickname;
     }
+
+    public void oAuth2LoginUpdate(String nickname){
+        this.nickname = nickname;
+    }
+
 
     public void updatePassword(String password) {
         this.password = password;

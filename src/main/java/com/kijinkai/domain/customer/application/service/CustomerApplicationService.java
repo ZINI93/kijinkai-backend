@@ -74,7 +74,7 @@ public class CustomerApplicationService implements CreateCustomerUseCase, GetCus
 
             // 2. 유저에 대한 검증
             User user = findUserByUserUuid(userUuid);
-            user.validateRegistrationEligibility();
+            user.validateActive();
 
             // 3. 생성
             Customer customer = customerFactory.createCustomer(userUuid, requestDto);
