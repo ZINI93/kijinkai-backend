@@ -2,6 +2,7 @@ package com.kijinkai.headler;
 
 import com.kijinkai.domain.jwt.service.JwtService;
 import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
+import com.kijinkai.domain.user.application.dto.CustomOAuth2User;
 import com.kijinkai.util.JwtUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -34,9 +35,21 @@ public class SocialSuccessHandler implements AuthenticationSuccessHandler {
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
 
         // username, role
+        Object principal = authentication.getPrincipal();
+        UUID userUuid;
 
-        CustomUserDetails principal = (CustomUserDetails) authentication.getPrincipal();
-        UUID userUuid = principal.getUserUuid();
+        // 1. 일반 로그인인지 소셜 로그인인지 확인하여 UUID 추출
+        if (principal instanceof CustomUserDetails) {
+            userUuid = ((CustomUserDetails) principal).getUserUuid();
+        } else if (principal instanceof CustomOAuth2User) {
+            userUuid = ((CustomOAuth2User) principal).getUserUuid();
+        } else {
+            throw new IllegalArgumentException("지원하지 않는 인증 객체 타입입니다: " + principal.getClass());
+        }
+
+        if (userUuid == null) {
+            throw new RuntimeException("인증 정보에서 User UUID를 찾을 수 없습니다.");
+        }
 
         String role = authentication.getAuthorities().iterator().next().getAuthority();
 

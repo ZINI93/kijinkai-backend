@@ -43,19 +43,16 @@ public class UserApiController {
 
 
     /**
-     * 중복 체크 - 추후 수정 필요
-     *
-     * @param email
+     * 중복체크
+     * @param requestDto
      * @return
      */
-    @GetMapping(value = "/exists")
+    @PostMapping(value = "/users/exists")
     public ResponseEntity<Boolean> existsByUser(
-            @RequestParam @Email @NotBlank String email
+            @Validated(UserRequestDto.existsGroup.class) @RequestBody UserRequestDto requestDto
     ) {
-        UserRequestDto userRequestDto = new UserRequestDto();
-        userRequestDto.setEmail(email);
 
-        return ResponseEntity.ok(getUserUseCase.existsByUser(userRequestDto));
+        return ResponseEntity.ok(getUserUseCase.existsByUser(requestDto));
     }
 
 
@@ -65,7 +62,7 @@ public class UserApiController {
      * @param requestDto
      * @return
      */
-    @PostMapping(value = "/sign-up", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/users/sign-up", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "user register", description = "Receive and save user email, password, nickname")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Successful membership registration"),

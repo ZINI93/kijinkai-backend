@@ -130,7 +130,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/jwt/exchange", "/jwt/refresh").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers(HttpMethod.POST,"/sign-up", "/exists").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/users/sign-up", "/users/exists").permitAll()
 
                         .requestMatchers("/api/v1/orders/**").hasRole(UserRole.USER.name())
                         .requestMatchers("/api/v1/customers/**").hasRole(UserRole.ADMIN.name()) // 임시로 모든 사용자 허용

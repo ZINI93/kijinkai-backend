@@ -1,19 +1,25 @@
 package com.kijinkai.domain.user.application.dto;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.UUID;
 
 
+@Getter
 @RequiredArgsConstructor
 public class CustomOAuth2User implements OAuth2User {
 
     private final Map<String, Object> attributes;
     private final Collection<? extends  GrantedAuthority> authorities;
     private final String email;
+    private final UUID userUuid;
+
+
 
     @Override
     public Map<String, Object> getAttributes() {
@@ -29,4 +35,5 @@ public class CustomOAuth2User implements OAuth2User {
     public String getName() {
         return email;
     }
+
 }

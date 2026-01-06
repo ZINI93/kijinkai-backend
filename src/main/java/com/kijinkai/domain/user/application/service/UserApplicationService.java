@@ -24,8 +24,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -277,6 +275,7 @@ public class UserApplicationService extends DefaultOAuth2UserService implements 
     }
 
     @Override
+    @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
 
         // 부모 메소드 호출
@@ -286,6 +285,7 @@ public class UserApplicationService extends DefaultOAuth2UserService implements 
         Map<String, Object> attributes;
         List<GrantedAuthority> authorities;
 
+
         String email;
         String role = UserRole.USER.name();
         String nickname;
@@ -293,14 +293,16 @@ public class UserApplicationService extends DefaultOAuth2UserService implements 
 
         // Provider 제공자 별 데이터 흭득
         String registrationId = userRequest.getClientRegistration().getRegistrationId().toUpperCase();
-        if (registrationId.equals(SocialProviderType.NAVER)) {
+        if (registrationId.equals(SocialProviderType.NAVER.name())) {
+
             attributes = (Map<String, Object>) oAuth2User.getAttributes().get("response");
             email = attributes.get("email").toString();
-            nickname = attributes.get("nickname").toString();
-        } else if (registrationId.equals(SocialProviderType.GOOGLE)) {
+            nickname = attributes.get("name").toString();
+
+        } else if (registrationId.equals(SocialProviderType.GOOGLE.name())) {
             attributes = (Map<String, Object>) oAuth2User.getAttributes();
             email = attributes.get("email").toString();
-            nickname = attributes.get("nickname").toString();
+            nickname = attributes.get("name").toString();
         } else {
             throw new OAuth2AuthenticationException("Unsupported social login");
         }
@@ -308,8 +310,9 @@ public class UserApplicationService extends DefaultOAuth2UserService implements 
         // 데이터베이스 조회 -> 존재하면 업데이트, 없으면 신규 가입
 
         Optional<User> user = userPersistencePort.findByEmailAndIsSocial(email, true);
-        if (user.isPresent()) {
 
+        User savedUser;
+        if (user.isPresent()) {
             // role 조회
             role = user.get().getUserRole().name();
 
@@ -317,19 +320,18 @@ public class UserApplicationService extends DefaultOAuth2UserService implements 
             UserRequestDto userRequestDto = new UserRequestDto();
             userRequestDto.setNickname(nickname);
             user.get().oAuth2LoginUpdate(nickname);
+            savedUser = userPersistencePort.saveUser(user.get());
 
-            userPersistencePort.saveUser(user.get());
         } else {
 
             // 신규 유저 추가
-
             User newOAuth2User = userFactory.createOAuth2User(email, nickname, SocialProviderType.valueOf(registrationId));
-            userPersistencePort.saveUser(newOAuth2User);
+            savedUser = userPersistencePort.saveUser(newOAuth2User);
         }
 
         authorities = List.of(new SimpleGrantedAuthority(role));
 
-        return new CustomOAuth2User(attributes, authorities, email);
+        return new CustomOAuth2User(attributes, authorities, email, savedUser.getUserUuid());
     }
 }
 
