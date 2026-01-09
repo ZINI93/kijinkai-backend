@@ -9,10 +9,13 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 
@@ -23,6 +26,7 @@ public class JwtService {
 
     private final RefreshEntityRepository refreshRepository;
     private final JwtUtil jwtUtil;
+
 
 
     // 소셜 로그인 성공 후 쿠키(Refresh) -> 헤더 방식으로 응답
@@ -160,6 +164,9 @@ public class JwtService {
 
         refreshRepository.save(refreshEntity);
     }
+
+
+
 
 
     // JWT Refresh 존재 확인 메소드

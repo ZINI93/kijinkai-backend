@@ -53,48 +53,36 @@ public class CustomerApplicationService implements CreateCustomerUseCase, GetCus
     private final AddressFactory addressFactory;
     private final WalletApplicationService walletApplicationService;
 
-
     /**
      * 고객 정보 생성
-     * * address 분리에 대해서 생각해 볼 필요 있음
-     *
      * @param userUuid
-     * @param requestDto
+     * @param firstName
+     * @param lastName
+     * @param phoneNumber
      * @return
      */
     @Override
     @Transactional
-    public CustomerCreateResponse createCustomer(UUID userUuid, CustomerRequestDto requestDto) {
+    public Customer createCustomer(UUID userUuid, String firstName, String lastName, String phoneNumber) {
         log.info("Creating customer for user uuid:{}", userUuid);
 
         try {
             // 1. request 검증
-            customerApplicationValidator.validateCreateCustomerRequest(requestDto);
-
+            customerApplicationValidator.validateCreateCustomerRequest(firstName, lastName, phoneNumber);
 
             // 2. 유저에 대한 검증
             User user = findUserByUserUuid(userUuid);
             user.validateActive();
 
             // 3. 생성
-            Customer customer = customerFactory.createCustomer(userUuid, requestDto);
+            Customer customer = customerFactory.createCustomer(userUuid, firstName, lastName, phoneNumber);
 
             // 4. 저장
-            Customer savedCustomer = customerPersistencePort.saveCustomer(customer);
-
-            // 5. 주소 정보 생성
-            Address address = addressFactory.createAddressAndCustomer(customer.getCustomerUuid(), requestDto);
-            Address savedAddress = addressPersistencePort.saveAddress(address);
-
-            // 6. 지갑생성  -- 나중에 비동기로 전환 필요함
-            walletApplicationService.createWallet(customer);
-
-            return customerMapper.createCustomerWithAddressResponse(savedCustomer, savedAddress, userUuid);
-        }catch (Exception e){
+            return customerPersistencePort.saveCustomer(customer);
+        } catch (Exception e) {
             log.error("Customer creation failed: userUuid={}, error={}", userUuid, e.getMessage(), e);
             throw e;
         }
-
     }
 
     @Override

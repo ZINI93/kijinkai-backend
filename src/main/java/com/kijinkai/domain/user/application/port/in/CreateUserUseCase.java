@@ -1,10 +1,9 @@
 package com.kijinkai.domain.user.application.port.in;
 
 
-import com.kijinkai.domain.user.application.dto.UserRequestDto;
-import com.kijinkai.domain.user.application.dto.UserResponseDto;
+import com.kijinkai.domain.user.domain.model.User;
 
 public interface CreateUserUseCase {
 
-    UserResponseDto createUser(UserRequestDto requestDto);
+    User createUser(String email, String password, String nickname);
 }

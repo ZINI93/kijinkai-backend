@@ -1,8 +1,8 @@
 package com.kijinkai.domain.user.application.service;
 
-import com.kijinkai.domain.user.application.dto.UserRequestDto;
-import com.kijinkai.domain.user.application.dto.UserResponseDto;
-import com.kijinkai.domain.user.application.dto.UserUpdateDto;
+import com.kijinkai.domain.user.application.dto.request.UserRequestDto;
+import com.kijinkai.domain.user.application.dto.response.UserResponseDto;
+import com.kijinkai.domain.user.application.dto.request.UserUpdateDto;
 import com.kijinkai.domain.user.application.mapper.UserMapper;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.application.validator.UserValidator;

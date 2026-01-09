@@ -42,13 +42,17 @@ public class WalletApplicationService implements CreateWalletUseCase, GetWalletU
     private final UserPersistencePort userPersistencePort;
     private final CustomerPersistencePort customerPersistencePort;
 
+
+    /**
+     * 지갑 생성
+     * @param customerUuid
+     * @return
+     */
     @Override
     @Transactional
-    public WalletResponseDto createWallet(Customer customer) {
-        Wallet  wallet = walletFactory.createWallet(customer.getCustomerUuid());
-        Wallet savedWallet = walletPersistencePort.saveWallet(wallet);
-
-        return walletMapper.toResponse(savedWallet);
+    public Wallet createWallet(UUID customerUuid) {
+        Wallet wallet = walletFactory.createWallet(customerUuid);
+        return walletPersistencePort.saveWallet(wallet);
     }
 
     /**

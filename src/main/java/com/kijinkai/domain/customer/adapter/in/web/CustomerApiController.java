@@ -39,31 +39,31 @@ public class CustomerApiController {
     private final CreateCustomerUseCase createCustomerUseCase;
     private final GetCustomerUseCase getCustomerUseCase;
     private final UpdateCustomerUseCase updateCustomerUseCase;
-
-    @PostMapping("/register")
-    @Operation(summary = "유저에서 고객으로 등록", description = "일반유저에서 고객으로 전환됩니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "고객으로 등록 성공"),
-            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
-            @ApiResponse(responseCode = "404", description = "고객을 찾을 수 없음"),
-            @ApiResponse(responseCode = "500", description = "서버오류")
-    })
-    public ResponseEntity<BasicResponseDto<CustomerCreateResponse>> createCustomer(Authentication authentication,
-                                                                                   @Valid @RequestBody CustomerRequestDto requestDto){
-        UUID userUuid = getUserUuid(authentication);
-        log.info("고객 등록 요청 - 사용자 UUID: {}", userUuid);
-
-        CustomerCreateResponse customer = createCustomerUseCase.createCustomer(userUuid, requestDto);
-        log.info("고객 등록 완료 - 고객 UUID: {}", customer.getCustomerUuid());
-
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentContextPath()
-                .path("/api/v1/customers/{customerUuid}")
-                .buildAndExpand(customer.getCustomerUuid())
-                .toUri();
-
-        return ResponseEntity.created(location).body(BasicResponseDto.success("일반유저에서 고객으로 가입 성공",customer));
-    }
+//
+//    @PostMapping("/register")
+//    @Operation(summary = "유저에서 고객으로 등록", description = "일반유저에서 고객으로 전환됩니다.")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "200", description = "고객으로 등록 성공"),
+//            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+//            @ApiResponse(responseCode = "404", description = "고객을 찾을 수 없음"),
+//            @ApiResponse(responseCode = "500", description = "서버오류")
+//    })
+//    public ResponseEntity<BasicResponseDto<CustomerCreateResponse>> createCustomer(Authentication authentication,
+//                                                                                   @Valid @RequestBody CustomerRequestDto requestDto){
+//        UUID userUuid = getUserUuid(authentication);
+//        log.info("고객 등록 요청 - 사용자 UUID: {}", userUuid);
+//
+//        CustomerCreateResponse customer = createCustomerUseCase.createCustomer(userUuid, requestDto);
+//        log.info("고객 등록 완료 - 고객 UUID: {}", customer.getCustomerUuid());
+//
+//        URI location = ServletUriComponentsBuilder
+//                .fromCurrentContextPath()
+//                .path("/api/v1/customers/{customerUuid}")
+//                .buildAndExpand(customer.getCustomerUuid())
+//                .toUri();
+//
+//        return ResponseEntity.created(location).body(BasicResponseDto.success("일반유저에서 고객으로 가입 성공",customer));
+//    }
 
     @PostMapping("/update-info")
     @Operation(summary = "고객 정보 수정", description = "유저 본인의 정보를 수정합니다.")

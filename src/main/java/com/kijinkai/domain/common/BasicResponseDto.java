@@ -2,7 +2,7 @@ package com.kijinkai.domain.common;
 
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.kijinkai.domain.user.application.dto.UserResponseDto;
+import com.kijinkai.domain.user.application.dto.response.UserResponseDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

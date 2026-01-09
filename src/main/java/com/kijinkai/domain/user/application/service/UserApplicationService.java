@@ -1,13 +1,15 @@
 package com.kijinkai.domain.user.application.service;
 
 import com.kijinkai.domain.jwt.service.JwtService;
+import com.kijinkai.domain.mail.service.EmailService;
 import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
 import com.kijinkai.domain.user.application.dto.CustomOAuth2User;
+import com.kijinkai.domain.user.application.dto.response.UserSignUpResponse;
 import com.kijinkai.domain.user.application.port.in.*;
 import com.kijinkai.domain.user.application.validator.UserValidator;
-import com.kijinkai.domain.user.application.dto.UserRequestDto;
-import com.kijinkai.domain.user.application.dto.UserResponseDto;
-import com.kijinkai.domain.user.application.dto.UserUpdateDto;
+import com.kijinkai.domain.user.application.dto.request.UserRequestDto;
+import com.kijinkai.domain.user.application.dto.response.UserResponseDto;
+import com.kijinkai.domain.user.application.dto.request.UserUpdateDto;
 import com.kijinkai.domain.user.application.mapper.UserMapper;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.factory.UserFactory;
@@ -17,6 +19,8 @@ import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.user.domain.model.UserRole;
 import com.kijinkai.domain.user.domain.model.UserStatus;
 import com.kijinkai.filter.AuthPrincipal;
+import com.kijinkai.util.JwtUtil;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -46,11 +50,13 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
-public class UserApplicationService extends DefaultOAuth2UserService implements CreateUserUseCase, GetUserUseCase, UpdateUserUseCase, DeleteUserUseCase, UserDetailsService {
+public class UserApplicationService extends DefaultOAuth2UserService implements CreateUserUseCase, GetUserUseCase, UpdateUserUseCase, DeleteUserUseCase, UserDetailsService, PasswordUpdateUseCase {
 
     private final UserPersistencePort userPersistencePort;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final JwtUtil jwtUtil;
+    private final EmailService emailService;
 
     private final UserFactory userFactory;
     private final UserMapper userMapper;
@@ -67,41 +73,43 @@ public class UserApplicationService extends DefaultOAuth2UserService implements 
         return userPersistencePort.existsByEmail(userRequestDto.getEmail());
     }
 
-
     /**
      * 회원가입
      *
-     * @param requestDto
+     * @param email
+     * @param password
+     * @param nickname
      * @return
      */
     @Override
     @Transactional
-    public UserResponseDto createUser(UserRequestDto requestDto) {
-        log.info("Creating user for user email:{}", requestDto.getEmail());
+    public User createUser(String email, String password, String nickname) {
+        log.info("Creating user for user email:{}", email);
 
         // 1. email 중복 검증
-        if (userPersistencePort.existsByEmail(requestDto.getEmail())) {
+        if (userPersistencePort.existsByEmail(email)) {
             throw new IllegalArgumentException("Email already exist");
         }
 
         try {
             // 2. 검증
-            userValidator.validateCreateUserRequest(requestDto);
+            userValidator.validateCreateUserRequest(email, password, nickname);
 
             // 3. 사용자 생성
-            String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
-            User user = userFactory.createUser(requestDto, encodedPassword);
+            String encodedPassword = passwordEncoder.encode(password);
+            User user = userFactory.createUser(email, nickname, encodedPassword);
             User savedUser = userPersistencePort.saveUser(user);
 
             log.info("Created user for user email:{}", savedUser.getEmail());
-            return userMapper.toResponse(savedUser);
+
+            return savedUser;
         } catch (DuplicateEmailException | InvalidUserDataException e) {
             log.error("User creation validation failed: {}", e.getMessage());
             throw e;
         } catch (DataIntegrityViolationException e) {
             throw new DuplicateEmailException("Email already exists");
         } catch (Exception e) {
-            log.error("Failed to crate user for user email:{}", requestDto.getEmail(), e);
+            log.error("Failed to crate user for user email:{}", email, e);
             throw new UserCreationException("Failed to create user", e);
         }
     }
@@ -216,11 +224,13 @@ public class UserApplicationService extends DefaultOAuth2UserService implements 
         }
     }
 
+
     /**
      * 계정 삭제
      * 계정 주인, 관리자 이외에 계정을 삭제하지 못한다.
      *
-     * @param requestDto
+     * @param userUuid
+     * @throws AccessDeniedException
      */
     @Override
     @Transactional
@@ -332,6 +342,77 @@ public class UserApplicationService extends DefaultOAuth2UserService implements 
         authorities = List.of(new SimpleGrantedAuthority(role));
 
         return new CustomOAuth2User(attributes, authorities, email, savedUser.getUserUuid());
+    }
+
+    // 비밀번호 변경
+
+    /**
+     * 비밀번호 리셋메일 전송
+     *
+     * @param requestDto
+     * @throws MessagingException
+     */
+    @Override
+    public void forgetPassword(UserRequestDto requestDto) throws MessagingException {
+
+        // 사용자 확인
+        User user = userPersistencePort.findByEmailAndUserStatusAndIsSocial(requestDto.getEmail(), UserStatus.ACTIVE, false)
+                .orElseThrow(() -> new UserNotFoundException(String.format("User not found for user email: %s", requestDto.getEmail())));
+
+        // jwt Token 생성
+        String resetToken = jwtUtil.createPasswordRestJWT(user.getUserUuid(), user.getUserRole().name());
+
+        // 토큰 포함해서 메일 전송
+        emailService.sendPasswordResetEmail(user.getEmail(), resetToken);
+    }
+
+
+    /**
+     * 토큰발급
+     *
+     * @param token
+     * @return
+     */
+    @Override
+    public String verifyResetTokenAndIssueInterim(String token) {
+
+        //토큰 검증
+        if (!jwtUtil.isPasswordResetValid(token, "reset")) {
+            throw new IllegalArgumentException("토큰이 유효하지 않습니다.");
+        }
+
+        //토큰으로 부터 유저 추출
+        UUID userUuid = jwtUtil.getUserUuid(token);
+        User user = findUserByUserUuid(userUuid);
+
+        //변경에 쓰일 토큰 발급
+        return jwtUtil.createInterimJWT(user.getUserUuid(), user.getUserRole().name());
+    }
+
+
+    /**
+     * 비밀번호 변경
+     *
+     * @param interimToken
+     * @param requestDto
+     */
+    @Transactional
+    @Override
+    public void updatePasswordWithInterimToken(String interimToken, UserRequestDto requestDto) {
+
+        // 토큰 검증
+        if (!jwtUtil.isPasswordResetValid(interimToken, "interim")) {
+            throw new IllegalArgumentException("비밀번호 변경 권한이 없거나 시간이 초과 되었습니다.");
+        }
+
+        // 토큰에서 정보 추출
+        UUID userUuid = jwtUtil.getUserUuid(interimToken);
+        User user = findUserByUserUuid(userUuid);
+
+        // 비밀번호 변경
+        String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
+        user.updatePassword(encodedPassword);
+        userPersistencePort.saveUser(user);
     }
 }
 

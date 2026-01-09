@@ -1,11 +1,8 @@
 package com.kijinkai.domain.user.domain.model;
 
-import com.kijinkai.domain.user.application.dto.UserUpdateDto;
-import com.kijinkai.domain.user.domain.exception.InvalidUserDataException;
 import com.kijinkai.domain.user.domain.exception.InvalidUserStatusException;
 import com.kijinkai.domain.user.domain.exception.UserRoleValidateException;
 import lombok.*;
-import org.springframework.util.function.SupplierUtils;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -27,6 +24,7 @@ public class User {
     private boolean emailVerified;
     private LocalDateTime emailVerifiedAt;
     private UserStatus userStatus;
+    private LocalDateTime createdAt;
 
     //Social 추가
     private Boolean isSocial;

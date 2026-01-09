@@ -28,7 +28,6 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-
         String authorization = request.getHeader("Authorization");
         if (authorization == null) {
             filterChain.doFilter(request, response);
@@ -46,8 +45,11 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
+        boolean isResetPassword = request.getRequestURI().equals("/api/auth/reset-password");
 
-        if (jwtUtil.isValid(accessToken, true)) {
+        boolean checkMode = !isResetPassword;
+
+        if (jwtUtil.isValid(accessToken, checkMode)) {
 
             UUID userUuid = jwtUtil.getUserUuid(accessToken);
             String role = jwtUtil.getRole(accessToken);
@@ -58,7 +60,6 @@ public class JwtFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(auth);
 
             filterChain.doFilter(request, response);
-
         } else {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=UTF-8");

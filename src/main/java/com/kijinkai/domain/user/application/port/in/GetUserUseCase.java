@@ -1,7 +1,7 @@
 package com.kijinkai.domain.user.application.port.in;
 
-import com.kijinkai.domain.user.application.dto.UserRequestDto;
-import com.kijinkai.domain.user.application.dto.UserResponseDto;
+import com.kijinkai.domain.user.application.dto.request.UserRequestDto;
+import com.kijinkai.domain.user.application.dto.response.UserResponseDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
