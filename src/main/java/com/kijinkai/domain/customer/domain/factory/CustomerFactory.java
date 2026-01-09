@@ -1,10 +1,7 @@
 package com.kijinkai.domain.customer.domain.factory;
 
-import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
-import com.kijinkai.domain.customer.application.dto.CustomerRequestDto;
 import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.customer.domain.model.CustomerTier;
-import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -12,25 +9,25 @@ import java.util.UUID;
 @Component
 public class CustomerFactory {
 
-    public Customer createCustomer(UUID userUuid, CustomerRequestDto requestDto){
+    public Customer createCustomer(UUID userUuid, String firstName, String lastName, String phoneNumber){
 
-        validateCreateInput(userUuid, requestDto);
+        validateCreateInput(userUuid, firstName, lastName, phoneNumber);
 
         return Customer.builder()
                 .customerUuid(UUID.randomUUID())
-                .firstName(requestDto.getFirstName())
-                .lastName(requestDto.getLastName())
-                .phoneNumber(requestDto.getPhoneNumber())
+                .firstName(firstName)
+                .lastName(lastName)
+                .phoneNumber(phoneNumber)
                 .customerTier(CustomerTier.BRONZE)
                 .userUuid(userUuid)
                 .build();
     }
 
-    private void validateCreateInput(UUID UserUuid, CustomerRequestDto requestDto){
+    private void validateCreateInput(UUID UserUuid, String firstName, String lastName, String phoneNumber){
         if (UserUuid == null){
             throw new IllegalArgumentException("User uuid can't be null");
         }
-        if (requestDto == null){
+        if  (firstName == null && lastName == null && phoneNumber == null){
             throw new IllegalArgumentException("Customer request can't be null");
         }
 

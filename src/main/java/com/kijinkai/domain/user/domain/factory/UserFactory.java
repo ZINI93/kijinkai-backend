@@ -1,6 +1,5 @@
 package com.kijinkai.domain.user.domain.factory;
 
-import com.kijinkai.domain.user.application.dto.UserRequestDto;
 import com.kijinkai.domain.user.domain.model.SocialProviderType;
 import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.user.domain.model.UserRole;
@@ -12,12 +11,12 @@ import java.util.UUID;
 @Configuration
 public class UserFactory {
 
-    public User createUser(UserRequestDto requestDto, String encodedPassword) {
+    public User createUser(String email, String nickname, String encodedPassword) {
         return User.builder()
                 .userUuid(UUID.randomUUID())
-                .email(requestDto.getEmail())
+                .email(email)
                 .password(encodedPassword)
-                .nickname(requestDto.getNickname())
+                .nickname(nickname)
                 .userRole(UserRole.USER)
                 .userStatus(UserStatus.ACTIVE)
                 .isSocial(false)

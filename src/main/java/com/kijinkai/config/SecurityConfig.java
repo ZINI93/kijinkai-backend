@@ -3,6 +3,7 @@ package com.kijinkai.config;
 
 import com.kijinkai.domain.jwt.service.JwtService;
 import com.kijinkai.domain.user.domain.model.UserRole;
+import com.kijinkai.filter.JwtFilter;
 import com.kijinkai.filter.LoginFilter;
 import com.kijinkai.headler.RefreshTokenLogoutHandler;
 import com.kijinkai.headler.SocialSuccessHandler;
@@ -27,6 +28,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -128,21 +130,22 @@ public class SecurityConfig {
         // 인가
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/jwt/exchange", "/jwt/refresh").permitAll()
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers(HttpMethod.POST,"/users/sign-up", "/users/exists").permitAll()
+                                .requestMatchers("/jwt/exchange", "/jwt/refresh").permitAll()
+                                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/users/sign-up", "/users/exists").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/auth/forget-password", "/api/auth/issuance-password-token", "/api/auth/reset-password").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").authenticated()
 
-                        .requestMatchers("/api/v1/orders/**").hasRole(UserRole.USER.name())
-                        .requestMatchers("/api/v1/customers/**").hasRole(UserRole.ADMIN.name()) // 임시로 모든 사용자 허용
+                                .requestMatchers("/api/v1/orders/**").hasRole(UserRole.USER.name())
+                                .requestMatchers("/api/v1/customers/**").hasRole(UserRole.ADMIN.name()) // 임시로 모든 사용자 허용
 
 
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/**").hasRole(UserRole.USER.name())
+                                .requestMatchers("/api/**").hasRole(UserRole.USER.name())
 
                                 .requestMatchers("/api/admin/**").hasRole(UserRole.ADMIN.name())
-                        .anyRequest().authenticated()
+                                .anyRequest().authenticated()
 
-                        //                        .requestMatchers("/login").permitAll()
                 );
 
         //예외 처리
@@ -157,6 +160,9 @@ public class SecurityConfig {
 
 
                 );
+
+        http
+                .addFilterBefore(new JwtFilter(jwtUtil), LogoutFilter.class);
 
         // oauth2 인증
         http

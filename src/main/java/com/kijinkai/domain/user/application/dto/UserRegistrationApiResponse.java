@@ -1,5 +1,6 @@
 package com.kijinkai.domain.user.application.dto;
 
+import com.kijinkai.domain.user.application.dto.response.UserResponseDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 

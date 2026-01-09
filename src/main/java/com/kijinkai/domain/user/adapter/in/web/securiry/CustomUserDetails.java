@@ -1,15 +1,12 @@
 package com.kijinkai.domain.user.adapter.in.web.securiry;
 
-import com.kijinkai.domain.user.application.dto.UserRequestDto;
 import com.kijinkai.filter.AuthPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.UUID;
 
 

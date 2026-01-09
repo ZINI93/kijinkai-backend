@@ -7,10 +7,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class CustomerApplicationValidator {
 
-    public void validateCreateCustomerRequest(CustomerRequestDto customerRequestDto) {
-        validateFirstName(customerRequestDto.getFirstName());
-        validateLastName(customerRequestDto.getLastName());
-        validatePhoneNumber(customerRequestDto.getPhoneNumber());
+    public void validateCreateCustomerRequest(String firstName, String lastName, String phoneNumber) {
+        validateFirstName(firstName);
+        validateLastName(lastName);
+        validatePhoneNumber(phoneNumber);
     }
 
     private void validateFirstName(String firstName) {

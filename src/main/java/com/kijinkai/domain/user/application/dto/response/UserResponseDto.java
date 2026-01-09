@@ -1,4 +1,4 @@
-package com.kijinkai.domain.user.application.dto;
+package com.kijinkai.domain.user.application.dto.response;
 
 
 import com.querydsl.core.annotations.QueryProjection;

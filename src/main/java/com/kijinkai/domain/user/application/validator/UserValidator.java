@@ -1,13 +1,10 @@
 package com.kijinkai.domain.user.application.validator;
 
-import com.kijinkai.domain.user.application.dto.UserRequestDto;
-import com.kijinkai.domain.user.application.dto.UserUpdateDto;
+import com.kijinkai.domain.user.application.dto.request.UserUpdateDto;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.exception.InvalidUserDataException;
-import com.kijinkai.domain.user.domain.exception.InvalidUserStatusException;
 import com.kijinkai.domain.user.domain.exception.UserUpdateException;
 import com.kijinkai.domain.user.domain.model.User;
-import com.kijinkai.domain.user.domain.model.UserStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -18,10 +15,10 @@ public class UserValidator {
 
     private final UserPersistencePort userPersistencePort;
 
-    public void validateCreateUserRequest(UserRequestDto requestDto){
-        validateEmail(requestDto.getEmail());
-        validatePassword(requestDto.getPassword());
-        validateNickname(requestDto.getNickname());
+    public void validateCreateUserRequest(String email, String password, String nickname){
+        validateEmail(email);
+        validatePassword(password);
+        validateNickname(nickname);
     }
 
     public void validateUpdateUserRequest(UserUpdateDto updateDto){

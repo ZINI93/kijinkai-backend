@@ -2,7 +2,7 @@ package com.kijinkai.domain.user.adapter.in.web;
 
 
 import com.kijinkai.domain.common.BasicResponseDto;
-import com.kijinkai.domain.user.application.dto.UserResponseDto;
+import com.kijinkai.domain.user.application.dto.response.UserResponseDto;
 import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
 import com.kijinkai.domain.user.application.port.in.GetUserUseCase;
 import io.swagger.v3.oas.annotations.Operation;

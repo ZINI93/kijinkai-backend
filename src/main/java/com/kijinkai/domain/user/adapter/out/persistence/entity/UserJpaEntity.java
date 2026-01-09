@@ -51,9 +51,18 @@ public class UserJpaEntity extends BaseEntity {
     @Column(name = "user_status", nullable = false)
     private UserStatus userStatus;
 
+    @Column(name = "is_service_term_agreed", nullable = false)
+    private boolean isServiceTermAgreed = true;
+
+    @Column(name = "is_privacy_policy_agreed", nullable = false)
+    private boolean isPrivacyPolicyAgreed = true;
+
     //social 추가
     @Column(name = "is_social", nullable = false, updatable = false)
     private Boolean isSocial;
+
+
+    //
 
     @Enumerated(EnumType.STRING)
     @Column(name = "social_provider_type", updatable = false)

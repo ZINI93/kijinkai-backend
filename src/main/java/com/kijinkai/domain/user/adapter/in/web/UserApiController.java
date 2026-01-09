@@ -3,19 +3,18 @@ package com.kijinkai.domain.user.adapter.in.web;
 
 import com.kijinkai.domain.common.BasicResponseDto;
 import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
-import com.kijinkai.domain.user.application.dto.UserRequestDto;
-import com.kijinkai.domain.user.application.dto.UserResponseDto;
-import com.kijinkai.domain.user.application.dto.UserUpdateDto;
-import com.kijinkai.domain.user.application.port.in.CreateUserUseCase;
-import com.kijinkai.domain.user.application.port.in.DeleteUserUseCase;
-import com.kijinkai.domain.user.application.port.in.GetUserUseCase;
-import com.kijinkai.domain.user.application.port.in.UpdateUserUseCase;
+import com.kijinkai.domain.user.application.dto.request.UserRequestDto;
+import com.kijinkai.domain.user.application.dto.request.UserSignUpRequestDto;
+import com.kijinkai.domain.user.application.dto.response.UserResponseDto;
+import com.kijinkai.domain.user.application.dto.request.UserUpdateDto;
+import com.kijinkai.domain.user.application.dto.response.UserSignUpResponse;
+import com.kijinkai.domain.user.application.port.in.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.mail.MessagingException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -27,6 +26,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.nio.file.AccessDeniedException;
+import java.util.Map;
 import java.util.UUID;
 
 @Tag(name = "User", description = "Users management API")
@@ -37,13 +37,16 @@ import java.util.UUID;
 public class UserApiController {
 
     private final CreateUserUseCase createUserUseCase;
+    private final SignUpUserUseCase signUpUserUseCase;
     private final GetUserUseCase getUserUseCase;
     private final UpdateUserUseCase updateUserUseCase;
     private final DeleteUserUseCase deleteUser;
+    private final PasswordUpdateUseCase passwordUpdateUseCase;
 
 
     /**
      * 중복체크
+     *
      * @param requestDto
      * @return
      */
@@ -70,12 +73,10 @@ public class UserApiController {
             @ApiResponse(responseCode = "409", description = "Email already exists"),
             @ApiResponse(responseCode = "500", description = "Server Error")
     })
-    public ResponseEntity<BasicResponseDto<UserResponseDto>> createUser(
-            @Validated({UserRequestDto.createGroup.class, UserRequestDto.passwordGroup.class}) @RequestBody UserRequestDto requestDto) {
+    public ResponseEntity<BasicResponseDto<UserSignUpResponse>> createUser(
+            @Validated({UserRequestDto.createGroup.class, UserRequestDto.passwordGroup.class}) @RequestBody UserSignUpRequestDto requestDto) {
 
-//        log.info("사용자 회원가입 요청 - 이메일: {}", requestDto.getEmail());
-
-        UserResponseDto user = createUserUseCase.createUser(requestDto);
+        UserSignUpResponse user = signUpUserUseCase.signUp(requestDto);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{userUuid}")
@@ -184,6 +185,44 @@ public class UserApiController {
         deleteUser.deleteUser(userUuid);
 
         return ResponseEntity.noContent().build();
+    }
+
+
+    // 비밀번호 재설정 이메일 요청
+    @PostMapping(value = "/api/auth/forget-password", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> forgetPassword(
+            @Valid @RequestBody UserRequestDto dto
+    ) throws MessagingException {
+        passwordUpdateUseCase.forgetPassword(dto);
+        return ResponseEntity.ok("Password reset link sent to your email");
+    }
+
+    // Reset Token 확인 및 Interim Token 발급
+    @PostMapping(value = "/api/auth/issuance-password-token", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> issuancePasswordToken(@RequestBody Map<String, String> request) {
+        String resetToken = request.get("resetToken");
+        if (resetToken == null || resetToken.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Token is required");
+        }
+
+        String interimToken = passwordUpdateUseCase.verifyResetTokenAndIssueInterim(resetToken);
+        return ResponseEntity.ok(interimToken);
+    }
+
+    // 최종적으로 비밀번호 변경
+    @PostMapping(value = "/api/auth/reset-password", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> resetPassword(
+            @Validated(UserRequestDto.passwordGroup.class) @RequestBody UserRequestDto dto,
+            @RequestHeader("Authorization") String bearerToken
+    ) {
+        if (bearerToken == null || bearerToken.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Interim token is required in Authorization header");
+        }
+
+        String interimToken = bearerToken.substring(7);
+        passwordUpdateUseCase.updatePasswordWithInterimToken(interimToken, dto);
+
+        return ResponseEntity.ok("password reset successfully");
     }
 }
 
