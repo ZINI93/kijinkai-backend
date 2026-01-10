@@ -25,7 +25,9 @@ public class MyPageService {
 
         UserResponseDto userInfo = getUserUseCase.getUserInfo(userUuid);
 
-        //미구현은 나중에 구현예정
+        //지갑 관련
+
+
 
         return MyPageResponseDto.builder()
                 //유저 정보관련
