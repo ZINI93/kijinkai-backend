@@ -129,20 +129,23 @@ public class SecurityConfig {
 
         // 인가
         http
-                .authorizeHttpRequests((auth) -> auth
+                        .authorizeHttpRequests((auth) -> auth
                                 .requestMatchers("/jwt/exchange", "/jwt/refresh").permitAll()
                                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/users/sign-up", "/users/exists").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/api/auth/forget-password", "/api/auth/issuance-password-token", "/api/auth/reset-password").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/auth/forget-password", "/api/auth/issuance-password-token").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").authenticated()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/main-page").authenticated()
+                                .requestMatchers(HttpMethod.GET, "/exchange-rate/**").permitAll()
+
 
                                 .requestMatchers("/api/v1/orders/**").hasRole(UserRole.USER.name())
                                 .requestMatchers("/api/v1/customers/**").hasRole(UserRole.ADMIN.name()) // 임시로 모든 사용자 허용
 
 
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                .requestMatchers("/api/**").hasRole(UserRole.USER.name())
 
+                                .requestMatchers("/api/**").hasRole(UserRole.USER.name())
                                 .requestMatchers("/api/admin/**").hasRole(UserRole.ADMIN.name())
                                 .anyRequest().authenticated()
 

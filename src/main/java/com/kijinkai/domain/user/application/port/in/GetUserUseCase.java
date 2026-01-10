@@ -10,7 +10,10 @@ import java.util.UUID;
 
 public interface GetUserUseCase {
 
-    UserResponseDto getUserInfo(UUID userUuid) throws AccessDeniedException;
+    UserResponseDto getUserInfo(UUID userUuid);
+
     Page<UserResponseDto> findAllByEmailAndNickName(UUID userUuid, String email, String nickName, Pageable pageable);
+
     Boolean existsByUser(UserRequestDto userRequestDto);
+
 }

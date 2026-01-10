@@ -4,7 +4,6 @@ import com.kijinkai.domain.jwt.service.JwtService;
 import com.kijinkai.domain.mail.service.EmailService;
 import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
 import com.kijinkai.domain.user.application.dto.CustomOAuth2User;
-import com.kijinkai.domain.user.application.dto.response.UserSignUpResponse;
 import com.kijinkai.domain.user.application.port.in.*;
 import com.kijinkai.domain.user.application.validator.UserValidator;
 import com.kijinkai.domain.user.application.dto.request.UserRequestDto;
@@ -115,22 +114,35 @@ public class UserApplicationService extends DefaultOAuth2UserService implements 
     }
 
 
+//    /**
+//     * 계정 단건 조회
+//     *
+//     * @return
+//     */
+//    @Override
+//    public UserResponseDto getUserInfo(UUID userUuid) throws AccessDeniedException {
+//
+//        User user = findUserByUserUuid(userUuid);
+//
+//        boolean isOwner = user.getUserUuid().equals(userUuid);
+//        boolean isAdmin = user.equals("Role_" + UserRole.ADMIN);
+//
+//        if (!isOwner && !isAdmin) {
+//            throw new AccessDeniedException("Only admin, owner can read it ");
+//        }
+//
+//        return userMapper.toResponse(user);
+//    }
+
     /**
      * 계정 단건 조회
      *
      * @return
      */
     @Override
-    public UserResponseDto getUserInfo(UUID userUuid) throws AccessDeniedException {
+    public UserResponseDto getUserInfo(UUID userUuid) {
 
         User user = findUserByUserUuid(userUuid);
-
-        boolean isOwner = user.getUserUuid().equals(userUuid);
-        boolean isAdmin = user.equals("Role_" + UserRole.ADMIN);
-
-        if (!isOwner && !isAdmin) {
-            throw new AccessDeniedException("Only admin, owner can read it ");
-        }
 
         return userMapper.toResponse(user);
     }
@@ -274,7 +286,7 @@ public class UserApplicationService extends DefaultOAuth2UserService implements 
                 .orElseThrow(() -> new UsernameNotFoundException(String.format("User not found for username: %s", username)));
 
         // Uuid와 email을 한곳에 authPrincipal recode 담는다.
-        AuthPrincipal authPrincipal = new AuthPrincipal(user.getUserUuid(), user.getEmail());
+        AuthPrincipal authPrincipal = new AuthPrincipal(user.getUserUuid());
 
         //유저 권한 검증
         List<GrantedAuthority> authorities =
@@ -414,5 +426,7 @@ public class UserApplicationService extends DefaultOAuth2UserService implements 
         user.updatePassword(encodedPassword);
         userPersistencePort.saveUser(user);
     }
+
+
 }
 

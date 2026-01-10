@@ -1,6 +1,7 @@
 package com.kijinkai.domain.common;
 
 
+import com.kijinkai.domain.common.service.DashBoardService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;

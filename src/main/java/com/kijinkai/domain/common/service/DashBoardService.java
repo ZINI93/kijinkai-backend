@@ -1,6 +1,8 @@
-package com.kijinkai.domain.common;
+package com.kijinkai.domain.common.service;
 
 
+import com.kijinkai.domain.common.DashBoardCountResponseDto;
+import com.kijinkai.domain.common.DashBoardMapper;
 import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPersistencePort;
 import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.delivery.application.out.DeliveryPersistencePort;
@@ -10,7 +12,6 @@ import com.kijinkai.domain.orderitem.application.port.out.OrderItemPersistencePo
 import com.kijinkai.domain.payment.application.port.out.OrderPaymentPersistencePort;
 import com.kijinkai.domain.payment.domain.enums.OrderPaymentStatus;
 import com.kijinkai.domain.payment.domain.enums.PaymentType;
-import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.wallet.application.port.out.WalletPersistencePort;
 import com.kijinkai.domain.wallet.domain.exception.WalletNotFoundException;
 import com.kijinkai.domain.wallet.domain.model.Wallet;
@@ -43,7 +44,7 @@ public class DashBoardService {
      * @param userUuid
      * @return
      */
-    public DashBoardCountResponseDto  getDashboardCount(UUID userUuid){
+    public DashBoardCountResponseDto getDashboardCount(UUID userUuid){
 
         Optional<Customer> customerOpt = customerPersistencePort.findByUserUuid(userUuid);
 //                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found exception for user uuid: %s", userUuid)));
