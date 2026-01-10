@@ -132,4 +132,5 @@ public class CustomerApplicationService implements CreateCustomerUseCase, GetCus
         return userPersistencePort.findByUserUuid(userUuid)
                 .orElseThrow(() -> new UserNotFoundException(String.format("User not found for userUuid: %s", userUuid)));
     }
+
 }

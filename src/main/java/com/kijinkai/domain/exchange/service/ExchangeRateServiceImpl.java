@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -71,6 +72,14 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
         ExchangeRate exchangeRate = exchangeRateRepository.findByCurrency(currency)
                 .orElseThrow(() -> new ExchangeRateNotFoundException("Exchange rate not found"));
         return exchangeRateMapper.toResponse(exchangeRate);
+    }
+
+    @Override
+    public BigDecimal getExchangeRate(Long exchangeId) {
+
+        ExchangeRate exchangeRate = findExchangeByExchangeId(exchangeId);
+
+        return exchangeRate.getRate();
     }
 
     @Override

@@ -5,6 +5,7 @@ import com.kijinkai.domain.exchange.dto.ExchangeRateRequestDto;
 import com.kijinkai.domain.exchange.dto.ExchangeRateResponseDto;
 import com.kijinkai.domain.exchange.dto.ExchangeRateUpdateDto;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,6 +17,8 @@ public interface ExchangeRateService {
 
     ExchangeRateResponseDto getExchangeRateInfo(Long exchangeId);
     ExchangeRateResponseDto getExchangeRateInfoByCurrency(Currency currency);
+
+    BigDecimal getExchangeRate(Long exchangeId);
 
     List<ExchangeRateResponseDto> getExchangeRates();
 

@@ -1,5 +1,6 @@
 package com.kijinkai.filter;
 
+import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
 import com.kijinkai.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -56,7 +57,16 @@ public class JwtFilter extends OncePerRequestFilter {
 
             List<SimpleGrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(role));
 
-            Authentication auth = new UsernamePasswordAuthenticationToken(userUuid, null, authorities);
+            AuthPrincipal authPrincipal = new AuthPrincipal(userUuid);
+
+            CustomUserDetails userDetails = new CustomUserDetails(
+                    authPrincipal,
+                    "",
+                    authorities,
+                    true
+            );
+
+            Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(auth);
 
             filterChain.doFilter(request, response);

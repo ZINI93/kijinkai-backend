@@ -2,6 +2,7 @@ package com.kijinkai.domain.exchange.controller;
 
 
 import com.kijinkai.domain.common.BasicResponseDto;
+import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.exchange.dto.ExchangeRateRequestDto;
 import com.kijinkai.domain.exchange.dto.ExchangeRateResponseDto;
 import com.kijinkai.domain.exchange.dto.ExchangeRateUpdateDto;
@@ -19,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
@@ -27,12 +29,21 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(
-        value = "api/v1/exchange-rate",
+        value = "/exchange-rate",
         produces = MediaType.APPLICATION_JSON_VALUE
 )
 public class ExchangeApiController {
 
     private final ExchangeRateService exchangeRateService;
+
+    @GetMapping("/{exchangeId}")
+    public ResponseEntity<BasicResponseDto<BigDecimal>> getExchangeRate(
+            @PathVariable("exchangeId") Long id
+    ){
+        BigDecimal exchangeRate = exchangeRateService.getExchangeRate(id);
+
+        return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved exchange rate", exchangeRate));
+    }
 
 
     @Operation(
@@ -91,10 +102,25 @@ public class ExchangeApiController {
             @ApiResponse(responseCode = "500", description = "서버오류")
     })
     public ResponseEntity<BasicResponseDto<ExchangeRateResponseDto>> getExchangeRateInfo(
-            @PathVariable("id") Long exchangeId
+            @PathVariable("exchangeId") Long exchangeId
             ) {
 
         ExchangeRateResponseDto response = exchangeRateService.getExchangeRateInfo(exchangeId);
+
+        return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved exchange rate", response));
+    }
+
+    @GetMapping("/{currency}/info")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "환율 정보 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "환율정보를 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<ExchangeRateResponseDto>> getExchangeRateInfoByCurrency(
+            @PathVariable("currency") Currency currency
+    ) {
+        ExchangeRateResponseDto response = exchangeRateService.getExchangeRateInfoByCurrency(currency);
 
         return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved exchange rate", response));
     }
