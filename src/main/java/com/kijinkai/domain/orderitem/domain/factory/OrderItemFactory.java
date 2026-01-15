@@ -16,16 +16,17 @@ import java.util.UUID;
 @Component
 public class OrderItemFactory {
 
-    public OrderItem createOrderItem(Customer customer, Order order, BigDecimal convertedPrice, OrderItemRequestDto requestDto) {
+    public OrderItem createOrderItem(Customer customer, OrderItemRequestDto requestDto, String orderItemCode) {
 
         return OrderItem.builder()
                 .orderItemUuid(UUID.randomUUID())
                 .customerUuid(customer.getCustomerUuid())
-                .order(order)
+                .orderItemCode(orderItemCode)
                 .productLink(requestDto.getProductLink())
                 .quantity(requestDto.getQuantity())
                 .priceOriginal(requestDto.getPriceOriginal())
                 .currencyOriginal(Currency.JPY)
+                .inspectionRequested(false)
                 .orderItemStatus(OrderItemStatus.PENDING)
                 .memo(requestDto.getMemo())
                 .build();

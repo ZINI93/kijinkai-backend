@@ -15,20 +15,25 @@ import java.util.UUID;
 public interface OrderItemRepository extends JpaRepository<OrderItemJpaEntity, Long> {
 
     Optional<OrderItemJpaEntity> findByOrderItemUuid(UUID orderItemUuid);
+    Optional<OrderItemJpaEntity> findByOrderUuid(UUID orderUuid);
+    Optional<OrderItemJpaEntity> findByCustomerUuidAndOrderItemCode(UUID customerUuid, String orderItemCode);
 
 
-    Optional<OrderItemJpaEntity> findByOrderOrderUuid(UUID orderUuid);
+    Page<OrderItemJpaEntity> findByCustomerUuidOrderByCreatedAtDesc(UUID customerUuid, Pageable pageable);
+    Page<OrderItemJpaEntity> findAllByCustomerUuidAndOrderItemStatusOrderByCreatedAtDesc(UUID customerUuid, OrderItemStatus status, Pageable pageable);
 
-    Page<OrderItemJpaEntity> findAllByCustomerUuidOrderByOrderCreatedAtDesc(UUID customerUuid, Pageable pageable);
 
-    Page<OrderItemJpaEntity> findAllByCustomerUuidAndOrderItemStatusOrderByOrderCreatedAtDesc(UUID customerUuid, OrderItemStatus status, Pageable pageable);
-
-    List<OrderItemJpaEntity> findByOrderItemUuidInAndCustomerUuid(List<UUID> orderItemUuids, UUID customerUuid);
     List<OrderItemJpaEntity> findAllByOrderItemUuidIn(List<UUID> orderItemUuids);
+    List<OrderItemJpaEntity> findAllByCustomerUuidAndOrderItemStatusIn(UUID customerUuid, List<OrderItemStatus> orderItemStatuses);
+    List<OrderItemJpaEntity> findAllByOrderItemStatusAndOrderItemCodeIn(OrderItemStatus orderItemStatus, List<String> orderItemCode);
+    List<OrderItemJpaEntity> findAllByOrderItemCodeInAndOrderItemStatus(List<String> orderItemCode, OrderItemStatus status);
 
 
     @Query("SELECT COUNT(oi) FROM OrderItemJpaEntity oi WHERE oi.customerUuid = :customerUuid AND oi.orderItemStatus = :orderItemStatus ORDER BY oi.createdAt DESC")
     int findOrderItemCountByStatus(@Param("customerUuid") UUID customerUuid, @Param("orderItemStatus") OrderItemStatus orderItemStatus);
+
+    @Query("SELECT COUNT(oi) FROM OrderItemJpaEntity oi WHERE oi.customerUuid = :customerUuid AND oi.orderItemStatus IN :statuses")
+    int findOrderItemCountByStatusIn(@Param("customerUuid") UUID customerUuid, @Param("statuses") List<OrderItemStatus> orderItemStatus);
 
     @Query("SELECT COUNT(oi) FROM OrderItemJpaEntity oi WHERE oi.customerUuid = :customerUuid ORDER BY oi.createdAt DESC")
     int findOrderItemCount(@Param("customerUuid") UUID customerUuid);

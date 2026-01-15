@@ -113,7 +113,6 @@ public class OrderPaymentApplicationService implements CreateOrderPaymentUseCase
         try {
             WalletResponseDto walletResponseDto = updateWalletUseCase.withdrawal(
                     customer.getCustomerUuid(),
-                    findWallet.getWalletUuid(),
                     totalPrice
             );
 
@@ -214,7 +213,6 @@ public class OrderPaymentApplicationService implements CreateOrderPaymentUseCase
 
             WalletResponseDto wallet = updateWalletUseCase.withdrawal(
                     customer.getCustomerUuid(),
-                    findWallet.getWalletUuid(),
                     totalAmount
             );
 

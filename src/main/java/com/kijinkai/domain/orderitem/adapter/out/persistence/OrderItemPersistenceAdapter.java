@@ -7,7 +7,6 @@ import com.kijinkai.domain.orderitem.adapter.out.persistence.mapper.OrderItemPer
 import com.kijinkai.domain.orderitem.adapter.out.persistence.repostiory.OrderItemRepository;
 import com.kijinkai.domain.orderitem.application.port.out.OrderItemPersistencePort;
 import com.kijinkai.domain.orderitem.domain.model.OrderItem;
-import com.kijinkai.domain.payment.application.dto.request.OrderPaymentRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,7 +46,7 @@ public class OrderItemPersistenceAdapter implements OrderItemPersistencePort {
 
     @Override
     public Optional<OrderItem> findByOrderUuid(UUID orderUuid) {
-        return orderItemRepository.findByOrderOrderUuid(orderUuid)
+        return orderItemRepository.findByOrderUuid(orderUuid)
                 .map(orderItemPersistenceMapper::toOrderItem);
     }
 
@@ -58,14 +57,20 @@ public class OrderItemPersistenceAdapter implements OrderItemPersistencePort {
     }
 
     @Override
-    public Page<OrderItem> findAllByCustomerUuidOrderByOrderCreatedAtDesc(UUID customerUuid, Pageable pageable) {
-        return orderItemRepository.findAllByCustomerUuidOrderByOrderCreatedAtDesc(customerUuid,pageable)
+    public Optional<OrderItem> findByCustomerUuidAndOrderItemCode(UUID customerUuid, String orderItemCode) {
+        return orderItemRepository.findByCustomerUuidAndOrderItemCode(customerUuid, orderItemCode)
                 .map(orderItemPersistenceMapper::toOrderItem);
     }
 
     @Override
-    public Page<OrderItem> findAllByCustomerUuidAndOrderItemStatusOrderByOrderCreatedAtDesc(UUID customerUuid, OrderItemStatus status, Pageable pageable) {
-        return orderItemRepository.findAllByCustomerUuidAndOrderItemStatusOrderByOrderCreatedAtDesc(customerUuid,status,pageable)
+    public Page<OrderItem> findAllByCustomerUuidOrderByOrderCreatedAtDesc(UUID customerUuid, Pageable pageable) {
+        return orderItemRepository.findByCustomerUuidOrderByCreatedAtDesc(customerUuid,pageable)
+                .map(orderItemPersistenceMapper::toOrderItem);
+    }
+
+    @Override
+    public Page<OrderItem> findAllByCustomerUuidAndOrderItemStatusOrderByCreatedAtDesc(UUID customerUuid, OrderItemStatus status, Pageable pageable) {
+        return orderItemRepository.findAllByCustomerUuidAndOrderItemStatusOrderByCreatedAtDesc(customerUuid,status,pageable)
                 .map(orderItemPersistenceMapper::toOrderItem);
     }
 
@@ -81,8 +86,31 @@ public class OrderItemPersistenceAdapter implements OrderItemPersistencePort {
     }
 
     @Override
+    public List<OrderItem> findAllByOrderItemStatusAndOrderItemCodeIn(OrderItemStatus status, List<String> orderItemCodes) {
+        return orderItemRepository.findAllByOrderItemStatusAndOrderItemCodeIn(status, orderItemCodes)
+                .stream().map(orderItemPersistenceMapper::toOrderItem).toList();
+    }
+
+    @Override
+    public List<OrderItem> findAllByOrderItemCodeInAndOrderItemStatus(List<String> orderItemCode, OrderItemStatus status) {
+        return orderItemRepository.findAllByOrderItemCodeInAndOrderItemStatus( orderItemCode,  status)
+                .stream().map(orderItemPersistenceMapper::toOrderItem).toList();
+    }
+
+    @Override
+    public List<OrderItem> findAllByCustomerUuidAndOrderItemStatusIn(UUID customerUuid, List<OrderItemStatus> orderItemStatuses) {
+        return orderItemRepository.findAllByCustomerUuidAndOrderItemStatusIn(customerUuid, orderItemStatuses)
+                .stream().map(orderItemPersistenceMapper::toOrderItem).toList();
+    }
+
+    @Override
     public int findOrderItemCountByStatus(UUID customerUuid, OrderItemStatus orderItemStatus) {
         return orderItemRepository.findOrderItemCountByStatus(customerUuid,orderItemStatus);
+    }
+
+    @Override
+    public int findOrderItemCountByStatusIn(UUID customerUuid, List<OrderItemStatus> orderItemStatus) {
+        return orderItemRepository.findOrderItemCountByStatusIn(customerUuid, orderItemStatus);
     }
 
     @Override

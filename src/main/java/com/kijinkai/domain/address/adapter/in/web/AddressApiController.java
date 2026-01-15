@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -38,7 +39,7 @@ public class AddressApiController {
     private final DeleteAddressUseCase deleteAddressUseCase;
 
 
-    @PostMapping
+    @PostMapping(value = "/add")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "주소 생성 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청"),
@@ -46,21 +47,18 @@ public class AddressApiController {
             @ApiResponse(responseCode = "500", description = "서버오류")
     })
     public ResponseEntity<BasicResponseDto<AddressResponseDto>> createAddress(
-            Authentication authentication,
+            @AuthenticationPrincipal  CustomUserDetails customUserDetails,
             @Valid @RequestBody AddressRequestDto requestDto
     ) {
 
-        UUID userUuid = getUserUuid(authentication);
-        log.info("User: {} requests address create", userUuid);
+        log.info("User: {} requests address create", customUserDetails.getUserUuid());
 
-
-        AddressResponseDto address = createAddressUseCase.createAddress(userUuid, requestDto);
-        log.info("AddressJpaEntity:{} successfully created by user{}", address.getAddressUuid(), userUuid);
-
+        AddressResponseDto address = createAddressUseCase.createAddress(customUserDetails.getUserUuid(), requestDto);
+        log.info("AddressJpaEntity:{} successfully created by user{}", address.getAddressUuid(), customUserDetails.getUserUuid());
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
-                .path("/api/v1/addresses/{addressUuid}")
+                .path("/{addressUuid}")
                 .buildAndExpand(address.getAddressUuid())
                 .toUri();
 

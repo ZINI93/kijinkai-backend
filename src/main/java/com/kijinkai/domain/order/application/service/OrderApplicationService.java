@@ -20,11 +20,14 @@ import com.kijinkai.domain.order.domain.exception.OrderCreationException;
 import com.kijinkai.domain.order.domain.exception.OrderNotFoundException;
 import com.kijinkai.domain.order.domain.factory.OrderFactory;
 import com.kijinkai.domain.order.domain.model.Order;
+import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
 import com.kijinkai.domain.orderitem.application.dto.OrderItemRequestDto;
 import com.kijinkai.domain.orderitem.application.dto.OrderItemUpdateDto;
+import com.kijinkai.domain.orderitem.application.port.in.UpdateOrderItemUseCase;
 import com.kijinkai.domain.orderitem.application.port.out.OrderItemPersistencePort;
 import com.kijinkai.domain.orderitem.application.service.OrderItemApplicationService;
 import com.kijinkai.domain.orderitem.domain.exception.OrderItemNotFoundException;
+import com.kijinkai.domain.orderitem.domain.exception.OrderItemValidateException;
 import com.kijinkai.domain.orderitem.domain.exception.OrderUpdateException;
 import com.kijinkai.domain.orderitem.domain.model.OrderItem;
 import com.kijinkai.domain.payment.domain.exception.PaymentProcessingException;
@@ -35,13 +38,13 @@ import com.kijinkai.domain.user.adapter.in.web.validator.UserApplicationValidato
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
 import com.kijinkai.domain.user.domain.model.User;
-import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
+import com.kijinkai.domain.wallet.application.dto.WalletResponseDto;
+import com.kijinkai.domain.wallet.application.port.in.UpdateWalletUseCase;
 import com.kijinkai.domain.wallet.application.port.out.WalletPersistencePort;
 import com.kijinkai.domain.wallet.domain.exception.WalletNotFoundException;
-import com.kijinkai.domain.wallet.domain.exception.WalletUpdateFailedException;
-import com.kijinkai.domain.wallet.adapter.out.persistence.repository.WalletRepository;
-import com.kijinkai.domain.wallet.application.validator.WalletValidator;
 import com.kijinkai.domain.wallet.domain.model.Wallet;
+import com.kijinkai.util.BusinessCodeType;
+import com.kijinkai.util.GenerateBusinessItemCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -50,6 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -71,12 +75,17 @@ public class OrderApplicationService implements CreateOrderUseCase, GetOrderUseC
     private final OrderItemApplicationService orderItemApplicationService;
     private final PriceCalculationService priceCalculationService;
     private final TransactionService transactionService;
-    private final WalletValidator walletValidator;
+
+    private final UpdateWalletUseCase updateWalletUseCase;
+    private final UpdateOrderItemUseCase updateOrderItemUseCase;
     private final UserApplicationValidator userApplicationValidator;
     private final OrderItemPersistencePort orderItemPersistencePort;
     private final CustomerPersistencePort customerPersistencePort;
     private final UserPersistencePort userPersistencePort;
     private final WalletPersistencePort walletPersistencePort;
+
+    //util
+    private final GenerateBusinessItemCode generateBusinessItemCode;
 
 
     /**
@@ -98,7 +107,8 @@ public class OrderApplicationService implements CreateOrderUseCase, GetOrderUseC
                     .map(OrderItemRequestDto::getPriceOriginal)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            Order order = orderFactory.createOrder(customer.getCustomerUuid(), requestDto.getMemo(), totalPrice);
+            String orderCode = generateBusinessItemCode.generateBusinessCode(userUuid.toString(), BusinessCodeType.ORD);
+            Order order = orderFactory.createOrder(customer.getCustomerUuid(), totalPrice, orderCode);
             Order savedOrder = orderPersistencePort.saveOrder(order);
 
             List<OrderItem> orderItems = requestDto.getOrderItems().stream()
@@ -165,9 +175,9 @@ public class OrderApplicationService implements CreateOrderUseCase, GetOrderUseC
      */
     @Override
     @Transactional
-    public OrderResponseDto completedOrder(UUID userUuid, UUID orderUuid) {
+    public OrderResponseDto completedOrder(UUID userUuid, OrderRequestDto requestDto) {
         return executeWithOptimisticLockRetry(() ->
-                processOrderCompletion(userUuid, orderUuid));
+                processFirstOrderCompletion(userUuid, requestDto));
     }
 
     @Override
@@ -285,63 +295,124 @@ public class OrderApplicationService implements CreateOrderUseCase, GetOrderUseC
 
     // -----
 
+    /**
+     * 결제 재시도 (동시성 해결)
+     *
+     * @param operation
+     * @return
+     */
     public OrderResponseDto executeWithOptimisticLockRetry(Supplier<OrderResponseDto> operation) {
         int maxRetries = 3;
-        int retryCount = 0;
-
-        while (retryCount < maxRetries) {
+        for (int retryCount = 1; retryCount <= maxRetries; retryCount++) {
             try {
                 return operation.get();
             } catch (OptimisticLockingFailureException e) {
-                retryCount++;
-                log.warn("Optimistic lock failure, retry{}/{}", retryCount, maxRetries);
-
-                if (retryCount >= maxRetries) {
-                    throw new PaymentProcessingException("Payment completion failed due to concurrent access");
+                if (retryCount == maxRetries) {
+                    log.error("Fail retry failed for optimistic lock");
+                    throw new PaymentProcessingException("동시 접속자가 많아 결제에 실패했습니다.");
                 }
 
-                try {
-                    Thread.sleep(100 * retryCount);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    throw new PaymentProcessingException("Payment processing interrupted");
-                }
+                long waitTime = (long) (Math.pow(2, retryCount) * 100);
+                waitForRetry(waitTime);
+                log.warn("Retry {}/{} due to conflict", retryCount, maxRetries);
             }
         }
+
         throw new PaymentProcessingException("Unexpected error in payment completion");
     }
 
-    private OrderResponseDto processOrderCompletion(UUID userUuid, UUID orderUuid) {
+    private void waitForRetry(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            throw new PaymentProcessingException("결제 처리 중 인터럽스가 발생하였습니다.");
+        }
+    }
+
+    @Transactional
+    private OrderResponseDto processFirstOrderCompletion(UUID userUuid, OrderRequestDto requestDto) {
 
         log.info("Completing order for user uuid:{}", userUuid);
 
+
+        //userUuid로  구매자 조회
         Customer customer = findCustomerByUserUuid(userUuid);
-        Order order = findOrderByCustomerUuidAndOrderUuid(customer, orderUuid);
-        orderValidator.requireAwaitingOrderStatus(order);
 
-        Wallet wallet = findWalletByCustomerUuid(customer.getCustomerUuid());
-        walletValidator.requireActiveStatus(wallet);
+        //구매 대기중 상품 조회.. 전체결제가 아님 list로 받아서 결제
+        List<OrderItem> orderItems = orderItemApplicationService.getOrderItemsByCodeAndStatus(requestDto.getOrderItemCodes(), OrderItemStatus.PENDING_APPROVAL);
 
-        BigDecimal amountToPay = order.getTotalPriceOriginal();
-        walletValidator.requireSufficientBalance(wallet, amountToPay);
+        //상품 상태 변경
+        updateOrderItemUseCase.updateOrderItemStatusByFirstComplete(orderItems, requestDto.getInspectedPhotoRequest());
 
-        int updatedRows = walletPersistencePort.decreaseBalanceAtomic(wallet.getWalletUuid(), amountToPay);
+        //결제 요청 받은 상품의 가격의 합
+        BigDecimal totalPrice = orderItems.stream()
+                .map(OrderItem::calculateFinalPrice)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        if (updatedRows == 0) {
-            throw new WalletUpdateFailedException("Insufficient balance for payment or wallet update failed");
+        if (totalPrice.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new OrderItemValidateException("결제 금액은 0원보다 커야 합니다.");
         }
 
-        order.completePayment();  // order status change paid
+        //주문 생성
+        String orderCode = generateBusinessItemCode.generateBusinessCode(userUuid.toString(), BusinessCodeType.ORD);
+        Order order = orderFactory.createOrder(customer.getCustomerUuid(), totalPrice, orderCode);
+
+        // 지갑 금액 차감
+        WalletResponseDto withdrawal = updateWalletUseCase.withdrawal(customer.getCustomerUuid(), totalPrice);
+
+        // 저장
         Order savedOrder = orderPersistencePort.saveOrder(order);
 
+        // Order 추가
+        orderItems.forEach(orderItem ->
+                orderItem.addOrderUuid(savedOrder.getOrderUuid()));
 
-        Wallet updateWallet = walletPersistencePort.findByWalletId(wallet.getWalletId()).orElseThrow(() -> new WalletNotFoundException(String.format("WalletJpaEntity not found for wallet id: %s", wallet.getWalletId())));
-        BigDecimal balanceAfter = updateWallet.getBalance();
-        transactionService.createTransactionWithValidate(userUuid, wallet.getWalletUuid(), orderUuid, TransactionType.PAYMENT, amountToPay, wallet.getBalance(), balanceAfter, TransactionStatus.COMPLETED);
+        orderItemPersistencePort.saveAllOrderItem(orderItems);
+
+
+
+        //결제 이력생성
+        BigDecimal beforeBalance = withdrawal.getBalance().add(totalPrice);
+        transactionService.createTransactionWithValidate(userUuid, withdrawal.getWalletUuid(), savedOrder.getOrderUuid(), TransactionType.PAYMENT, totalPrice, beforeBalance, withdrawal.getBalance(), TransactionStatus.COMPLETED);
 
         log.info("Completed order for order uuid:{}", savedOrder.getOrderUuid());
 
         return orderMapper.toResponse(savedOrder);
     }
+
+//    private OrderResponseDto processOrderCompletion(UUID userUuid, UUID orderUuid) {
+//
+//        log.info("Completing order for user uuid:{}", userUuid);
+//
+//        Customer customer = findCustomerByUserUuid(userUuid);
+//        Order order = findOrderByCustomerUuidAndOrderUuid(customer, orderUuid);
+//        orderValidator.requireAwaitingOrderStatus(order);
+//
+//        Wallet wallet = findWalletByCustomerUuid(customer.getCustomerUuid());
+//        walletValidator.requireActiveStatus(wallet);
+//
+//        BigDecimal amountToPay = order.getTotalPriceOriginal();
+//        walletValidator.requireSufficientBalance(wallet, amountToPay);
+//
+//        int updatedRows = walletPersistencePort.decreaseBalanceAtomic(wallet.getWalletUuid(), amountToPay);
+//
+//        if (updatedRows == 0) {
+//            throw new WalletUpdateFailedException("Insufficient balance for payment or wallet update failed");
+//        }
+//
+//        order.completePayment();  // order status change paid
+//        Order savedOrder = orderPersistencePort.saveOrder(order);
+//
+//
+//        Wallet updateWallet = walletPersistencePort.findByWalletId(wallet.getWalletId()).orElseThrow(() -> new WalletNotFoundException(String.format("WalletJpaEntity not found for wallet id: %s", wallet.getWalletId())));
+//        BigDecimal balanceAfter = updateWallet.getBalance();
+//        transactionService.createTransactionWithValidate(userUuid, wallet.getWalletUuid(), orderUuid, TransactionType.PAYMENT, amountToPay, wallet.getBalance(), balanceAfter, TransactionStatus.COMPLETED);
+//
+//        log.info("Completed order for order uuid:{}", savedOrder.getOrderUuid());
+//
+//        return orderMapper.toResponse(savedOrder);
+//    }
 }
 

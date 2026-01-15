@@ -30,7 +30,7 @@ public class OrderItemValidator {
     }
 
     public void validateCustomerOwnershipOfOrderItem(Customer customer, OrderItem orderItem){
-        UUID orderCustomerUuid = orderItem.getOrder().getCustomerUuid();
+        UUID orderCustomerUuid = orderItem.getCustomerUuid();
         if (!customer.getCustomerUuid().equals(orderCustomerUuid)) {
             throw new OrderItemValidateException(
                     String.format("Customer UUID mismatch: expected %s, but got %s",
@@ -55,7 +55,6 @@ public class OrderItemValidator {
         if (orderItemUuids == null || orderItemUuids.isEmpty()) {
             throw new IllegalArgumentException("결제할 주문 아이템을 선택해주세요.");
         }
-
 
         // 요청한 수량과 조회된 수량 비교
         if (orderItems.size() != orderItemUuids.size()) {

@@ -15,4 +15,7 @@ public interface CreateOrderItemUseCase {
     OrderItem createOrderItem(Customer customer, Order order, OrderItemRequestDto requestDto);
 
     List<OrderItem> secondOrderItemPayment(UUID customerUuid, OrderPaymentRequestDto request, UUID deliveryPaymentUuid);
+
+    List<UUID> createOrderItems(UUID userUuid, List<OrderItemRequestDto> orderItemRequestDtos);
+
 }

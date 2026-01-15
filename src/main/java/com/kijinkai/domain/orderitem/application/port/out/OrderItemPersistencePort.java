@@ -14,19 +14,36 @@ import java.util.UUID;
 public interface OrderItemPersistencePort {
 
     OrderItem saveOrderItem(OrderItem orderItem);
+
     List<OrderItem> saveAllOrderItem(List<OrderItem> orderItems);
 
     void deleteOrderItem(OrderItem orderItem);
 
     Optional<OrderItem> findByOrderUuid(UUID orderUuid);
+
     Optional<OrderItem> findByOrderItemUuid(UUID orderUuid);
+
+    Optional<OrderItem> findByCustomerUuidAndOrderItemCode(UUID customerUuid, String orderItemCode);
+
+
     Page<OrderItem> findAllByCustomerUuidOrderByOrderCreatedAtDesc(UUID customerUuid, Pageable pageable);
-    Page<OrderItem> findAllByCustomerUuidAndOrderItemStatusOrderByOrderCreatedAtDesc(UUID customerUuid, OrderItemStatus status, Pageable pageable);
+
+    Page<OrderItem> findAllByCustomerUuidAndOrderItemStatusOrderByCreatedAtDesc(UUID customerUuid, OrderItemStatus status, Pageable pageable);
+
     List<OrderItem> findByOrderItemUuidInAndCustomerUuid(List<UUID> orderItemUuids, UUID customerUuid);
 
     List<OrderItem> findAllByOrderItemUuidIn(List<UUID> orderItemUuids);
 
+    List<OrderItem> findAllByOrderItemStatusAndOrderItemCodeIn(OrderItemStatus status, List<String> orderItemCodes);
+
+    List<OrderItem> findAllByOrderItemCodeInAndOrderItemStatus(List<String> orderItemCode, OrderItemStatus status);
+
+    List<OrderItem> findAllByCustomerUuidAndOrderItemStatusIn(UUID customerUuid, List<OrderItemStatus> orderItemStatuses);
+
     int findOrderItemCountByStatus(@Param("customerUuid") UUID customerUuid, @Param("orderItemStatus") OrderItemStatus orderItemStatus);
+
+    int findOrderItemCountByStatusIn(@Param("customerUuid") UUID customerUuid, @Param("orderItemStatus") List<OrderItemStatus> orderItemStatus);
+
     int findOrderItemCount(@Param("customerUuid") UUID customerUuid);
 
 }

@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,7 +36,7 @@ public class OrderApiController {
 
     private final OrderApplicationService orderApplicationService;
 
-    @PostMapping
+    @PostMapping(value = "/first-order/complete", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "주문 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청"),
@@ -43,29 +44,23 @@ public class OrderApiController {
             @ApiResponse(responseCode = "500", description = "서버오류")
     })
     public ResponseEntity<BasicResponseDto<OrderResponseDto>> createOrder(
-            Authentication authentication,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @Valid @RequestBody OrderRequestDto requestDto
     ) {
 
-        UUID userUuid = getUserUuid(authentication);
-        log.info("User: {} requests order create", userUuid);
 
-        OrderResponseDto order = orderApplicationService.createOrder(userUuid, requestDto);
-        log.info("OrderJpaEntity:{} successfully created by user{}", order.getOrderUuid(), userUuid);
+        OrderResponseDto order = orderApplicationService.completedOrder(customUserDetails.getUserUuid(), requestDto);
+
+        log.info("Order successfully created. OrderUuid: {}, UserUuid: {}",
+                order.getOrderUuid(), customUserDetails.getUserUuid());
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
-                .path("/api/v1/orders/{orderUuid}")
+                .path("/{orderUuid}")
                 .buildAndExpand(order.getOrderUuid())
                 .toUri();
 
         return ResponseEntity.created(location).body(BasicResponseDto.success("Successful created address", order));
     }
-
-    private static UUID getUserUuid(Authentication authentication) {
-        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-        return customUserDetails.getUserUuid();
-    }
-
 }
 

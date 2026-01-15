@@ -12,6 +12,7 @@ import java.util.UUID;
 public class OrderPaymentRequestDto {
 
     List<UUID> orderItemUuids;
+    List<String> orderItemCodes;
     BigDecimal deliveryFee;
 
 }

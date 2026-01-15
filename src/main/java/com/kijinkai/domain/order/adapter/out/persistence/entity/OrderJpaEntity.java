@@ -26,6 +26,9 @@ public class OrderJpaEntity extends BaseEntity {
     @Column(name = "order_uuid", nullable = false, updatable = false , unique = true)
     private UUID orderUuid;
 
+    @Column(name = "order_code", nullable = false, updatable = false, unique = true)
+    private String orderCode;
+
     @Column(name = "customer_uuid", nullable = false)
     private UUID customerUuid;
 

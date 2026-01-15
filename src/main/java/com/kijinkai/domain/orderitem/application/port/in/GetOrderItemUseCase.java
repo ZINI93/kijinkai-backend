@@ -3,9 +3,11 @@ package com.kijinkai.domain.orderitem.application.port.in;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
 import com.kijinkai.domain.orderitem.application.dto.OrderItemCountResponseDto;
 import com.kijinkai.domain.orderitem.application.dto.OrderItemResponseDto;
+import com.kijinkai.domain.orderitem.domain.model.OrderItem;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface GetOrderItemUseCase {
@@ -18,4 +20,7 @@ public interface GetOrderItemUseCase {
 
     OrderItemResponseDto getOrderItemInfo(UUID userUuid, UUID orderItemUuid);
     OrderItemCountResponseDto orderItemDashboardCount(UUID userUuid);
+    List<OrderItem> getOrderItemsByCustomerAndOrderItemsStatus(UUID userUuid, List<OrderItemStatus> orderItemStatuses);
+    int countOrderItemsByStatus(UUID userUuid, OrderItemStatus orderItemStatus);
+    int countOrderItemByStatusIn(UUID userUuid, List<OrderItemStatus> orderItemStatus);
 }

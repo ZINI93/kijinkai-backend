@@ -29,9 +29,11 @@ public class OrderItemJpaEntity extends BaseEntity {
     @Column(name = "customer_uuid", nullable = false, updatable = false)
     private UUID customerUuid;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", updatable = false, nullable = false)
-    private OrderJpaEntity order;
+    @Column(name = "order_item_code", nullable = false, updatable = false)
+    private String orderItemCode;
+
+    @JoinColumn(name = "order_id", updatable = false)
+    private UUID orderUuid;
 
     @Column(name = "product_payment_uuid")
     private UUID productPaymentUuid;
@@ -54,6 +56,9 @@ public class OrderItemJpaEntity extends BaseEntity {
 
     @Column(name = "memo",columnDefinition = "TEXT")
     private String memo;
+
+    @Column(name = "inspection_requested", nullable = false)
+    private Boolean inspectionRequested;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "order_item_status", nullable = false, length = 20)

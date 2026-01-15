@@ -2,14 +2,19 @@ package com.kijinkai.domain.common.service;
 
 
 import com.kijinkai.domain.common.dto.MyPageResponseDto;
+import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
+import com.kijinkai.domain.orderitem.application.port.in.GetOrderItemUseCase;
+import com.kijinkai.domain.orderitem.domain.model.OrderItem;
 import com.kijinkai.domain.user.application.dto.response.UserResponseDto;
 import com.kijinkai.domain.user.application.port.in.GetUserUseCase;
+import com.kijinkai.domain.wallet.application.dto.WalletBalanceResponseDto;
+import com.kijinkai.domain.wallet.application.port.in.GetWalletUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -20,37 +25,83 @@ public class MyPageService {
 
 
     private final GetUserUseCase getUserUseCase;
+    private final GetWalletUseCase getWalletUseCase;
+    private final GetOrderItemUseCase getOrderItemUseCase;
+
 
     public MyPageResponseDto myPage(UUID userUuid){
 
         UserResponseDto userInfo = getUserUseCase.getUserInfo(userUuid);
 
-        //지갑 관련
+        // 지갑 관련
+        WalletBalanceResponseDto walletBalance = getWalletUseCase.getWalletBalance(userUuid);
 
 
+        // 미결제 금액
+        List<OrderItem> orderItems = getOrderItemUseCase.getOrderItemsByCustomerAndOrderItemsStatus(userUuid, List.of(OrderItemStatus.PENDING, OrderItemStatus.PENDING_APPROVAL,
+                OrderItemStatus.DELIVERY_FEE_PAYMENT_REQUEST));
+
+        BigDecimal outstandingBalance = BigDecimal.ZERO;
+        for (OrderItem orderItem : orderItems) {
+            outstandingBalance = outstandingBalance.add(orderItem.getPriceOriginal());
+        }
+
+        //비출고현황
+        int failedOrders = getOrderItemUseCase.countOrderItemByStatusIn(userUuid, List.of(OrderItemStatus.PRODUCT_PAYMENT_COMPLETED, OrderItemStatus.LOCAL_DELIVERY_COMPLETED,
+                OrderItemStatus.PRODUCT_CONSOLIDATING, OrderItemStatus.DELIVERY_FEE_PAYMENT_REQUEST, OrderItemStatus.DELIVERY_FEE_PAYMENT_COMPLETED));
+
+        //실패
+        int undispatchedOrders = getOrderItemUseCase.countOrderItemByStatusIn(userUuid, List.of(OrderItemStatus.CANCELLED, OrderItemStatus.REJECTED));
+
+        //구매요청
+        int purchaseRequestOrders = getOrderItemUseCase.countOrderItemsByStatus(userUuid, OrderItemStatus.PENDING);
+
+        //구매승인
+        int purchaseApprovedOrders = getOrderItemUseCase.countOrderItemsByStatus(userUuid, OrderItemStatus.PENDING_APPROVAL);
+
+        //1차 결제 완료
+        int firstPaymentCompletedOrders = getOrderItemUseCase.countOrderItemsByStatus(userUuid, OrderItemStatus.PRODUCT_PAYMENT_COMPLETED);
+
+        //현지배송 완료
+        int localDeliveryCompletedOrders = getOrderItemUseCase.countOrderItemsByStatus(userUuid, OrderItemStatus.LOCAL_DELIVERY_COMPLETED);
+
+        //배송통합진행
+        int orderItemByPending = getOrderItemUseCase.countOrderItemsByStatus(userUuid, OrderItemStatus.PRODUCT_CONSOLIDATING);
+
+        //2차결제 요청(국제 배송비)
+        int secondPaymentRequestedOrders = getOrderItemUseCase.countOrderItemsByStatus(userUuid, OrderItemStatus.DELIVERY_FEE_PAYMENT_REQUEST);
+
+        //2차결제 완료(국제 배송비)
+        int secondPaymentCompletedOrders = getOrderItemUseCase.countOrderItemsByStatus(userUuid, OrderItemStatus.DELIVERY_FEE_PAYMENT_COMPLETED);
+
+        //국제 배송중
+        int internationalShippingOrders = getOrderItemUseCase.countOrderItemsByStatus(userUuid, OrderItemStatus.IN_TRANSIT);
+
+        //배송완료
+        int deliveredOrders = getOrderItemUseCase.countOrderItemsByStatus(userUuid, OrderItemStatus.DELIVERED);
 
         return MyPageResponseDto.builder()
                 //유저 정보관련
                 .nickname(userInfo.getNickname())
 
                 //지갑관련
-                .depositBalance(BigDecimal.ZERO)
-                .availableBalance(BigDecimal.ZERO)
-                .outstandingBalance(BigDecimal.ZERO)
+                .depositBalance(walletBalance.getBalance()) //전체 잔액
+                .availableBalance(walletBalance.getBalance().subtract(outstandingBalance)) //결제가능금액
+                .outstandingBalance(outstandingBalance) // 미결제 금액
 
                 //배송 출고 관련
-                .undispatchedOrders(0)
-                .failedOrders(0)
-                .purchaseRequestOrders(0)
-                .purchaseApprovedOrders(0)
-                .firstPaymentCompletedOrders(0)
-                .localDeliveryCompletedOrders(0)
-                .combinedProcessingOrders(0)
-                .secondPaymentRequestedOrders(0)
-                .secondPaymentCompletedOrders(0)
-                .internationalShippingOrders(0)
-                .deliveredOrders(0)
-                .build();
+                .undispatchedOrders(undispatchedOrders)
 
+                .failedOrders(failedOrders)
+                .purchaseRequestOrders(purchaseRequestOrders)
+                .purchaseApprovedOrders(purchaseApprovedOrders)
+                .firstPaymentCompletedOrders(firstPaymentCompletedOrders)
+                .localDeliveryCompletedOrders(localDeliveryCompletedOrders)
+                .combinedProcessingOrders(orderItemByPending)
+                .secondPaymentRequestedOrders(secondPaymentRequestedOrders)
+                .secondPaymentCompletedOrders(secondPaymentCompletedOrders)
+                .internationalShippingOrders(internationalShippingOrders)
+                .deliveredOrders(deliveredOrders)
+                .build();
     }
 }

@@ -26,7 +26,7 @@ import java.util.UUID;
         value = "/api/v1/wallets",
         produces = MediaType.APPLICATION_JSON_VALUE
 )
-public class WalletAdminAPiController {
+public class WalletAdminApiController {
 
     private final WalletApplicationService walletApplicationService;
 

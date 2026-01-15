@@ -15,16 +15,14 @@ import static com.kijinkai.domain.exchange.doamin.Currency.JPY;
 @Component
 public class OrderFactory {
 
-    public Order createOrder(UUID customerUuid, String memo, BigDecimal totalPrice) {
+    public Order createOrder(UUID customerUuid, BigDecimal totalPrice, String orderCode) {
         return Order.builder()
                 .orderUuid(UUID.randomUUID())
                 .customerUuid(customerUuid)
+                .orderCode(orderCode)
                 .totalPriceOriginal(totalPrice)
-                .totalPriceConverted(BigDecimal.ZERO)
-                .convertedCurrency(JPY)
-                .orderStatus(OrderStatus.DRAFT)
-                .memo(memo)
-                .paymentType(PaymentType.WITHDRAWAL)
+                .orderStatus(OrderStatus.FIRST_PAID)
+                .paymentType(PaymentType.DEPOSIT)
                 .build();
     }
 }

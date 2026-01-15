@@ -23,6 +23,8 @@ public class OrderItemResponseDto {
     BigDecimal priceOriginal;
     OrderItemStatus orderItemStatus;
     LocalDateTime createdAt;
+    String orderItemCode;
+    BigDecimal depositBalance;
 
     List<UUID> orderItemUuids;
 

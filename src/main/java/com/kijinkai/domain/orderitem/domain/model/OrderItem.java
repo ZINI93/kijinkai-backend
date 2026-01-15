@@ -17,10 +17,15 @@ import java.util.UUID;
 @Builder
 public class OrderItem {
 
+    //내부식별
     private Long orderItemId;
     private UUID orderItemUuid;
     private UUID customerUuid;
-    private Order order;
+
+    //외부식별자
+    private String orderItemCode;
+
+    private UUID orderUuid;
     private UUID productPaymentUuid;
     private UUID deliveryFeePaymentUuid;
     private String productLink;
@@ -30,8 +35,24 @@ public class OrderItem {
     private String memo;
     private OrderItemStatus orderItemStatus;
 
+    private Boolean inspectionRequested;
+
     private LocalDateTime createdAt;
 
+
+    private static final BigDecimal INSPECTION_FEE = BigDecimal.valueOf(300);
+
+
+    public void addOrderUuid(UUID orderUuid) {
+        this.orderUuid = orderUuid;
+    }
+
+    public BigDecimal calculateFinalPrice() {
+        if (inspectionRequested) {
+            return priceOriginal.add(INSPECTION_FEE); // 사진검수 300엔 추가
+        }
+        return priceOriginal;
+    }
 
     public void updateOrderItem(OrderItemUpdateDto updateDto) {
         this.productLink = updateDto.getProductLink();
@@ -43,8 +64,8 @@ public class OrderItem {
 
     public void validateOrderAndOrderItem(Order order) {
 
-        if (!Objects.equals(this.getOrder().getOrderUuid(), order.getOrderUuid())) {
-            throw new OrderItemValidateException("OrderItem " + this.getOrderItemUuid() + " does not belong to OrderJpaEntity " + this.order.getOrderUuid());
+        if (!Objects.equals(this.orderUuid, order.getOrderUuid())) {
+            throw new OrderItemValidateException("OrderItem " + this.getOrderItemUuid() + " does not belong to OrderJpaEntity " + this.orderUuid);
         }
     }
 
@@ -62,6 +83,32 @@ public class OrderItem {
         changeStatusToPendingApproval();
     }
 
+    public void completedLocalDelivery() {
+        if (this.orderItemStatus != OrderItemStatus.PRODUCT_PAYMENT_COMPLETED) {
+            throw new OrderItemValidateException("대기 중 상품만 승인이 가능합니다.");
+        }
+        // 주문 상품의 상태를 허가로 변경
+        this.orderItemStatus = OrderItemStatus.LOCAL_DELIVERY_COMPLETED;
+    }
+
+
+
+        public void completeFirstOrderItemPayment() {
+        if (this.orderItemStatus != OrderItemStatus.PENDING_APPROVAL) {
+            throw new OrderItemValidateException("요청 대기중 상품만 결제 가능합니다.");
+        }
+        this.orderItemStatus = OrderItemStatus.PRODUCT_PAYMENT_COMPLETED;
+    }
+
+    public void requestPhotoInspection() {
+        if (this.orderItemStatus != OrderItemStatus.PENDING_APPROVAL) {
+            throw new OrderItemValidateException("요청 대기중 상품만 결제 가능합니다.");
+        }
+
+        this.inspectionRequested = true;
+
+    }
+
     private void changeStatusToPendingApproval() {
         this.orderItemStatus = OrderItemStatus.PENDING_APPROVAL;
     }
@@ -75,7 +122,7 @@ public class OrderItem {
     }
 
 
-    public void  changeStatusToProductPaymentCompleted(){
+    public void changeStatusToProductPaymentCompleted() {
         this.orderItemStatus = OrderItemStatus.PRODUCT_PAYMENT_COMPLETED;
     }
 

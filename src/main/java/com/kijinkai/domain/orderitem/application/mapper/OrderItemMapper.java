@@ -7,6 +7,7 @@ import com.kijinkai.domain.orderitem.application.dto.OrderItemResponseDto;
 import com.kijinkai.domain.orderitem.domain.model.OrderItem;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,6 +24,31 @@ public class OrderItemMapper {
                 .quantity(orderItem.getQuantity())
                 .memo(orderItem.getMemo())
                 .orderItemStatus(orderItem.getOrderItemStatus())
+                .createdAt(orderItem.getCreatedAt())
+                .build();
+    }
+
+
+    public OrderItemResponseDto toProductDetailDto(OrderItem orderItem) {
+
+        return OrderItemResponseDto.builder()
+                .orderItemCode(orderItem.getOrderItemCode())
+                .productLink(orderItem.getProductLink())
+                .priceOriginal(orderItem.getPriceOriginal())
+                .quantity(orderItem.getQuantity())
+                .memo(orderItem.getMemo())
+                .createdAt(orderItem.getCreatedAt())
+                .build();
+    }
+    public OrderItemResponseDto toApprovalDetailDto(OrderItem orderItem, BigDecimal depositBalance) {
+
+        return OrderItemResponseDto.builder()
+                .orderItemCode(orderItem.getOrderItemCode())
+                .productLink(orderItem.getProductLink())
+                .priceOriginal(orderItem.getPriceOriginal())
+                .quantity(orderItem.getQuantity())
+                .memo(orderItem.getMemo())
+                .depositBalance(depositBalance)
                 .createdAt(orderItem.getCreatedAt())
                 .build();
     }

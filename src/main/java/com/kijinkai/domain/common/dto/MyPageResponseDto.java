@@ -2,15 +2,13 @@ package com.kijinkai.domain.common.dto;
 
 import lombok.Builder;
 import lombok.Getter;
-
 import java.math.BigDecimal;
 
 @Builder
 @Getter
 public class MyPageResponseDto {
 
-
-    // 닉네임
+    // 유저
     String nickname;
 
     // 지갑관련

@@ -43,6 +43,10 @@ public class WalletApplicationService implements CreateWalletUseCase, GetWalletU
     private final CustomerPersistencePort customerPersistencePort;
 
 
+
+    // 금액차감
+
+
     /**
      * 지갑 생성
      * @param customerUuid
@@ -118,30 +122,62 @@ public class WalletApplicationService implements CreateWalletUseCase, GetWalletU
      * 출금 프로세스
      *
      * @param customerUuid
-     * @param walletUuid
      * @param amount
      * @return
      */
     @Override
     @Transactional
-    public WalletResponseDto withdrawal(UUID customerUuid, UUID walletUuid, BigDecimal amount) {
-        log.info("Withdrawal amount: {} to wallet: {}", amount, walletUuid);
+    public WalletResponseDto withdrawal(UUID customerUuid, BigDecimal amount) {
+        log.info("Withdrawal customer: {} to amount: {}",customerUuid, amount);
 
-        Wallet wallet = findWalletByCustomerUuidAndWalletUuid(customerUuid, walletUuid);
-        wallet.requireActiveStatus();
-        wallet.validateMinimumExchangeAmount();
+        // 지갑 조회 및 검증
+        Wallet wallet = findWalletByCustomerUuid(customerUuid);
+        wallet.requireActiveStatus();  // 활성화 상태 검증
+        wallet.validateMinimumExchangeAmount(); // 최소 금액 검증
 
+        // 지갑에서 잔책 차감
         int updateRows = walletPersistencePort.decreaseBalanceAtomic(wallet.getWalletUuid(), amount);
+
         if (updateRows == 0) {
             throw new InsufficientBalanceException("지갑 잔액 출금에 실패했습니다.");
         }
 
-        Wallet updateWallet = findWalletByWalletUuid(wallet.getWalletUuid());
+        // 최산 지갑상태를 다시 조회
+        Wallet updatedWallet = findWalletByCustomerUuid(customerUuid);
 
-        log.info("Successfully Withdrawal {} to wallet: {}. New balance: {}", amount, wallet.getWalletUuid(), updateWallet.getBalance());
+        log.info("Successfully Withdrawal {} to wallet: {}. New balance: {}", amount, wallet.getWalletUuid(), updatedWallet.getBalance());
 
-        return walletMapper.toResponse(updateWallet);
+        return walletMapper.toResponse(updatedWallet);
     }
+
+//    /**
+//     * 출금 프로세스
+//     *
+//     * @param customerUuid
+//     * @param walletUuid
+//     * @param amount
+//     * @return
+//     */
+//    @Override
+//    @Transactional
+//    public WalletResponseDto withdrawal(UUID customerUuid, UUID walletUuid, BigDecimal amount) {
+//        log.info("Withdrawal amount: {} to wallet: {}", amount, walletUuid);
+//
+//        Wallet wallet = findWalletByCustomerUuidAndWalletUuid(customerUuid, walletUuid);
+//        wallet.requireActiveStatus();
+//        wallet.validateMinimumExchangeAmount();
+//
+//        int updateRows = walletPersistencePort.decreaseBalanceAtomic(wallet.getWalletUuid(), amount);
+//        if (updateRows == 0) {
+//            throw new InsufficientBalanceException("지갑 잔액 출금에 실패했습니다.");
+//        }
+//
+//        Wallet updateWallet = findWalletByWalletUuid(wallet.getWalletUuid());
+//
+//        log.info("Successfully Withdrawal {} to wallet: {}. New balance: {}", amount, wallet.getWalletUuid(), updateWallet.getBalance());
+//
+//        return walletMapper.toResponse(updateWallet);
+//    }
 
     /**
      * 관리자가 규약 위반한 유저의 지갑 동결

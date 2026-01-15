@@ -24,6 +24,7 @@ public class Order {
     private BigDecimal finalPriceOriginal;   // 엔화의 배송비 포함된 전체 금액
     private Currency convertedCurrency;
     private OrderStatus orderStatus;
+    private String orderCode;
     private String memo;
     private String rejectedReason;
     private PaymentType paymentType;  // 필요없을거 같음

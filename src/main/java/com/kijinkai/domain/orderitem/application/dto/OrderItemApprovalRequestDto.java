@@ -1,5 +1,6 @@
 package com.kijinkai.domain.orderitem.application.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,6 +12,5 @@ import java.util.UUID;
 @Builder
 public class OrderItemApprovalRequestDto {
 
-    @NotEmpty
-    List<UUID> orderItemUuids;
+    List<String> orderItemCodes;
 }

@@ -135,7 +135,6 @@ public class WithdrawRequestApplicationService implements CreateWithdrawUseCase,
 
             WalletResponseDto wallet = updateWalletUseCase.withdrawal(
                     withdrawRequest.getCustomerUuid(),
-                    withdrawRequest.getWalletUuid(),
                     withdrawRequest.getTotalDeductAmount());
 
             log.info("Completed withdraw approval process for request uuid: {} , withdraw amount: {}", requestUuid, withdrawRequest.getConvertedAmount());

@@ -137,8 +137,10 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").authenticated()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/main-page").authenticated()
                                 .requestMatchers(HttpMethod.GET, "/exchange-rate/**").permitAll()
+                                .requestMatchers(HttpMethod.DELETE, "/api/v1/order-items/**").authenticated()
 
 
+                                .requestMatchers(HttpMethod.POST,"/api/v1/order-items/add").authenticated()
                                 .requestMatchers("/api/v1/orders/**").hasRole(UserRole.USER.name())
                                 .requestMatchers("/api/v1/customers/**").hasRole(UserRole.ADMIN.name()) // 임시로 모든 사용자 허용
 
@@ -147,6 +149,11 @@ public class SecurityConfig {
 
                                 .requestMatchers("/api/**").hasRole(UserRole.USER.name())
                                 .requestMatchers("/api/admin/**").hasRole(UserRole.ADMIN.name())
+
+                                //관리자
+                                .requestMatchers(HttpMethod.POST, "/api/v1/admin/order-items/**").hasRole(UserRole.ADMIN.name())
+
+
                                 .anyRequest().authenticated()
 
                 );
