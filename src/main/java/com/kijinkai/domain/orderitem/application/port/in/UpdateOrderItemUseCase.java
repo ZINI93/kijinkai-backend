@@ -29,4 +29,15 @@ public interface UpdateOrderItemUseCase {
     void updateOrderItemStatusByFirstComplete(List<OrderItem> orderItems, Map<String, Boolean> inspectionRequestMap);
 
     void requestPhotoInspection(List<OrderItem> orderItems, Map<String, Boolean> inspectionRequestMap);
+
+    void registerDeliveryToOrderItems(List<String> orderItemCods, UUID deliveryUuid);
+
+    void assignToShipment(List<String> orderItemCodes, UUID shipmentUuid);
+
+    void completedDeliveryPayment(UUID customerUuid, List<UUID> shipmentUuids);
+
+    void startDelivery(UUID shipmentUuid);
+
+    void delivered(UUID shipmentUuid);
 }
+

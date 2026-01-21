@@ -8,5 +8,4 @@ import java.util.UUID;
 
 public interface UpdateOrderPaymentUseCase {
     OrderPaymentResponseDto completeFirstPayment(UUID userUuid, OrderPaymentRequestDto requestDto);
-    OrderPaymentResponseDto completeSecondPayment(UUID userUuid, OrderPaymentDeliveryRequestDto requestDto);
 }
