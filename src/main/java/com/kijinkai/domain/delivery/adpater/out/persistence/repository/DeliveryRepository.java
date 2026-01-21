@@ -18,7 +18,10 @@ public interface DeliveryRepository extends JpaRepository<DeliveryJpaEntity, Lon
     @Query("SELECT dv FROM DeliveryJpaEntity dv WHERE dv.customerUuid = :customerUuid AND dv.deliveryStatus = :deliveryStatus")
     Page<DeliveryJpaEntity> findByCustomerUuidByStatus(@Param("customerUuid") UUID customerUuid, @Param("deliveryStatus") DeliveryStatus deliveryStatus, Pageable page);
 
+    Page<DeliveryJpaEntity> findAllByDeliveryStatus(DeliveryStatus status, Pageable pageable);
+
 
     @Query("SELECT COUNT(dv) FROM DeliveryJpaEntity dv WHERE dv.customerUuid = :customerUuid AND dv.deliveryStatus = :deliveryStatus")
     int findByDeliveryStatusCount(@Param("customerUuid") UUID customerUuid, @Param("deliveryStatus")  DeliveryStatus deliveryStatus);
+
 }

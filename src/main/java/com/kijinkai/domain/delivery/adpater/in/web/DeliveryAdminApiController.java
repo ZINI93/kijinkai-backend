@@ -11,6 +11,7 @@ import com.kijinkai.domain.delivery.application.in.CreateDeliveryUseCase;
 import com.kijinkai.domain.delivery.application.in.DeleteDeliveryUseCase;
 import com.kijinkai.domain.delivery.application.in.GetDeliveryUseCase;
 import com.kijinkai.domain.delivery.application.in.UpdateDeliveryUseCase;
+import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
@@ -20,10 +21,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -34,7 +37,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(
-        value = "/api/v1/deliveries",
+        value = "/api/v1/admin/deliveries",
         produces = MediaType.APPLICATION_JSON_VALUE
 )
 public class DeliveryAdminApiController extends BaseController {
@@ -221,5 +224,27 @@ public class DeliveryAdminApiController extends BaseController {
 
         return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved order payment information", response));
     }
+
+
+    // 조회.
+    @GetMapping("/request-pending")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "배송 count 정보 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "배송을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<Page<DeliveryResponseDto>>> getDeliveryByRequestPending(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.ASC) Pageable pageable
+            ){
+
+        Page<DeliveryResponseDto> deliveriesByPending = getDeliveryUseCase.getDeliveriesByStatus(customUserDetails.getUserUuid(), DeliveryStatus.PENDING, pageable);
+
+        return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved deliveries", deliveriesByPending));
+    }
+
+
+
 
 }

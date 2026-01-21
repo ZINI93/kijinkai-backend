@@ -47,6 +47,12 @@ public class DeliveryPersistenceAdapter implements DeliveryPersistencePort {
     }
 
     @Override
+    public Page<Delivery> findAllByDeliveryStatus(DeliveryStatus status, Pageable pageable) {
+        return deliveryRepository.findAllByDeliveryStatus(status, pageable)
+                .map(deliveryPersistenceMapper::toDelivery);
+    }
+
+    @Override
     public int findByDeliveryStatusCount(UUID customerUuid, DeliveryStatus deliveryStatus) {
         return deliveryRepository.findByDeliveryStatusCount(customerUuid, deliveryStatus);
     }

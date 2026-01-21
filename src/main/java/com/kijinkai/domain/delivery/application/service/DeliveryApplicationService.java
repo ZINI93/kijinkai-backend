@@ -24,6 +24,8 @@ import com.kijinkai.domain.delivery.domain.exception.DeliveryUpdateException;
 import com.kijinkai.domain.delivery.domain.factory.DeliveryFactory;
 import com.kijinkai.domain.delivery.domain.model.Delivery;
 import com.kijinkai.domain.order.application.validator.OrderValidator;
+import com.kijinkai.domain.orderitem.application.dto.OrderItemResponseDto;
+import com.kijinkai.domain.orderitem.application.port.in.UpdateOrderItemUseCase;
 import com.kijinkai.domain.payment.adapter.out.persistence.entity.OrderPaymentJpaEntity;
 import com.kijinkai.domain.payment.application.port.out.OrderPaymentPersistencePort;
 import com.kijinkai.domain.payment.domain.exception.OrderPaymentNotFoundException;
@@ -39,6 +41,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -50,15 +53,15 @@ public class DeliveryApplicationService implements CreateDeliveryUseCase, Delete
 
     private final DeliveryPersistencePort deliveryPersistencePort;
 
-    private final DeliveryFactory factory;
+    private final DeliveryFactory deliveryFactory;
     private final DeliveryMapper deliveryMapper;
     private final DeliveryValidator deliveryValidator;
-
 
     //외부
     private final CustomerPersistencePort customerPersistencePort;
     private final UserPersistencePort userPersistencePort;
     private final AddressPersistencePort addressPersistencePort;
+    private final UpdateOrderItemUseCase updateOrderItemUseCase;
 
     private final UserApplicationValidator userValidator;
     private final OrderValidator orderValidator;
@@ -67,15 +70,51 @@ public class DeliveryApplicationService implements CreateDeliveryUseCase, Delete
 
 
     /**
+     * 고객의 배송요청
+     * @param userUuid
+     * @param addressUuid
+     * @param requestDto
+     * @return
+     */
+    @Override
+    @Transactional
+    public UUID requestDelivery(UUID userUuid, UUID addressUuid, DeliveryRequestDto requestDto){
+
+        // 구매자 조회
+        Customer customer = findCustomerByUserUuid(userUuid);
+
+        // 구매자의 주소 조회
+        Address address = addressPersistencePort.findByCustomerUuidAndAddressUuid(customer.getCustomerUuid(), addressUuid)
+                .orElseThrow(() -> new AddressNotFoundException(String.format("Address Not found for addressUuid: %s", addressUuid)));
+
+        if (address == null){
+            throw new IllegalArgumentException("주소를 작성하지 않는 상태에서 배송신청을 할수 없습니다.");
+        }
+
+        // 배달 작성
+        Delivery delivery = deliveryFactory.createDelivery(customer.getCustomerUuid(), address, requestDto);
+
+        // 배달 저장
+        Delivery savedDelivery = deliveryPersistencePort.saveDelivery(delivery);
+
+        // 주문상품들 상태변경
+        updateOrderItemUseCase.registerDeliveryToOrderItems(requestDto.getOrderItemCodes(), savedDelivery.getDeliveryUuid());
+
+        return savedDelivery.getDeliveryUuid();
+    }
+
+
+    /**
      *
      * @param userUuid
-     * @param orderPaymentUuid - 2차 결제 orderPayment
+     * @param orderPaymentUuid - 2차 결제 orderPayment. -- 수정필요함
      * @param requestDto
      * @return
      */
     @Override
     @Transactional
     public DeliveryResponseDto createDelivery(UUID userUuid, UUID orderPaymentUuid, DeliveryRequestDto requestDto) {
+
         log.info("Creating delivery for user uuid: {}", userUuid);
 
         User user = findUserByUserUuid(userUuid);
@@ -91,10 +130,8 @@ public class DeliveryApplicationService implements CreateDeliveryUseCase, Delete
                 .orElseThrow(() -> new AddressNotFoundException(String.format("Address not found for customerUuid: %s", customer.getCustomerUuid())));
 
         try {
-            Delivery delivery = factory.createDelivery(orderPaymentUuid, customer.getCustomerUuid(), address, secondOrderPayment.getPaymentAmount(), requestDto);
-            Delivery savedDelivery = deliveryPersistencePort.saveDelivery(delivery);
 
-            return deliveryMapper.toResponse(savedDelivery);
+            return null;
         } catch (Exception e) {
             log.error("Failed to create delivery for user uuid: {}", userUuid);
             throw new DeliveryCreationException("Failed to create delivery", e);
@@ -146,6 +183,33 @@ public class DeliveryApplicationService implements CreateDeliveryUseCase, Delete
         return deliveryMapper.toResponse(savedDelivery);
     }
 
+    // --- 조회. --
+
+
+
+    /**
+     * 관리자 - 고객 상태별 전체 조회
+     * @param userUuid
+     * @param pageable
+     * @return
+     */
+    public Page<DeliveryResponseDto> getDeliveries(UUID userUuid, DeliveryStatus deliveryStatus, Pageable pageable){
+
+        // Admin 검증
+        User user = findUserByUserUuid(userUuid);
+        user.validateAdminRole();
+
+        // 대기중 delivery list 조회
+        Page<Delivery> deliveriesByPending = deliveryPersistencePort.findAllByDeliveryStatus(deliveryStatus, pageable);
+
+
+        return deliveriesByPending.map(deliveryMapper::toResponse);
+    }
+
+
+
+
+
     /**
      * 유저가 배송정보를 확인하는 프로세스
      *
@@ -161,6 +225,7 @@ public class DeliveryApplicationService implements CreateDeliveryUseCase, Delete
 
         return deliveryMapper.toResponse(delivery);
     }
+
 
     /**
      * 유저가 상태에 따른 결제정보 확인
@@ -185,6 +250,8 @@ public class DeliveryApplicationService implements CreateDeliveryUseCase, Delete
 
         return deliveryMapper.deliveryCount(shippedCount, deliveredCount);
     }
+
+
 
     /**
      * 배송 준비중에서 물품이 배송업체로 인도되기 전에 구매자가 급히 주소변경 등 배송정보를 변경요청사항이 있으면 관리자가 수동으로 수정해는 프로세스

@@ -14,7 +14,11 @@ public interface DeliveryPersistencePort {
 
     Delivery saveDelivery(Delivery delivery);
     void deleteDelivery(Delivery delivery);
+
+    // 조회
     Optional<Delivery> findByCustomerUuidAndDeliveryUuid(UUID customerUuid, UUID deliveryUuid);
     Page<Delivery> findByCustomerUuidByStatus(@Param("customerUuid") UUID customerUuid, @Param("deliveryStatus") DeliveryStatus deliveryStatus, Pageable page);
+    Page<Delivery> findAllByDeliveryStatus(DeliveryStatus status, Pageable pageable);
+
     int findByDeliveryStatusCount(@Param("customerUuid") UUID customerUuid, @Param("deliveryStatus")  DeliveryStatus deliveryStatus);
 }

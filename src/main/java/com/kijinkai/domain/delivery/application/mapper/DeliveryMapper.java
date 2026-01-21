@@ -9,27 +9,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class DeliveryMapper {
 
+
     public DeliveryResponseDto toResponse(Delivery delivery) {
         return DeliveryResponseDto.builder()
                 .deliveryUuid(delivery.getDeliveryUuid())
                 .customerUuid(delivery.getCustomerUuid())
                 .recipientName(delivery.getRecipientName())
-                .orderUuid(delivery.getOrderPaymentUuid())
                 .deliveryStatus(delivery.getDeliveryStatus())
                 .recipientPhoneNumber(delivery.getRecipientPhoneNumber())
-                .country(delivery.getCountry())
                 .zipcode(delivery.getZipcode())
-                .state(delivery.getState())
-                .city(delivery.getCity())
-                .street(delivery.getStreet())
-                .carrier(delivery.getCarrier())
+                .streetAddress(delivery.getStreetAddress())
+                .detailAddress(delivery.getDetailAddress())
                 .trackingNumber(delivery.getTrackingNumber())
-                .deliveryFee(delivery.getDeliveryFee())
-                .estimatedDeliveryAt(delivery.getEstimatedDeliveryAt())
-                .shippedAt(delivery.getShippedAt())
-                .deliveredAt(delivery.getDeliveredAt())
                 .deliveryRequest(delivery.getDeliveryRequest())
-                .cancelReason(delivery.getCancelReason())
                 .build();
     }
 
@@ -42,20 +34,9 @@ public class DeliveryMapper {
                 .trackingNumber(delivery.getTrackingNumber())
                 .deliveryStatus(delivery.getDeliveryStatus())
                 .deliveryStatus(delivery.getDeliveryStatus())
-                .recipientPhoneNumber(delivery.getRecipientPhoneNumber())
-                .country(delivery.getCountry())
-                .zipcode(delivery.getZipcode())
-                .state(delivery.getState())
-                .city(delivery.getCity())
-                .street(delivery.getStreet())
-                .carrier(delivery.getCarrier())
+                .recipientPhoneNumber(delivery.getRecipientPhoneNumber()).zipcode(delivery.getZipcode())
                 .trackingNumber(delivery.getTrackingNumber())
-                .deliveryFee(delivery.getDeliveryFee())
-                .estimatedDeliveryAt(delivery.getEstimatedDeliveryAt())
-                .shippedAt(delivery.getShippedAt())
-                .deliveredAt(delivery.getDeliveredAt())
                 .deliveryRequest(delivery.getDeliveryRequest())
-                .cancelReason(delivery.getCancelReason())
                 .build();
     }
 

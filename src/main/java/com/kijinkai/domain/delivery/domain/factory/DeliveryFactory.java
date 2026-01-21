@@ -12,23 +12,17 @@ import java.util.UUID;
 @Component
 public class DeliveryFactory {
 
-    public Delivery createDelivery(UUID orderPaymentUuid, UUID customerUuid, Address address, BigDecimal deliveryFee, DeliveryRequestDto requestDto) {
+    public Delivery createDelivery(UUID customerUuid, Address address, DeliveryRequestDto requestDto) {
 
         return Delivery.builder()
                 .deliveryUuid(UUID.randomUUID())
-                .orderPaymentUuid(orderPaymentUuid)
                 .customerUuid(customerUuid)
+                .deliveryType(requestDto.getDeliveryType())
                 .recipientName(address.getRecipientName())
                 .recipientPhoneNumber(address.getRecipientPhoneNumber())
-                .country(address.getCountry())
                 .zipcode(address.getZipcode())
-                .state(address.getState())
-                .city(address.getCity())
-                .street(address.getStreet())
-                .deliveryRequest(requestDto.getDeliveryRequest())
-                .carrier(requestDto.getCarrier())
-                .trackingNumber(requestDto.getTrackingNumber())
-                .deliveryFee(deliveryFee)
+                .streetAddress(address.getStreetAddress())
+                .detailAddress(address.getDetailAddress())
                 .deliveryStatus(DeliveryStatus.PENDING)
                 .build();
     }

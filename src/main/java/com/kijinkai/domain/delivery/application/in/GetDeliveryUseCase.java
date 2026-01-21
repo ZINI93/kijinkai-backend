@@ -14,4 +14,5 @@ public interface GetDeliveryUseCase {
     DeliveryResponseDto getDeliveryInfo(UUID userUuid, UUID deliveryUuid);
     Page<DeliveryResponseDto> getDeliveriesByStatus(UUID userUuid, DeliveryStatus deliveryStatus, Pageable pageable);
     DeliveryCountResponseDto getDeliveryDashboardCount(UUID userUuid);
+    Page<DeliveryResponseDto> getDeliveries(UUID userUuid, DeliveryStatus deliveryStatus,Pageable pageable);
 }

@@ -1,7 +1,7 @@
 package com.kijinkai.domain.delivery.application.dto;
 
-import com.kijinkai.domain.delivery.domain.model.Carrier;
 import com.kijinkai.domain.delivery.domain.model.DeliveryStatus;
+import com.kijinkai.domain.delivery.domain.model.DeliveryType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,24 +37,19 @@ public class DeliveryResponseDto {
     @Schema(description = "수취인 전화번호", example = "010-1111-1234")
     private String recipientPhoneNumber;
 
-    @Schema(description = "도착지 국가", example = "Korea")
-    private String country;
-
     @Schema(description = "우편번호", example = "111-111")
     private String zipcode;
 
-    @Schema(description = "주소1", example = "대구광역시")
-    private String state;
+    @Schema(description = "주소", example = "대구광역시 동구 신암로 ")
+    private String streetAddress;
 
-    @Schema(description = "주소2", example = "동구")
-    private String city;
+    @Schema(description = "상세주소", example = "105-2길")
+    private String detailAddress;
 
-    @Schema(description = "주소3", example = "신암동 111-11")
-    private String street;
     // ------------------------------------
 
-    @Schema(description = "배송회사", example = "JAPANPOST")
-    private Carrier carrier;
+    @Schema(description = "배송타입", example = "EMS")
+    private DeliveryType deliveryType;
 
     @Schema(description = "추적번호", example = "1111-1111")
     private String trackingNumber;

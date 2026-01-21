@@ -20,6 +20,8 @@ public interface GetOrderItemUseCase {
 
     OrderItemResponseDto getOrderItemInfo(UUID userUuid, UUID orderItemUuid);
     OrderItemCountResponseDto orderItemDashboardCount(UUID userUuid);
+
+    List<OrderItemResponseDto> getOrderItemByDeliveryUuid(UUID userUuid, UUID deliveryUuid);
     List<OrderItem> getOrderItemsByCustomerAndOrderItemsStatus(UUID userUuid, List<OrderItemStatus> orderItemStatuses);
     int countOrderItemsByStatus(UUID userUuid, OrderItemStatus orderItemStatus);
     int countOrderItemByStatusIn(UUID userUuid, List<OrderItemStatus> orderItemStatus);
