@@ -6,6 +6,7 @@ import lombok.Value;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -14,12 +15,16 @@ import java.util.UUID;
 public class OrderPaymentResponseDto {
 
     UUID paymentUuid;
+    String orderPaymentCode;
+
     UUID customerUuid;
     UUID walletUuid;
     UUID orderUuid;
     BigDecimal paymentAmount;
     OrderPaymentStatus status;
     LocalDateTime paidAt;
+
+    List<String> boxCodes;
 
     LocalDateTime createAt;
     BigDecimal afterBalance;

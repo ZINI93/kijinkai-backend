@@ -36,6 +36,9 @@ public class OrderPaymentJpaEntity extends BaseEntity {
     @Column(name = "order_uuid", updatable = false)
     private UUID orderUuid;
 
+    @Column(name = "order_payment_code", nullable = false, updatable = false)
+    private String orderPaymentCode;
+
     @Column(name = "payment_amount", nullable = false, precision = 19, scale = 4)
     private BigDecimal paymentAmount;
 

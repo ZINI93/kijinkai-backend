@@ -21,10 +21,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -79,31 +82,25 @@ public class OrderPaymentController {
 
 
     @Operation(
-            summary = "배송비 대한 결제 생성",
-            description = "관리자가 유저가 지불해야할 배송비를 작성",
+            summary = "배송비 결제",
+            description = "유저가 배송비 지불",
             tags = {"결제관리"}
     )
-    @PostMapping("/second-order")
+    @PostMapping("/delivery-fee")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "배송비 생성 성공"),
+            @ApiResponse(responseCode = "201", description = "결제 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청"),
-            @ApiResponse(responseCode = "404", description = "배송비 생성 내역을 찾을 수 없음"),
+            @ApiResponse(responseCode = "404", description = "결제를 찾을 수 없음"),
             @ApiResponse(responseCode = "500", description = "서버오류")
     })
     public ResponseEntity<BasicResponseDto<OrderPaymentResponseDto>> createSecondPayment(
-            Authentication authentication,
-            @Valid @RequestBody OrderPaymentRequestDto orderPaymentRequestDto
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @Valid @RequestBody OrderPaymentDeliveryRequestDto requestDto
     ) {
-        UUID userUuid = getUserUuid(authentication);
-        log.info("Second Order payment create - admin: {}", userUuid);
 
-        try {
-            OrderPaymentResponseDto response = createOrderPaymentUseCase.createSecondPayment(userUuid, orderPaymentRequestDto);
-            return createCreatedResponse(ORDER_PAYMENT_CREATE_SUCCESS, response, "/api/v1/payments/second-order");
-        } catch (Exception e) {
-            log.error("Failed to process second order payment request - Admin: {}", userUuid);
-            throw e;
-        }
+        OrderPaymentResponseDto orderPayments = createOrderPaymentUseCase.paymentDeliverFee(customUserDetails.getUserUuid(), requestDto);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(BasicResponseDto.success("Successfully created delivery payment", orderPayments));
     }
 
 
@@ -127,7 +124,7 @@ public class OrderPaymentController {
         UUID userUuid = getUserUuid(authentication);
 
         try {
-            OrderPaymentResponseDto response = updateOrderPaymentUseCase.completeSecondPayment(userUuid, orderPaymentDeliveryRequestDto);
+            OrderPaymentResponseDto response = createOrderPaymentUseCase.paymentDeliverFee(userUuid, orderPaymentDeliveryRequestDto);
             return createSuccessResponse(ORDER_PAYMENT_COMPLETE_SUCCESS, response);
         } catch (Exception e) {
             log.error("Failed to second order payment request - User: {}", userUuid);

@@ -10,5 +10,7 @@ import java.util.UUID;
 @Builder
 public class OrderPaymentDeliveryRequestDto {
 
-    List<UUID> orderPaymentUuids;
+    List<String> orderItemCodes;
+    List<String> boxCodes;
+
 }

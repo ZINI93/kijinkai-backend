@@ -23,8 +23,9 @@ public interface OrderItemPersistencePort {
 
     Optional<OrderItem> findByOrderItemUuid(UUID orderUuid);
 
-    Optional<OrderItem> findByCustomerUuidAndOrderItemCode(UUID customerUuid, String orderItemCode);
+    List<OrderItem> findAllByDeliveryUuid(UUID deliveryUuid);
 
+    Optional<OrderItem> findByCustomerUuidAndOrderItemCode(UUID customerUuid, String orderItemCode);
 
     Page<OrderItem> findAllByCustomerUuidOrderByOrderCreatedAtDesc(UUID customerUuid, Pageable pageable);
 
@@ -39,6 +40,12 @@ public interface OrderItemPersistencePort {
     List<OrderItem> findAllByOrderItemCodeInAndOrderItemStatus(List<String> orderItemCode, OrderItemStatus status);
 
     List<OrderItem> findAllByCustomerUuidAndOrderItemStatusIn(UUID customerUuid, List<OrderItemStatus> orderItemStatuses);
+
+    List<OrderItem> findAllByCustomerUuidAndOrderItemCodeIn(UUID customerUuid, List<String> orderItemCodes);
+
+    List<OrderItem> findAllByCustomerUuidAndOrderItemStatusAndShipmentUuidIn(UUID customerUuid,OrderItemStatus status, List<UUID> shipmentUuids);
+
+    List<OrderItem> findAllByShipmentUuidAndOrderItemStatus(UUID shipmentUuid, OrderItemStatus status);
 
     int findOrderItemCountByStatus(@Param("customerUuid") UUID customerUuid, @Param("orderItemStatus") OrderItemStatus orderItemStatus);
 

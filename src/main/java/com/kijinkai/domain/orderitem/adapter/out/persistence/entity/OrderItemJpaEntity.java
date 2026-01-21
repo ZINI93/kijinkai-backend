@@ -29,6 +29,12 @@ public class OrderItemJpaEntity extends BaseEntity {
     @Column(name = "customer_uuid", nullable = false, updatable = false)
     private UUID customerUuid;
 
+    @Column(name = "delivery_uuid")
+    private UUID deliveryUuid;
+
+    @Column(name = "shipment_uuid")
+    private UUID shipmentUuid;
+
     @Column(name = "order_item_code", nullable = false, updatable = false)
     private String orderItemCode;
 
@@ -63,6 +69,8 @@ public class OrderItemJpaEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "order_item_status", nullable = false, length = 20)
     private OrderItemStatus orderItemStatus;
+
+
 
 }
 

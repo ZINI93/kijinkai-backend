@@ -27,13 +27,16 @@ public interface OrderItemRepository extends JpaRepository<OrderItemJpaEntity, L
     List<OrderItemJpaEntity> findAllByCustomerUuidAndOrderItemStatusIn(UUID customerUuid, List<OrderItemStatus> orderItemStatuses);
     List<OrderItemJpaEntity> findAllByOrderItemStatusAndOrderItemCodeIn(OrderItemStatus orderItemStatus, List<String> orderItemCode);
     List<OrderItemJpaEntity> findAllByOrderItemCodeInAndOrderItemStatus(List<String> orderItemCode, OrderItemStatus status);
-
+    List<OrderItemJpaEntity> findAllByDeliveryUuid(UUID deliveryUuid);
+    List<OrderItemJpaEntity> findAllByCustomerUuidAndOrderItemCodeIn(UUID customerUuid, List<String> orderItemCodes);
+    List<OrderItemJpaEntity> findAllByCustomerUuidAndOrderItemStatusAndShipmentUuidIn(UUID customerUuid,OrderItemStatus status, List<UUID> shipmentUuids);
+    List<OrderItemJpaEntity> findAllByShipmentUuidAndOrderItemStatus(UUID shipmentUuid ,OrderItemStatus status);
 
     @Query("SELECT COUNT(oi) FROM OrderItemJpaEntity oi WHERE oi.customerUuid = :customerUuid AND oi.orderItemStatus = :orderItemStatus ORDER BY oi.createdAt DESC")
     int findOrderItemCountByStatus(@Param("customerUuid") UUID customerUuid, @Param("orderItemStatus") OrderItemStatus orderItemStatus);
 
-    @Query("SELECT COUNT(oi) FROM OrderItemJpaEntity oi WHERE oi.customerUuid = :customerUuid AND oi.orderItemStatus IN :statuses")
-    int findOrderItemCountByStatusIn(@Param("customerUuid") UUID customerUuid, @Param("statuses") List<OrderItemStatus> orderItemStatus);
+    @Query("SELECT COUNT(oi) FROM OrderItemJpaEntity oi WHERE oi.customerUuid = :customerUuid AND oi.orderItemStatus IN :orderItemStatus")
+    int findOrderItemCountByStatusIn(@Param("customerUuid") UUID customerUuid, @Param("orderItemStatus") List<OrderItemStatus> orderItemStatus);
 
     @Query("SELECT COUNT(oi) FROM OrderItemJpaEntity oi WHERE oi.customerUuid = :customerUuid ORDER BY oi.createdAt DESC")
     int findOrderItemCount(@Param("customerUuid") UUID customerUuid);

@@ -64,13 +64,13 @@ public class OrderItemPersistenceAdapter implements OrderItemPersistencePort {
 
     @Override
     public Page<OrderItem> findAllByCustomerUuidOrderByOrderCreatedAtDesc(UUID customerUuid, Pageable pageable) {
-        return orderItemRepository.findByCustomerUuidOrderByCreatedAtDesc(customerUuid,pageable)
+        return orderItemRepository.findByCustomerUuidOrderByCreatedAtDesc(customerUuid, pageable)
                 .map(orderItemPersistenceMapper::toOrderItem);
     }
 
     @Override
     public Page<OrderItem> findAllByCustomerUuidAndOrderItemStatusOrderByCreatedAtDesc(UUID customerUuid, OrderItemStatus status, Pageable pageable) {
-        return orderItemRepository.findAllByCustomerUuidAndOrderItemStatusOrderByCreatedAtDesc(customerUuid,status,pageable)
+        return orderItemRepository.findAllByCustomerUuidAndOrderItemStatusOrderByCreatedAtDesc(customerUuid, status, pageable)
                 .map(orderItemPersistenceMapper::toOrderItem);
     }
 
@@ -93,7 +93,7 @@ public class OrderItemPersistenceAdapter implements OrderItemPersistencePort {
 
     @Override
     public List<OrderItem> findAllByOrderItemCodeInAndOrderItemStatus(List<String> orderItemCode, OrderItemStatus status) {
-        return orderItemRepository.findAllByOrderItemCodeInAndOrderItemStatus( orderItemCode,  status)
+        return orderItemRepository.findAllByOrderItemCodeInAndOrderItemStatus(orderItemCode, status)
                 .stream().map(orderItemPersistenceMapper::toOrderItem).toList();
     }
 
@@ -104,8 +104,36 @@ public class OrderItemPersistenceAdapter implements OrderItemPersistencePort {
     }
 
     @Override
+    public List<OrderItem> findAllByCustomerUuidAndOrderItemCodeIn(UUID customerUuid, List<String> orderItemCodes) {
+        return orderItemRepository.findAllByCustomerUuidAndOrderItemCodeIn(customerUuid, orderItemCodes)
+                .stream().map(orderItemPersistenceMapper::toOrderItem).toList();
+    }
+
+    @Override
+    public List<OrderItem> findAllByCustomerUuidAndOrderItemStatusAndShipmentUuidIn(UUID customerUuid, OrderItemStatus status, List<UUID> shipmentUuids) {
+        return orderItemRepository.findAllByCustomerUuidAndOrderItemStatusAndShipmentUuidIn(
+                customerUuid, status, shipmentUuids
+        ).stream().map(orderItemPersistenceMapper::toOrderItem).toList();
+    }
+
+    @Override
+    public List<OrderItem> findAllByShipmentUuidAndOrderItemStatus(UUID shipmentUuid, OrderItemStatus status) {
+        return orderItemRepository.findAllByShipmentUuidAndOrderItemStatus(shipmentUuid, status)
+                .stream().map(orderItemPersistenceMapper::toOrderItem).toList();
+    }
+
+
+    @Override
+    public List<OrderItem> findAllByDeliveryUuid(UUID deliveryUuid) {
+        return orderItemRepository.findAllByDeliveryUuid(deliveryUuid)
+                .stream().map(orderItemPersistenceMapper::toOrderItem).toList();
+
+    }
+
+
+    @Override
     public int findOrderItemCountByStatus(UUID customerUuid, OrderItemStatus orderItemStatus) {
-        return orderItemRepository.findOrderItemCountByStatus(customerUuid,orderItemStatus);
+        return orderItemRepository.findOrderItemCountByStatus(customerUuid, orderItemStatus);
     }
 
     @Override

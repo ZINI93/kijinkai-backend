@@ -19,6 +19,8 @@ public class OrderPayment {
 
     private Long orderPaymentId;
     private UUID paymentUuid;
+    private String orderPaymentCode;
+
     private UUID customerUuid;
     private UUID walletUuid;
     private UUID orderUuid;

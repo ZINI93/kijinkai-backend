@@ -2,6 +2,7 @@ package com.kijinkai.domain.orderitem.adapter.in.web;
 
 import com.kijinkai.domain.common.BasicResponseDto;
 import com.kijinkai.domain.orderitem.application.dto.OrderItemApprovalRequestDto;
+import com.kijinkai.domain.orderitem.application.dto.OrderItemResponseDto;
 import com.kijinkai.domain.orderitem.application.port.in.CreateOrderItemUseCase;
 import com.kijinkai.domain.orderitem.application.port.in.DeleteOrderItemUseCase;
 import com.kijinkai.domain.orderitem.application.port.in.GetOrderItemUseCase;
@@ -15,12 +16,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -69,6 +68,24 @@ public class OrderItemAdminApiController {
 
 
         return ResponseEntity.ok(BasicResponseDto.success("Successfully complete local delivery", response));
+    }
+
+
+    @GetMapping(value = "/{deliveryUuid}/item-detail")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "상품 국내배송 도착 성공"),
+            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "상품을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<List<OrderItemResponseDto>>> getOrderItemByDeliveryUuid(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PathVariable UUID deliveryUuid
+            ){
+
+        List<OrderItemResponseDto> orderItems = getOrderItemUseCase.getOrderItemByDeliveryUuid(customUserDetails.getUserUuid(), deliveryUuid);
+
+        return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved orderItem", orderItems));
     }
 
 }

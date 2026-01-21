@@ -34,9 +34,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -270,7 +272,94 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
     }
 
 
-    // ---- 업데이트 ----
+    // ---- 업데이트. ----
+
+
+    @Override
+    @Transactional
+    public void delivered(UUID shipmentUuid){
+        List<OrderItem> orderItems = orderItemPersistencePort.findAllByShipmentUuidAndOrderItemStatus(shipmentUuid , OrderItemStatus.IN_TRANSIT);
+        for (OrderItem orderItem : orderItems) {
+            orderItem.delivered();
+        }
+
+        orderItemPersistencePort.saveAllOrderItem(orderItems);
+    }
+
+
+
+    @Override
+    @Transactional
+    public void startDelivery(UUID shipmentUuid){
+
+        List<OrderItem> orderItems = orderItemPersistencePort.findAllByShipmentUuidAndOrderItemStatus(shipmentUuid , OrderItemStatus.DELIVERY_FEE_PAYMENT_COMPLETED);
+        for (OrderItem orderItem : orderItems) {
+            orderItem.startDelivery();
+        }
+
+        orderItemPersistencePort.saveAllOrderItem(orderItems);
+    }
+
+
+
+
+    /**
+     * 결제 완료 상태변화
+     * @param customerUuid
+     * @param shipmentUuid
+     */
+    @Override
+    @Transactional
+    public void completedDeliveryPayment(UUID customerUuid, List<UUID> shipmentUuids){
+
+        List<OrderItem> orderItems = orderItemPersistencePort.findAllByCustomerUuidAndOrderItemStatusAndShipmentUuidIn(customerUuid, OrderItemStatus.DELIVERY_FEE_PAYMENT_REQUEST, shipmentUuids);
+        for (OrderItem orderItem : orderItems) {
+            orderItem.completedDeliveryPayment();
+        }
+
+        orderItemPersistencePort.saveAllOrderItem(orderItems);
+    }
+
+
+    @Override
+    @Transactional
+    public void assignToShipment(List<String> orderItemCodes, UUID shipmentUuid){
+
+        // dliveryUuid로 조회된 상품을 orderitemCodes를 통해 적정 수량을 가져온다.
+        // 상자에 넣게 가져온다. 전체가 아님으로.
+
+        List<OrderItem> orderItems = orderItemPersistencePort.findAllByOrderItemCodeInAndOrderItemStatus(orderItemCodes, OrderItemStatus.PRODUCT_CONSOLIDATING);
+
+
+        orderItems.forEach(
+                orderItem -> {
+                    orderItem.requestDeliveryFee();
+                    orderItem.addShipmentUuid(shipmentUuid);
+                }
+        );
+
+        orderItemPersistencePort.saveAllOrderItem(orderItems);
+    }
+
+
+    /**
+     * 상품 배송요청
+     * @param orderItemCods
+     * @param deliveryUuid
+     */
+    @Override
+    @Transactional
+    public void registerDeliveryToOrderItems(List<String> orderItemCods, UUID deliveryUuid){
+        List<OrderItem> orderItems = orderItemPersistencePort.findAllByOrderItemCodeInAndOrderItemStatus(orderItemCods, OrderItemStatus.LOCAL_DELIVERY_COMPLETED);
+        orderItems.forEach(
+                orderItem -> {
+                    orderItem.addDeliveryUuid(deliveryUuid);
+                    orderItem.startConsolidation();
+                }
+        );
+        orderItemPersistencePort.saveAllOrderItem(orderItems);
+    }
+
 
     @Override
     public void requestPhotoInspection(List<OrderItem> orderItems, Map<String, Boolean> inspectionRequestMap) {
@@ -356,6 +445,19 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
 
     // ----- 조회. -----
 
+    @Override
+    public List<OrderItemResponseDto> getOrderItemByDeliveryUuid(UUID userUuid, UUID deliveryUuid){
+
+        // 관리자 검증
+        User user = findUserByUserUuid(userUuid);
+        user.validateAdminRole();
+
+        List<OrderItem> orderItems = orderItemPersistencePort.findAllByDeliveryUuid(deliveryUuid);
+
+        return orderItems.stream().map(orderItemMapper::toProductDetailDto).toList();
+    }
+
+
     public List<OrderItem> getOrderItemsByCodeAndStatus(List<String> orderItemCode, OrderItemStatus status) {
         return orderItemPersistencePort.findAllByOrderItemCodeInAndOrderItemStatus(orderItemCode, status);
     }
@@ -396,7 +498,7 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
     @Override
     public int countOrderItemByStatusIn(UUID userUuid, List<OrderItemStatus> orderItemStatus) {
         Customer customer = findCustomerByUserUuid(userUuid);
-        return orderItemPersistencePort.findOrderItemCountByStatusIn(userUuid, orderItemStatus);
+        return orderItemPersistencePort.findOrderItemCountByStatusIn(customer.getCustomerUuid(), orderItemStatus);
     }
 
     /**

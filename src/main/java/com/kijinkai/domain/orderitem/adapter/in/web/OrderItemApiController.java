@@ -140,6 +140,28 @@ public class OrderItemApiController {
         return ResponseEntity.ok(BasicResponseDto.success("Successfully delivered orderItem list", orderItems));
     }
 
+    /**
+     * 통합 대기중 리스트
+     * @param customUserDetails
+     * @param pageable
+     * @return
+     */
+    @GetMapping("/list/order-consolidating")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "주문상품 정보 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "상품 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<Page<OrderItemResponseDto>>> getConsolidating(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ){
+        Page<OrderItemResponseDto> orderItems = getOrderItemUseCase.getOrderItemByStatus(customUserDetails.getUserUuid(), OrderItemStatus.PRODUCT_CONSOLIDATING, pageable);
+
+        return ResponseEntity.ok(BasicResponseDto.success("Successfully consolidating orderItem list", orderItems));
+    }
+
 
     @GetMapping("/list")
     @ApiResponses({
