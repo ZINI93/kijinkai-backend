@@ -93,16 +93,16 @@ public class PaymentFactory {
                 .build();
     }
     public OrderPayment createOrderSecondPayment(
-            Customer customer, BigDecimal paymentAmount, com.kijinkai.domain.wallet.domain.model.Wallet wallet, UUID adminUuid) {
+            UUID customerUuid, BigDecimal paymentAmount, String orderPaymentCode, UUID walletUuid) {
         return OrderPayment.builder()
                 .paymentUuid(UUID.randomUUID())
-                .customerUuid(customer.getCustomerUuid())
+                .walletUuid(walletUuid)
+                .orderPaymentCode(orderPaymentCode)
+                .customerUuid(customerUuid)
                 .paymentType(PaymentType.SHIPPING_PAYMENT)
                 .paymentOrder(PaymentOrder.SECOND)
-                .walletUuid(wallet.getWalletUuid())
-                .orderPaymentStatus(OrderPaymentStatus.PENDING)
+                .orderPaymentStatus(OrderPaymentStatus.COMPLETED)
                 .paymentAmount(paymentAmount)
-                .createdByAdminUuid(adminUuid)
                 .build();
     }
 

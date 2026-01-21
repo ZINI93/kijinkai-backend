@@ -24,23 +24,4 @@ public class CustomerMapper {
                 .build();
     }
 
-    public CustomerCreateResponse createCustomerWithAddressResponse(Customer customer, Address address, UUID userUuid){
-
-        return CustomerCreateResponse.builder()
-                .customerUuid(customer.getCustomerUuid())
-                .firstName(customer.getFirstName())
-                .lastName(customer.getLastName())
-                .phoneNumber(customer.getPhoneNumber())
-                .customerTier(customer.getCustomerTier())
-                .userUuid(userUuid)
-                .addressUuid(address.getAddressUuid())
-                .recipientName(address.getRecipientName())
-                .recipientPhoneNumber(address.getRecipientPhoneNumber())
-                .country(address.getCountry())
-                .zipcode(address.getZipcode())
-                .state(address.getState())
-                .city(address.getCity())
-                .street(address.getStreet())
-                .build();
-    }
 }

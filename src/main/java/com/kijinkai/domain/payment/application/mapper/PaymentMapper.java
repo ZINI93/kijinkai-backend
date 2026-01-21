@@ -1,19 +1,17 @@
 package com.kijinkai.domain.payment.application.mapper;
 
-import com.kijinkai.domain.payment.adapter.out.persistence.entity.DepositRequestJpaEntity;
-import com.kijinkai.domain.payment.adapter.out.persistence.entity.OrderPaymentJpaEntity;
-import com.kijinkai.domain.payment.adapter.out.persistence.entity.RefundRequestJpaEntity;
-import com.kijinkai.domain.payment.adapter.out.persistence.entity.WithdrawRequestJpaEntity;
 import com.kijinkai.domain.payment.application.dto.response.*;
 import com.kijinkai.domain.payment.domain.model.DepositRequest;
 import com.kijinkai.domain.payment.domain.model.OrderPayment;
 import com.kijinkai.domain.payment.domain.model.RefundRequest;
 import com.kijinkai.domain.payment.domain.model.WithdrawRequest;
 import com.kijinkai.domain.wallet.application.dto.WalletResponseDto;
+import com.kijinkai.domain.wallet.domain.model.Wallet;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -187,6 +185,22 @@ public class PaymentMapper {
                 .refundReason(refundRequest.getRefundReason())
                 .build();
     }
+
+
+    public OrderPaymentResponseDto deliveryPaymentResponse(OrderPayment orderPayment, BigDecimal paymentAmount, BigDecimal afterBalance) {
+
+        // 페이먼트 코드
+        return OrderPaymentResponseDto.builder()
+                .orderPaymentCode(orderPayment.getOrderPaymentCode())
+                .paidAt(LocalDateTime.now())
+                .paymentAmount(paymentAmount)
+                .afterBalance(afterBalance)
+                .build();
+
+    }
+
+
+
 
 
     public OrderPaymentResponseDto createOrderPayment(OrderPayment orderPayment){
