@@ -12,14 +12,12 @@ public class AddressMapper {
 
         return AddressResponseDto.builder().
                 addressUuid(address.getAddressUuid()).
-                customerUuid(address.getCustomerUuid()).
                 recipientName(address.getRecipientName()).
                 recipientPhoneNumber(address.getRecipientPhoneNumber()).
-                country(address.getCountry()).
                 zipcode(address.getZipcode()).
-                state(address.getState()).
-                city(address.getCity()).
-                street(address.getStreet())
-                .build();
+                streetAddress(address.getStreetAddress()).
+                detailAddress(address.getDetailAddress()).
+                pccc(address.getPccc()).
+                build();
     }
 }

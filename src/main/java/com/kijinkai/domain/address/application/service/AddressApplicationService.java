@@ -47,8 +47,19 @@ public class AddressApplicationService implements CreateAddressUseCase, GetAddre
     public AddressResponseDto createAddress(UUID userUuid, AddressRequestDto requestDto) {
 
         try {
+            // 유저Uuid로 구매자 조회
             Customer customer = findCustomerByUserUuid(userUuid);
+
+            // request를 받아서 주소생성
             Address address = addressFactory.createAddress(customer.getCustomerUuid(), requestDto);
+
+            // 주소 중복 생성 방지
+            Boolean existsByCustomerUuid = addressPersistencePort.existsByCustomerUuid(customer.getCustomerUuid());
+            if (existsByCustomerUuid){
+                throw new IllegalArgumentException("주소는 한개만 등록이 가능합니다.");
+            }
+
+            //주소 저장
             Address savedAddress = addressPersistencePort.saveAddress(address);
 
             return addressMapper.toResponse(savedAddress);
@@ -59,7 +70,9 @@ public class AddressApplicationService implements CreateAddressUseCase, GetAddre
     }
 
 
-
+    /*
+    주소삭제
+     */
     @Override
     @Transactional
     public void deleteAddress(UUID userUuid, UUID addressUuid) {
@@ -85,11 +98,20 @@ public class AddressApplicationService implements CreateAddressUseCase, GetAddre
         return addressMapper.toResponse(address);
     }
 
+    /**
+     * 주소 업데이트
+     * @param userUuid
+     * @param addressUuid
+     * @param updateDto
+     * @return
+     */
     @Override
     @Transactional
-    public AddressResponseDto updateAddress(UUID userUuid, AddressUpdateDto updateDto) {
+    public AddressResponseDto updateAddress(UUID userUuid, UUID addressUuid, AddressUpdateDto updateDto) {
+
         Customer customer = findCustomerByUserUuid(userUuid);
-        Address address = findAddressByCustomerUuid(customer.getCustomerUuid());
+        Address address = addressPersistencePort.findByCustomerUuidAndAddressUuid(customer.getCustomerUuid(), addressUuid)
+                .orElseThrow(() -> new AddressNotFoundException(String.format("Address not found for customerUuid: %s and addressUuid: %s", customer.getCustomerUuid(), addressUuid)));
         address.updateAddress(updateDto);
         Address savedAddress = addressPersistencePort.saveAddress(address);
 

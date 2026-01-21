@@ -23,8 +23,7 @@ public class AddressJpaEntity extends TimeBaseEntity {
     @Column(name = "address_uuid", nullable = false, updatable = false, unique = true)
     private UUID addressUuid;
 
-
-    @Column(name = "customer_uuid", nullable = false)
+    @Column(name = "customer_uuid", unique = true, nullable = false)
     private UUID customerUuid;
 
     @Column(name = "recipient_name", nullable = false, length = 100)
@@ -33,20 +32,17 @@ public class AddressJpaEntity extends TimeBaseEntity {
     @Column(name = "recipient_phone_number", nullable = false, length = 20)
     private String recipientPhoneNumber;
 
-    @Column(name = "country", nullable = false, length = 100)
-    private String country;
-
     @Column(name = "zipcode", nullable = false, length = 20)
     private String zipcode;
 
-    @Column(name = "state", nullable = false, length = 100)
-    private String state;
+    @Column(name = "street_address", nullable = false, length = 100)
+    private String streetAddress;
 
-    @Column(name = "city", nullable = false, length = 100)
-    private String city;
+    @Column(name = "detail_address", nullable = false, length = 255)
+    private String detailAddress;
 
-    @Column(name = "street", nullable = false, length = 255)
-    private String street;
+    @Column(name = "pccc")
+    private String pccc;
 
     @Column(name = "is_default", nullable = false)
     private Boolean isDefault;

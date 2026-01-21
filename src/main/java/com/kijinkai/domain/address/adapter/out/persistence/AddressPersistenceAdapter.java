@@ -41,6 +41,11 @@ public class AddressPersistenceAdapter implements AddressPersistencePort {
     }
 
     @Override
+    public Boolean existsByCustomerUuid(UUID customerUuid) {
+        return addressRepository.existsByCustomerUuid(customerUuid);
+    }
+
+    @Override
     public void deleteAddress(Address address) {
         AddressJpaEntity addressJpaEntity = addressPersistenceMapper.toAddressJpaEntity(address);
         addressRepository.delete(addressJpaEntity);

@@ -18,11 +18,13 @@ public class Address {
     private UUID customerUuid;
     private String recipientName;
     private String recipientPhoneNumber;
-    private String country;
     private String zipcode;
-    private String state;
-    private String city;
-    private String street;
+    private String streetAddress;
+    private String detailAddress;
+    private String pccc;
+
+
+
     private Boolean isDefault;
 
 
@@ -35,11 +37,10 @@ public class Address {
 
         this.recipientName = addressUpdateDto.getRecipientName();
         this.recipientPhoneNumber = addressUpdateDto.getRecipientPhoneNumber();
-        this.country = addressUpdateDto.getCountry();
         this.zipcode = addressUpdateDto.getZipcode();
-        this.state = addressUpdateDto.getState();
-        this.city = addressUpdateDto.getCity();
-        this.street = addressUpdateDto.getStreet();
+        this.streetAddress = addressUpdateDto.getStreetAddress();
+        this.detailAddress = addressUpdateDto.getDetailAddress();
+        this.pccc = addressUpdateDto.getPccc();
     }
 
     private void validateUpdateData(AddressUpdateDto addressUpdateDto){

@@ -13,4 +13,5 @@ public interface AddressRepository extends JpaRepository<AddressJpaEntity, Long>
 
     Optional<AddressJpaEntity> findByCustomerUuidAndAddressUuid(UUID customerUuid, UUID addressUuid);
     Optional<AddressJpaEntity> findByCustomerUuid(UUID customerUuid);
+    Boolean existsByCustomerUuid(UUID customerUuid);
 }

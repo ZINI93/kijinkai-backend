@@ -28,9 +28,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(
-        value = "/api/v1/addresses",
-        produces = MediaType.APPLICATION_JSON_VALUE
-)
+        value = "/api/v1/addresses")
 public class AddressApiController {
 
     private final CreateAddressUseCase createAddressUseCase;
@@ -39,7 +37,7 @@ public class AddressApiController {
     private final DeleteAddressUseCase deleteAddressUseCase;
 
 
-    @PostMapping(value = "/add")
+    @PostMapping(value = "/add", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "주소 생성 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청"),
@@ -47,7 +45,7 @@ public class AddressApiController {
             @ApiResponse(responseCode = "500", description = "서버오류")
     })
     public ResponseEntity<BasicResponseDto<AddressResponseDto>> createAddress(
-            @AuthenticationPrincipal  CustomUserDetails customUserDetails,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @Valid @RequestBody AddressRequestDto requestDto
     ) {
 
@@ -66,7 +64,7 @@ public class AddressApiController {
     }
 
 
-    @PostMapping("/update")
+    @PutMapping("/{addressUuid}/update")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "주소 업데이트 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청"),
@@ -74,15 +72,13 @@ public class AddressApiController {
             @ApiResponse(responseCode = "500", description = "서버오류")
     })
     public ResponseEntity<BasicResponseDto<AddressResponseDto>> updateAddress(
-            Authentication authentication,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PathVariable UUID addressUuid,
             @Valid @RequestBody AddressUpdateDto updateDto
     ) {
 
-        UUID userUuid = getUserUuid(authentication);
-        log.info("User: {} requests address update", userUuid);
-
-        AddressResponseDto address = updateAddressUseCase.updateAddress(userUuid, updateDto);
-        log.info("AddressJpaEntity: {}, successfully updated by user {}", address.getAddressUuid(), userUuid);
+        AddressResponseDto address = updateAddressUseCase.updateAddress(customUserDetails.getUserUuid(), addressUuid, updateDto);
+        log.info("AddressJpaEntity: {}, successfully updated by user {}", address.getAddressUuid(), customUserDetails.getUserUuid());
 
 
         return ResponseEntity.ok(BasicResponseDto.success("Successful update address", address));

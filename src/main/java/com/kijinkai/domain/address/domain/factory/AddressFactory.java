@@ -11,36 +11,18 @@ import java.util.UUID;
 @Component
 public class AddressFactory {
 
-
-    public Address createAddressAndCustomer(UUID customerUuid, CustomerRequestDto requestDto) {
+    public Address createAddress(UUID customerUuid, AddressRequestDto requestDto) {
 
         return Address.builder()
                 .addressUuid(UUID.randomUUID())
                 .customerUuid(customerUuid)
                 .recipientName(requestDto.getRecipientName())
                 .recipientPhoneNumber(requestDto.getRecipientPhoneNumber())
-                .country(requestDto.getCountry())
                 .zipcode(requestDto.getZipcode())
-                .state(requestDto.getState())
-                .city(requestDto.getCity())
-                .street(requestDto.getStreet())
+                .streetAddress(requestDto.getStreetAddress())
+                .detailAddress(requestDto.getDetailAddress())
+                .pccc(requestDto.getPccc())
                 .isDefault(true)
-                .build();
-    }
-
-    public Address createAddress(UUID customerUuid, AddressRequestDto requestDto) {
-
-        return Address.builder()
-                .addressUuid(UUID.randomUUID())
-                .customerUuid(customerUuid)
-                .recipientName(requestDto.getRecipientName())           // 추가
-                .recipientPhoneNumber(requestDto.getRecipientPhoneNumber()) // 추가
-                .country(requestDto.getCountry())                       // 추가
-                .zipcode(requestDto.getZipcode())
-                .state(requestDto.getState())
-                .city(requestDto.getCity())
-                .street(requestDto.getStreet())
-                .isDefault(true)                                        // 추가
                 .build();
     }
 }

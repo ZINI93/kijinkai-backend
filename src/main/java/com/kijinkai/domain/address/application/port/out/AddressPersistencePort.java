@@ -13,5 +13,6 @@ public interface AddressPersistencePort {
     Address saveAddress(Address address);
     Optional<Address> findByCustomerUuid(UUID customerUuid);
 
+    Boolean existsByCustomerUuid(UUID customerUuid);
     void deleteAddress(Address address);
 }
