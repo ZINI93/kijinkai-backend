@@ -5,6 +5,8 @@ import com.kijinkai.domain.common.dto.MyPageResponseDto;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
 import com.kijinkai.domain.orderitem.application.port.in.GetOrderItemUseCase;
 import com.kijinkai.domain.orderitem.domain.model.OrderItem;
+import com.kijinkai.domain.shipment.entity.ShipmentStatus;
+import com.kijinkai.domain.shipment.service.ShipmentService;
 import com.kijinkai.domain.user.application.dto.response.UserResponseDto;
 import com.kijinkai.domain.user.application.port.in.GetUserUseCase;
 import com.kijinkai.domain.wallet.application.dto.WalletBalanceResponseDto;
@@ -27,6 +29,7 @@ public class MyPageService {
     private final GetUserUseCase getUserUseCase;
     private final GetWalletUseCase getWalletUseCase;
     private final GetOrderItemUseCase getOrderItemUseCase;
+    private final ShipmentService shipmentService;
 
 
     public MyPageResponseDto myPage(UUID userUuid){
@@ -46,12 +49,12 @@ public class MyPageService {
             outstandingBalance = outstandingBalance.add(orderItem.getPriceOriginal());
         }
 
-        //비출고현황
-        int failedOrders = getOrderItemUseCase.countOrderItemByStatusIn(userUuid, List.of(OrderItemStatus.PRODUCT_PAYMENT_COMPLETED, OrderItemStatus.LOCAL_DELIVERY_COMPLETED,
+        //미출고현황
+        int undispatchedOrders = getOrderItemUseCase.countOrderItemByStatusIn(userUuid, List.of(OrderItemStatus.PRODUCT_PAYMENT_COMPLETED, OrderItemStatus.LOCAL_DELIVERY_COMPLETED,
                 OrderItemStatus.PRODUCT_CONSOLIDATING, OrderItemStatus.DELIVERY_FEE_PAYMENT_REQUEST, OrderItemStatus.DELIVERY_FEE_PAYMENT_COMPLETED));
 
         //실패
-        int undispatchedOrders = getOrderItemUseCase.countOrderItemByStatusIn(userUuid, List.of(OrderItemStatus.CANCELLED, OrderItemStatus.REJECTED));
+        int failedOrders = getOrderItemUseCase.countOrderItemByStatusIn(userUuid, List.of(OrderItemStatus.CANCELLED, OrderItemStatus.REJECTED));
 
         //구매요청
         int purchaseRequestOrders = getOrderItemUseCase.countOrderItemsByStatus(userUuid, OrderItemStatus.PENDING);
@@ -69,16 +72,16 @@ public class MyPageService {
         int orderItemByPending = getOrderItemUseCase.countOrderItemsByStatus(userUuid, OrderItemStatus.PRODUCT_CONSOLIDATING);
 
         //2차결제 요청(국제 배송비)
-        int secondPaymentRequestedOrders = getOrderItemUseCase.countOrderItemsByStatus(userUuid, OrderItemStatus.DELIVERY_FEE_PAYMENT_REQUEST);
+        int deliveryPaymentRequestedShipments = shipmentService.countShipmentByStatus(userUuid, ShipmentStatus.PAYMENT_PENDING);
 
         //2차결제 완료(국제 배송비)
-        int secondPaymentCompletedOrders = getOrderItemUseCase.countOrderItemsByStatus(userUuid, OrderItemStatus.DELIVERY_FEE_PAYMENT_COMPLETED);
+        int deliveryPaymentCompletedShipments = shipmentService.countShipmentByStatus(userUuid, ShipmentStatus.PREPARING);
 
         //국제 배송중
-        int internationalShippingOrders = getOrderItemUseCase.countOrderItemsByStatus(userUuid, OrderItemStatus.IN_TRANSIT);
+        int internationalShippingOrders = shipmentService.countShipmentByStatus(userUuid, ShipmentStatus.SHIPPED);
 
         //배송완료
-        int deliveredOrders = getOrderItemUseCase.countOrderItemsByStatus(userUuid, OrderItemStatus.DELIVERED);
+        int deliveredOrders = shipmentService.countShipmentByStatus(userUuid,ShipmentStatus.DELIVERED);
 
         return MyPageResponseDto.builder()
                 //유저 정보관련
@@ -98,8 +101,8 @@ public class MyPageService {
                 .firstPaymentCompletedOrders(firstPaymentCompletedOrders)
                 .localDeliveryCompletedOrders(localDeliveryCompletedOrders)
                 .combinedProcessingOrders(orderItemByPending)
-                .secondPaymentRequestedOrders(secondPaymentRequestedOrders)
-                .secondPaymentCompletedOrders(secondPaymentCompletedOrders)
+                .secondPaymentRequestedOrders(deliveryPaymentRequestedShipments)
+                .secondPaymentCompletedOrders(deliveryPaymentCompletedShipments)
                 .internationalShippingOrders(internationalShippingOrders)
                 .deliveredOrders(deliveredOrders)
                 .build();
