@@ -21,9 +21,6 @@ public class Address {
     private String zipcode;
     private String streetAddress;
     private String detailAddress;
-    private String pccc;
-
-
 
     private Boolean isDefault;
 
@@ -35,12 +32,11 @@ public class Address {
     public void updateAddress(AddressUpdateDto addressUpdateDto) {
         validateUpdateData(addressUpdateDto);
 
-        this.recipientName = addressUpdateDto.getRecipientName();
-        this.recipientPhoneNumber = addressUpdateDto.getRecipientPhoneNumber();
-        this.zipcode = addressUpdateDto.getZipcode();
-        this.streetAddress = addressUpdateDto.getStreetAddress();
-        this.detailAddress = addressUpdateDto.getDetailAddress();
-        this.pccc = addressUpdateDto.getPccc();
+        this.recipientName = addressUpdateDto.getRecipientName() != null ? addressUpdateDto.getRecipientName() : this.recipientName;
+        this.recipientPhoneNumber = addressUpdateDto.getRecipientPhoneNumber() != null ? addressUpdateDto.getRecipientPhoneNumber() : this.recipientPhoneNumber;
+        this.zipcode = addressUpdateDto.getZipcode() != null ? addressUpdateDto.getZipcode() : this.zipcode;
+        this.streetAddress = addressUpdateDto.getStreetAddress() != null ? addressUpdateDto.getStreetAddress() : this.streetAddress;
+        this.detailAddress = addressUpdateDto.getDetailAddress() != null ? addressUpdateDto.getDetailAddress() : this.detailAddress;
     }
 
     private void validateUpdateData(AddressUpdateDto addressUpdateDto){

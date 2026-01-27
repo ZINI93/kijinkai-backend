@@ -25,7 +25,7 @@ public class AddressRequestDto {
     private String detailAddress;
 
     @Schema(description = "개인 통관고유번호", example = "신암동 111-11")
-    private String pccc;
+    private String pcc;
 
 
 }

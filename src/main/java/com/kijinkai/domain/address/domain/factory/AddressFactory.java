@@ -21,7 +21,6 @@ public class AddressFactory {
                 .zipcode(requestDto.getZipcode())
                 .streetAddress(requestDto.getStreetAddress())
                 .detailAddress(requestDto.getDetailAddress())
-                .pccc(requestDto.getPccc())
                 .isDefault(true)
                 .build();
     }

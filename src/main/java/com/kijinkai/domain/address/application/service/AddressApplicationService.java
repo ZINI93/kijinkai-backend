@@ -13,6 +13,7 @@ import com.kijinkai.domain.address.application.port.out.AddressPersistencePort;
 import com.kijinkai.domain.address.domain.exception.AddressNotFoundException;
 import com.kijinkai.domain.address.domain.factory.AddressFactory;
 import com.kijinkai.domain.address.domain.model.Address;
+import com.kijinkai.domain.customer.application.port.in.UpdateCustomerUseCase;
 import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPersistencePort;
 import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.domain.model.Customer;
@@ -32,6 +33,7 @@ public class AddressApplicationService implements CreateAddressUseCase, GetAddre
 
     private final AddressPersistencePort addressPersistencePort;
     private final CustomerPersistencePort customerPersistencePort;
+    private final UpdateCustomerUseCase updateCustomerUseCase;
 
     private final AddressFactory addressFactory;
     private final AddressMapper addressMapper;
@@ -49,6 +51,7 @@ public class AddressApplicationService implements CreateAddressUseCase, GetAddre
         try {
             // 유저Uuid로 구매자 조회
             Customer customer = findCustomerByUserUuid(userUuid);
+            updateCustomerUseCase.updatePcc(customer, requestDto.getPcc());
 
             // request를 받아서 주소생성
             Address address = addressFactory.createAddress(customer.getCustomerUuid(), requestDto);
@@ -62,7 +65,7 @@ public class AddressApplicationService implements CreateAddressUseCase, GetAddre
             //주소 저장
             Address savedAddress = addressPersistencePort.saveAddress(address);
 
-            return addressMapper.toResponse(savedAddress);
+            return addressMapper.toResponse(savedAddress, customer);
         } catch (Exception e) {
             log.error("Address creation failed: userUUid={}, error={}", userUuid, e.getMessage(), e);
             throw e;
@@ -95,7 +98,7 @@ public class AddressApplicationService implements CreateAddressUseCase, GetAddre
         Customer customer = findCustomerByUserUuid(userUuid);
         Address address = findAddressByCustomerUuid(customer.getCustomerUuid());
 
-        return addressMapper.toResponse(address);
+        return addressMapper.toResponse(address, customer);
     }
 
     /**
@@ -115,7 +118,7 @@ public class AddressApplicationService implements CreateAddressUseCase, GetAddre
         address.updateAddress(updateDto);
         Address savedAddress = addressPersistencePort.saveAddress(address);
 
-        return addressMapper.toResponse(savedAddress);
+        return addressMapper.toResponse(savedAddress, customer);
     }
 
     // helper method

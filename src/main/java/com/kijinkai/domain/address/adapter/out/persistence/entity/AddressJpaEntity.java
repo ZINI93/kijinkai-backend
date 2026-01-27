@@ -41,9 +41,6 @@ public class AddressJpaEntity extends TimeBaseEntity {
     @Column(name = "detail_address", nullable = false, length = 255)
     private String detailAddress;
 
-    @Column(name = "pccc")
-    private String pccc;
-
     @Column(name = "is_default", nullable = false)
     private Boolean isDefault;
 }
