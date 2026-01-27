@@ -21,10 +21,11 @@ public class DepositRequestResponseDto {
     private UUID requestUuid;
     private UUID customerUuid;
     private UUID walletUuid;
+    private String depositCode;
+
     private BigDecimal amountOriginal;
     private Currency currencyOriginal;
-    private BigDecimal amountConverted;
-    private BigDecimal exchangeRate;
+
     private String depositorName;
     private String bankAccount;
     private DepositStatus status;

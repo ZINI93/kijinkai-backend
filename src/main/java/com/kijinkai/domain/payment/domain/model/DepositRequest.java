@@ -20,12 +20,13 @@ public class DepositRequest {
 
     private Long depositRequestId;  // 식별자
     private UUID requestUuid; // 입금 식별자
+    private String depositCode;
+
     private UUID customerUuid; // 고객 식별자
     private UUID walletUuid; // 지갑 식별자
-    private BigDecimal amountOriginal;
+
     private Currency currencyOriginal;
-    private BigDecimal amountConverted;
-    private BigDecimal exchangeRate;
+    private BigDecimal amountOriginal;
     private String depositorName;
     private DepositStatus status;
     private LocalDateTime expiresAt;
@@ -37,6 +38,7 @@ public class DepositRequest {
     private Long version;
 
     private LocalDateTime createdAt;
+
 
     public void validateDepositAmount() {
 
@@ -70,7 +72,7 @@ public class DepositRequest {
 
     // 도메인 로직: 만료 처리
     public void expire() {
-        if (this.status == DepositStatus.PENDING_ADMIN_APPROVAL &&  !isExpired()) {
+        if (this.status == DepositStatus.PENDING_ADMIN_APPROVAL && !isExpired()) {
             this.status = DepositStatus.EXPIRED;
         }
     }
@@ -92,11 +94,10 @@ public class DepositRequest {
     }
 
     /**
-     *
      * @param rejectionReason
      */
     public void markAsFailed(String rejectionReason) {
-        if (this.status == DepositStatus.APPROVED) {
+        if (this.status != DepositStatus.PENDING_ADMIN_APPROVAL) {
             throw new IllegalStateException("완료된 요청은 실패 처리 될 수 없습니다.");
         }
         this.status = DepositStatus.REJECTED;

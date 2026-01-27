@@ -16,17 +16,16 @@ import java.util.UUID;
 public class DepositRequestFactory {
 
     public DepositRequest createDepositRequest(
-            Customer customer, Wallet wallet, BigDecimal originalAmount, Currency originalCurrency,
-            BigDecimal convertAmount, BigDecimal exchangeRate, String depositorName, BankType bankType
+            Customer customer, Wallet wallet, BigDecimal originalAmount, String depositorName, BankType bankType,
+            String depositCode
     ) {
         return DepositRequest.builder()
                 .requestUuid(UUID.randomUUID())
                 .customerUuid(customer.getCustomerUuid())
+                .depositCode(depositCode)
                 .walletUuid(wallet.getWalletUuid())
                 .amountOriginal(originalAmount)
-                .currencyOriginal(originalCurrency)
-                .amountConverted(convertAmount)
-                .exchangeRate(exchangeRate)
+                .currencyOriginal(Currency.KRW)
                 .depositorName(depositorName)
                 .bankType(bankType)
                 .status(DepositStatus.PENDING_ADMIN_APPROVAL)
