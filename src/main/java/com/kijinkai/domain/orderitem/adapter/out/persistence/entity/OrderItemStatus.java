@@ -34,10 +34,6 @@ public enum OrderItemStatus {
 
     //PRODUCT_PURCHASE("상품을 주문", "관리자가 결제가 완료된 상품을 실제 주문 하는 단계"),
 
-
-
-
-
     //구매처리
     COMPLETED("완료", "결제 완료"),
     CANCELLED("취소", "결제 완료 후 취소"),

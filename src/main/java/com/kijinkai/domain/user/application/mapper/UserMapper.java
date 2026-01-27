@@ -1,11 +1,15 @@
 package com.kijinkai.domain.user.application.mapper;
 
+import com.kijinkai.domain.address.domain.model.Address;
 import com.kijinkai.domain.customer.domain.model.Customer;
+import com.kijinkai.domain.user.application.dto.response.UserEditInfoResponse;
 import com.kijinkai.domain.user.application.dto.response.UserResponseDto;
 import com.kijinkai.domain.user.application.dto.response.UserSignUpResponse;
 import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.wallet.domain.model.Wallet;
 import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 @Component
 public class UserMapper {
@@ -34,5 +38,28 @@ public class UserMapper {
                 .nickname(user.getNickname())
                 .build();
 
+    }
+
+    public UserResponseDto updatedResponse(UUID userUuid, UUID customerUuid){
+        return UserResponseDto.builder()
+                .userUuid(userUuid)
+                .customerUuid(customerUuid)
+                .build();
+    }
+
+    public UserEditInfoResponse toEditResponse(User user, Customer customer){
+
+        return UserEditInfoResponse
+                .builder()
+                .email(user.getEmail())
+                .nickName(user.getNickname())
+                .firstName(customer.getFirstName())
+                .lastName(customer.getLastName())
+                .pcc(customer.getPcc())
+                .phoneNumber(customer.getPhoneNumber())
+                .bankType(customer.getBankType())
+                .accountHolder(customer.getAccountHolder())
+                .accountNumber(customer.getAccountNumber())
+                .build();
     }
 }

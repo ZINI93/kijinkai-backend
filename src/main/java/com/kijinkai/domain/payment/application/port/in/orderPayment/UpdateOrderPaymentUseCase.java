@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface UpdateOrderPaymentUseCase {
     OrderPaymentResponseDto completeFirstPayment(UUID userUuid, OrderPaymentRequestDto requestDto);
+    void failOrderPayment(UUID customerUuid, UUID orderPaymentUuid);
 }

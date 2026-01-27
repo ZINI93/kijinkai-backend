@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface OrderItemRepository extends JpaRepository<OrderItemJpaEntity, Long> {
+public interface OrderItemRepository extends JpaRepository<OrderItemJpaEntity, Long> , OrderItemRepositoryCustom{
 
     Optional<OrderItemJpaEntity> findByOrderItemUuid(UUID orderItemUuid);
     Optional<OrderItemJpaEntity> findByOrderUuid(UUID orderUuid);

@@ -135,14 +135,15 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.POST, "/users/sign-up", "/users/exists").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/auth/forget-password", "/api/auth/issuance-password-token").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").authenticated()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/main-page").authenticated()
-                                .requestMatchers(HttpMethod.GET, "/exchange-rate/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/main-page","/api/v1/transactions/**").authenticated()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/exchange-rate/**").permitAll()
                                 .requestMatchers(HttpMethod.DELETE, "/api/v1/order-items/**").authenticated()
 
 
                                 .requestMatchers(HttpMethod.POST,"/api/v1/order-items/add").authenticated()
                                 .requestMatchers("/api/v1/orders/**").hasRole(UserRole.USER.name())
-                                .requestMatchers("/api/v1/customers/**").hasRole(UserRole.ADMIN.name()) // 임시로 모든 사용자 허용
+                                .requestMatchers("/api/v1/customers/**", "/api/v1/admin/deposits/**").hasRole(UserRole.ADMIN.name()) // 임시로 모든 사용자 허용
+
 
 
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

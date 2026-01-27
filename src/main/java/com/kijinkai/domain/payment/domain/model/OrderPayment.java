@@ -54,9 +54,9 @@ public class OrderPayment {
     }
 
     // 도메인 로직: 결제 실패
-    public void fail(String reason) {
-        if (this.orderPaymentStatus != OrderPaymentStatus.PENDING) {
-            throw new IllegalStateException("대기 중인 상태가 아닙니다");
+    public void fail() {
+        if (this.orderPaymentStatus == OrderPaymentStatus.FAILED) {
+            throw new IllegalStateException("취소된 상품을 취소를 할수 없습니다.");
         }
 
         this.orderPaymentStatus = OrderPaymentStatus.FAILED;

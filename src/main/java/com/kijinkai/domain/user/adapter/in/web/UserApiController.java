@@ -5,6 +5,7 @@ import com.kijinkai.domain.common.BasicResponseDto;
 import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
 import com.kijinkai.domain.user.application.dto.request.UserRequestDto;
 import com.kijinkai.domain.user.application.dto.request.UserSignUpRequestDto;
+import com.kijinkai.domain.user.application.dto.response.UserEditInfoResponse;
 import com.kijinkai.domain.user.application.dto.response.UserResponseDto;
 import com.kijinkai.domain.user.application.dto.request.UserUpdateDto;
 import com.kijinkai.domain.user.application.dto.response.UserSignUpResponse;
@@ -120,19 +121,20 @@ public class UserApiController {
      * @param customUserDetails
      * @return
      */
-    @PutMapping(value = "/api/v1/users/me", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/api/v1/users/edit", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Update user", description = "Update user password, nickname")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Successful user info update"),
             @ApiResponse(responseCode = "404", description = "Failed user info update"),
             @ApiResponse(responseCode = "500", description = "Server Error")
     })
-    public ResponseEntity<BasicResponseDto<UserResponseDto>> updateUser(@Validated(UserRequestDto.updateGroup.class) @RequestBody UserUpdateDto updateDto,
-                                                                        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+    public ResponseEntity<BasicResponseDto<UserResponseDto>> updateUser(
+            @Valid @RequestBody UserUpdateDto updateDto,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
         UUID userUuid = customUserDetails.getUserUuid();
 
-        UserResponseDto user = updateUserUseCase.updateUserProfile(userUuid, updateDto);
+        UserResponseDto user = updateUserUseCase.updateUserInfo(userUuid, updateDto);
         log.info("사용자 업데이트 완료 - 고객 UUID: {}", user.getUserUuid());
 
         return ResponseEntity.ok(BasicResponseDto.success("Successful updated user profile", user));
@@ -224,6 +226,28 @@ public class UserApiController {
 
         return ResponseEntity.ok("password reset successfully");
     }
+
+
+    // 조회.
+
+    @GetMapping(value = "/api/v1/users/edit/info")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "유저 조회 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "유저를 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<UserEditInfoResponse>> getUserEditInfo(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ){
+
+        UserEditInfoResponse user = getUserUseCase.userEditInfo(customUserDetails.getUserUuid());
+
+
+        return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved user info", user));
+    }
+
+
 }
 
 

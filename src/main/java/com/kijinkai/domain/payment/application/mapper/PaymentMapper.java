@@ -18,26 +18,17 @@ import java.util.UUID;
 @Component
 public class PaymentMapper {
 
-    public DepositRequestResponseDto createDepositResponse(DepositRequest request){
+    public DepositRequestResponseDto createDepositResponse(DepositRequest request) {
 
         return DepositRequestResponseDto.builder()
-                .requestUuid(request.getRequestUuid())
-                .customerUuid(request.getCustomerUuid())
-                .walletUuid(request.getWalletUuid())
+                .depositCode(request.getDepositCode())
                 .amountOriginal(request.getAmountOriginal())
-                .currencyOriginal(request.getCurrencyOriginal())
-                .amountConverted(request.getAmountConverted())
-                .exchangeRate(request.getExchangeRate())
                 .depositorName(request.getDepositorName())
                 .expiresAt(request.getExpiresAt())
-                .processedByAdmin(request.getProcessedByAdminUuid())
-                .processedAt(request.getProcessedAt())
-                .adminMemo(request.getAdminMemo())
-                .rejectionReason(request.getRejectionReason())
                 .build();
     }
 
-    public DepositRequestResponseDto approveDepositResponse(DepositRequest request, WalletResponseDto walletResponseDto){
+    public DepositRequestResponseDto approveDepositResponse(DepositRequest request, WalletResponseDto walletResponseDto) {
 
         return DepositRequestResponseDto.builder()
                 .requestUuid(request.getRequestUuid())
@@ -45,8 +36,6 @@ public class PaymentMapper {
                 .walletUuid(walletResponseDto.getWalletUuid())
                 .amountOriginal(request.getAmountOriginal())
                 .currencyOriginal(request.getCurrencyOriginal())
-                .amountConverted(request.getAmountConverted())
-                .exchangeRate(request.getExchangeRate())
                 .depositorName(request.getDepositorName())
                 .expiresAt(request.getExpiresAt())
                 .processedByAdmin(request.getProcessedByAdminUuid())
@@ -57,7 +46,7 @@ public class PaymentMapper {
                 .build();
     }
 
-     public DepositRequestResponseDto depositInfoResponse(DepositRequest request){
+    public DepositRequestResponseDto depositInfoResponse(DepositRequest request) {
 
         return DepositRequestResponseDto.builder()
                 .requestUuid(request.getRequestUuid())
@@ -65,8 +54,6 @@ public class PaymentMapper {
                 .walletUuid(request.getWalletUuid())
                 .amountOriginal(request.getAmountOriginal())
                 .currencyOriginal(request.getCurrencyOriginal())
-                .amountConverted(request.getAmountConverted())
-                .exchangeRate(request.getExchangeRate())
                 .depositorName(request.getDepositorName())
                 .expiresAt(request.getExpiresAt())
                 .processedByAdmin(request.getProcessedByAdminUuid())
@@ -87,9 +74,7 @@ public class PaymentMapper {
                 .withdrawFee(withdrawRequest.getWithdrawFee())
                 .totalDeductAmount(withdrawRequest.getTotalDeductAmount())
                 .targetCurrency(withdrawRequest.getTargetCurrency())
-                .convertedAmount(withdrawRequest.getConvertedAmount())
-                .exchangeRate(withdrawRequest.getExchangeRate())
-                .bankName(withdrawRequest.getBankName())
+                .bankType(withdrawRequest.getBankType())
                 .accountNumber(withdrawRequest.getAccountNumber())
                 .status(withdrawRequest.getStatus())
                 .accountHolder(withdrawRequest.getAccountHolder())
@@ -100,28 +85,22 @@ public class PaymentMapper {
                 .build();
     }
 
-    public WithdrawResponseDto approvedWithdrawResponse(WithdrawRequest withdrawRequest, WalletResponseDto walletResponseDto) {
+    public WithdrawResponseDto approvedWithdrawResponse(WithdrawRequest withdrawRequest) {
 
         return WithdrawResponseDto.builder()
-                .requestUuid(withdrawRequest.getRequestUuid())
                 .customerUuid(withdrawRequest.getCustomerUuid())
-                .walletUuid(walletResponseDto.getWalletUuid())
                 .requestAmount(withdrawRequest.getRequestAmount())
                 .withdrawFee(withdrawRequest.getWithdrawFee())
                 .totalDeductAmount(withdrawRequest.getTotalDeductAmount())
                 .targetCurrency(withdrawRequest.getTargetCurrency())
-                .convertedAmount(withdrawRequest.getConvertedAmount())
-                .exchangeRate(withdrawRequest.getExchangeRate())
-                .bankName(withdrawRequest.getBankName())
                 .accountNumber(withdrawRequest.getAccountNumber())
-                .status(withdrawRequest.getStatus())
                 .accountHolder(withdrawRequest.getAccountHolder())
                 .processedByAdmin(withdrawRequest.getProcessedByAdminUuid())
                 .processedAt(withdrawRequest.getProcessedAt())
                 .adminMemo(withdrawRequest.getAdminMemo())
-                .rejectionReason(withdrawRequest.getRejectionReason())
                 .build();
     }
+
     public WithdrawResponseDto withdrawInfoResponse(WithdrawRequest withdrawRequest) {
 
         return WithdrawResponseDto.builder()
@@ -132,9 +111,8 @@ public class PaymentMapper {
                 .withdrawFee(withdrawRequest.getWithdrawFee())
                 .totalDeductAmount(withdrawRequest.getTotalDeductAmount())
                 .targetCurrency(withdrawRequest.getTargetCurrency())
-                .convertedAmount(withdrawRequest.getConvertedAmount())
-                .exchangeRate(withdrawRequest.getExchangeRate())
-                .bankName(withdrawRequest.getBankName())
+                .bankType(withdrawRequest.getBankType())
+
                 .accountNumber(withdrawRequest.getAccountNumber())
                 .status(withdrawRequest.getStatus())
                 .accountHolder(withdrawRequest.getAccountHolder())
@@ -145,7 +123,7 @@ public class PaymentMapper {
                 .build();
     }
 
-    public RefundResponseDto createRefundResponse(RefundRequest refundRequest){
+    public RefundResponseDto createRefundResponse(RefundRequest refundRequest) {
 
         return RefundResponseDto.builder()
                 .refundUuid(refundRequest.getRefundUuid())
@@ -158,7 +136,7 @@ public class PaymentMapper {
                 .build();
     }
 
-    public RefundResponseDto processRefundResponse(RefundRequest refundRequest, WalletResponseDto walletResponseDto){
+    public RefundResponseDto processRefundResponse(RefundRequest refundRequest, WalletResponseDto walletResponseDto) {
 
         return RefundResponseDto.builder()
                 .refundUuid(refundRequest.getRefundUuid())
@@ -172,7 +150,7 @@ public class PaymentMapper {
                 .build();
     }
 
-    public RefundResponseDto refundInfoResponse(RefundRequest refundRequest){
+    public RefundResponseDto refundInfoResponse(RefundRequest refundRequest) {
 
         return RefundResponseDto.builder()
                 .refundUuid(refundRequest.getRefundUuid())
@@ -200,10 +178,7 @@ public class PaymentMapper {
     }
 
 
-
-
-
-    public OrderPaymentResponseDto createOrderPayment(OrderPayment orderPayment){
+    public OrderPaymentResponseDto createOrderPayment(OrderPayment orderPayment) {
 
         return OrderPaymentResponseDto.builder()
                 .paymentUuid(orderPayment.getPaymentUuid())
@@ -217,7 +192,7 @@ public class PaymentMapper {
 
     }
 
-    public OrderPaymentResponseDto completeOrderPayment(OrderPayment orderPayment, WalletResponseDto walletResponseDto){
+    public OrderPaymentResponseDto completeOrderPayment(OrderPayment orderPayment, WalletResponseDto walletResponseDto) {
 
         return OrderPaymentResponseDto.builder()
                 .paymentUuid(orderPayment.getPaymentUuid())
@@ -232,7 +207,7 @@ public class PaymentMapper {
     }
 
 
-    public OrderPaymentResponseDto orderPaymentInfo(OrderPayment orderPayment){
+    public OrderPaymentResponseDto orderPaymentInfo(OrderPayment orderPayment) {
 
         return OrderPaymentResponseDto.builder()
                 .paymentUuid(orderPayment.getPaymentUuid())
@@ -247,14 +222,9 @@ public class PaymentMapper {
     }
 
 
-
-
-
-
-
     public OrderPaymentCountResponseDto orderPaymentDashboardCount(
             int firstPending, int firstCompleted, int secondPending, int secondCompleted
-    ){
+    ) {
 
         return OrderPaymentCountResponseDto.builder()
                 .firstPending(firstPending)
@@ -267,7 +237,7 @@ public class PaymentMapper {
 
     // payment details mapper
 
-    public OrderPaymentResponseDto orderPaymentDetailsInfo(OrderPayment orderPayment, BigDecimal walletBalance){
+    public OrderPaymentResponseDto orderPaymentDetailsInfo(OrderPayment orderPayment, BigDecimal walletBalance) {
 
         return OrderPaymentResponseDto.builder()
                 .paymentUuid(orderPayment.getPaymentUuid())
@@ -281,41 +251,36 @@ public class PaymentMapper {
                 .build();
     }
 
-    public DepositRequestResponseDto depositDetailsInfo(DepositRequest depositRequest, BigDecimal walletBalance){
+    public DepositRequestResponseDto depositDetailsInfo(DepositRequest depositRequest, BigDecimal walletBalance) {
 
         return DepositRequestResponseDto.builder()
                 .requestUuid(depositRequest.getRequestUuid())
                 .customerUuid(depositRequest.getCustomerUuid())
-                .amountConverted(depositRequest.getAmountConverted())
                 .status(depositRequest.getStatus())
                 .processedAt(depositRequest.getProcessedAt())
                 .createAt(depositRequest.getCreatedAt())
-                .afterBalance(walletBalance.add(depositRequest.getAmountConverted()))
                 .type("입금")
                 .build();
     }
 
 
-    public DepositRequestResponseDto depositInfo(DepositRequest depositRequest){
+    public DepositRequestResponseDto depositInfo(DepositRequest depositRequest) {
 
         return DepositRequestResponseDto.builder()
                 .requestUuid(depositRequest.getRequestUuid())
                 .customerUuid(depositRequest.getCustomerUuid())
-                .amountConverted(depositRequest.getAmountConverted())
                 .status(depositRequest.getStatus())
                 .adminMemo(depositRequest.getAdminMemo())
-                .exchangeRate(depositRequest.getExchangeRate())
                 .amountOriginal(depositRequest.getAmountOriginal())
                 .depositorName(depositRequest.getDepositorName())
                 .processedByAdmin(depositRequest.getProcessedByAdminUuid())
                 .processedAt(depositRequest.getProcessedAt())
                 .createAt(depositRequest.getCreatedAt())
-                .type("입금")
                 .build();
     }
 
 
-    public WithdrawResponseDto withdrawDetailsInfo(WithdrawRequest withdrawRequest, BigDecimal walletBalance){
+    public WithdrawResponseDto withdrawDetailsInfo(WithdrawRequest withdrawRequest, BigDecimal walletBalance) {
 
         return WithdrawResponseDto.builder()
                 .requestUuid(withdrawRequest.getRequestUuid())
@@ -330,7 +295,7 @@ public class PaymentMapper {
                 .build();
     }
 
-    public RefundResponseDto refundDetailsInfo(RefundRequest refundRequest, BigDecimal walletBalance){
+    public RefundResponseDto refundDetailsInfo(RefundRequest refundRequest, BigDecimal walletBalance) {
 
         return RefundResponseDto.builder()
                 .refundUuid(refundRequest.getRefundUuid())

@@ -1,12 +1,14 @@
 package com.kijinkai.domain.orderitem.application.port.out;
 
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
+import com.kijinkai.domain.orderitem.adapter.out.persistence.repostiory.OrderItemSearchCondition;
 import com.kijinkai.domain.orderitem.domain.model.OrderItem;
 import com.kijinkai.domain.payment.application.dto.request.OrderPaymentRequestDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,6 +32,8 @@ public interface OrderItemPersistencePort {
     Page<OrderItem> findAllByCustomerUuidOrderByOrderCreatedAtDesc(UUID customerUuid, Pageable pageable);
 
     Page<OrderItem> findAllByCustomerUuidAndOrderItemStatusOrderByCreatedAtDesc(UUID customerUuid, OrderItemStatus status, Pageable pageable);
+
+    Page<OrderItem> searchAdminOrderItemsByStatus(OrderItemSearchCondition condition, Pageable pageable);
 
     List<OrderItem> findByOrderItemUuidInAndCustomerUuid(List<UUID> orderItemUuids, UUID customerUuid);
 

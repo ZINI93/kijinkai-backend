@@ -6,5 +6,5 @@ import com.kijinkai.domain.payment.application.dto.response.DepositRequestRespon
 import java.util.UUID;
 
 public interface UpdateDepositUseCase {
-    DepositRequestResponseDto approveDepositRequest(UUID requestUuid, UUID adminUuid, DepositRequestDto requestDto);
+    DepositRequestResponseDto approveDepositRequest(UUID userUuid, UUID depositUuid, DepositRequestDto requestDto);
 }

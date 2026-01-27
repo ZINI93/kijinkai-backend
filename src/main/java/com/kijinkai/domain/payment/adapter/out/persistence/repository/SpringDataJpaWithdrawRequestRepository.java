@@ -17,8 +17,7 @@ public interface SpringDataJpaWithdrawRequestRepository extends JpaRepository<Wi
 
     Optional<WithdrawRequestJpaEntity> findByRequestUuidAndCustomerUuid(UUID requestUuid, UUID customerUuid);
 
-    @Query("SELECT wr FROM WithdrawRequestJpaEntity wr WHERE wr.status = :status AND (:bankName IS NULL OR wr.bankName = :bankName)")
-    Page<WithdrawRequestJpaEntity> findByWithdrawPaymentUuidByStatus(@Param("bankName") String bankName, @Param("status") WithdrawStatus status, Pageable pageable);
+    Page<WithdrawRequestJpaEntity> findAllByStatus(WithdrawStatus status, Pageable pageable);
 
     Page<WithdrawRequestJpaEntity> findAllByCustomerUuid(UUID customerUuid, Pageable pageable);
 

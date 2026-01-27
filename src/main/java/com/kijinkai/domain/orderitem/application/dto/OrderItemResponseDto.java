@@ -26,6 +26,8 @@ public class OrderItemResponseDto {
     String orderItemCode;
     BigDecimal depositBalance;
 
+    String rejectReason;
+
     List<UUID> orderItemUuids;
 
 }

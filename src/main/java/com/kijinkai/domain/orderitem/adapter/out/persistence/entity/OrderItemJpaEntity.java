@@ -71,6 +71,10 @@ public class OrderItemJpaEntity extends BaseEntity {
     private OrderItemStatus orderItemStatus;
 
 
+    @Column(name = "reject_reason")
+    private String rejectReason;
+
+
 
 }
 

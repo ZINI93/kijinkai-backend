@@ -64,10 +64,38 @@ public class OrderItemApiController {
         return ResponseEntity.ok(BasicResponseDto.success("Successfully add order items ", response));
     }
 
-    // 업데이트
+    // ---- 업데이트. ---
+
 
 
     // ---- 조회. ----
+
+    /**
+     * 거절된 상품 리스트
+     *
+     * @param customUserDetails
+     * @param pageable
+     * @return
+     */
+    @GetMapping("/list/reject")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "주문상품 정보 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "상품 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<Page<OrderItemResponseDto>>> getOrderItemByReject(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        Page<OrderItemResponseDto> response = getOrderItemUseCase.getOrderItemByStatus(customUserDetails.getUserUuid(), OrderItemStatus.REJECTED , pageable);
+
+        return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved platform information", response));
+    }
+
+
+
+
 
     /**
      * 구매요청 리스트

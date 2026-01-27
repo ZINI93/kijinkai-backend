@@ -3,10 +3,12 @@ package com.kijinkai.domain.payment.application.service;
 import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPersistencePort;
 import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.domain.model.Customer;
+import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.exchange.dto.ExchangeRateResponseDto;
 import com.kijinkai.domain.exchange.service.ExchangeRateService;
 import com.kijinkai.domain.payment.application.dto.request.WithdrawRequestDto;
 import com.kijinkai.domain.payment.application.dto.response.WithdrawResponseDto;
+import com.kijinkai.domain.payment.application.handler.WithdrawFailedEvent;
 import com.kijinkai.domain.payment.application.mapper.PaymentMapper;
 import com.kijinkai.domain.payment.application.port.in.withdraw.CreateWithdrawUseCase;
 import com.kijinkai.domain.payment.application.port.in.withdraw.DeleteWithdrawUseCase;
@@ -14,11 +16,15 @@ import com.kijinkai.domain.payment.application.port.in.withdraw.GetWithdrawUseCa
 import com.kijinkai.domain.payment.application.port.in.withdraw.UpdateWithdrawUseCase;
 import com.kijinkai.domain.payment.application.port.out.WithdrawPersistenceRequestPort;
 import com.kijinkai.domain.payment.domain.calculator.PaymentCalculator;
+import com.kijinkai.domain.payment.domain.enums.BankType;
 import com.kijinkai.domain.payment.domain.enums.WithdrawStatus;
 import com.kijinkai.domain.payment.domain.exception.*;
 import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
 import com.kijinkai.domain.payment.domain.model.WithdrawRequest;
 import com.kijinkai.domain.payment.domain.util.PaymentContents;
+import com.kijinkai.domain.transaction.entity.TransactionStatus;
+import com.kijinkai.domain.transaction.entity.TransactionType;
+import com.kijinkai.domain.transaction.service.TransactionService;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
 import com.kijinkai.domain.user.domain.model.User;
@@ -29,9 +35,12 @@ import com.kijinkai.domain.wallet.domain.exception.InsufficientBalanceException;
 import com.kijinkai.domain.wallet.domain.exception.WalletNotActiveException;
 import com.kijinkai.domain.wallet.domain.exception.WalletNotFoundException;
 import com.kijinkai.domain.wallet.domain.model.Wallet;
+import com.kijinkai.util.BusinessCodeType;
+import com.kijinkai.util.GenerateBusinessItemCode;
 import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -59,11 +68,16 @@ public class WithdrawRequestApplicationService implements CreateWithdrawUseCase,
     private final PaymentFactory paymentFactory;
 
     private final UpdateWalletUseCase updateWalletUseCase;
+    private final TransactionService transactionService;
 
-    //----- 출금  -----
+    private final GenerateBusinessItemCode generateBusinessItemCode;
+
+    private final ApplicationEventPublisher eventPublisher;
+
+    //----- 생성.  -----
 
     /**
-     * 출금 생성
+     * 유저 출금 요청
      *
      * @param userUuid
      * @param requestDto
@@ -75,91 +89,112 @@ public class WithdrawRequestApplicationService implements CreateWithdrawUseCase,
 
         log.info("Creating withdraw request for user uuid: {}", userUuid);
 
-        Customer customer = findCustomerByUserUuid(userUuid);
-
-        Wallet wallet = findWalletByCustomerUuid(customer.getCustomerUuid());
-        wallet.isActive(); // 지갑 활성화 상태
-
-        BigDecimal withdrawFee;
-
-        // 요청 금액이 3만엔 이상일 경우 수수료 0, 이하일경우 300엔
-        if (requestDto.getRequestAmount().compareTo(new BigDecimal(30000)) > 0 ){
-            withdrawFee = BigDecimal.ZERO;
-        } else  {
-            withdrawFee = PaymentContents.WITHDRAWAL_FEE;
+        // 1000원 이상 출금 가능
+        if (requestDto.getRequestAmount().compareTo(BigDecimal.valueOf(1000)) < 0) {
+            throw new PaymentAmountException("1000원 이상 결제가 가능합니다.");
         }
 
-        ExchangeRateResponseDto exchangeRate = exchangeRateService.getExchangeRateInfoByCurrency(requestDto.getCurrency());
+        // 유저 조회
+        Customer customer = findCustomerByUserUuid(userUuid);
 
-        BigDecimal convertedAmount = paymentCalculator.calculateWithdrawInJyp(requestDto.getCurrency(), requestDto.getRequestAmount());
 
+        // 락 적용 상태에서 지갑 조회 및 검증
+        Wallet wallet = walletPersistencePort.findByCustomerUuidWithLock(customer.getCustomerUuid())
+                .orElseThrow(() -> new WalletNotFoundException("Not found wallet"));
 
-        WithdrawRequest withdrawRequest = paymentFactory.createWithdrawRequest(
-                customer, wallet, requestDto.getRequestAmount(), requestDto.getCurrency(), withdrawFee,
-                requestDto.getBankName(), requestDto.getAccountHolder(), convertedAmount, requestDto.getAccountNumber(), exchangeRate.getRate()
-        );
-        withdrawRequest.validateWithdrawEligibility(requestDto);  // 2만엔 보다 적을시 출금 요청 제한
+        wallet.validateActive();
 
-        if (wallet.getBalance().compareTo(withdrawRequest.getRequestAmount().add(withdrawFee)) <= 0){
+        if (wallet.getBalance().compareTo(requestDto.getRequestAmount()) < 0) {
             throw new PaymentAmountException("현재 잔액보다 큰 금액은 출금하지 못합니다.");
         }
 
-        WithdrawRequest savedWithdrawRequest = withdrawPersistenceRequestPort.saveWithdrawRequest(withdrawRequest);
 
-        log.info("Created withdraw request for request uuid: {}", withdrawRequest.getRequestUuid());
+        updateWalletUseCase.withdrawal(customer.getCustomerUuid(), requestDto.getRequestAmount());
 
-        return paymentMapper.createWithdrawResponse(savedWithdrawRequest);
+
+        String withdrawCode = generateBusinessItemCode.generateBusinessCode(userUuid.toString(), BusinessCodeType.WIT);
+
+        // 요청 생성
+        WithdrawRequest withdrawRequest = paymentFactory.createWithdrawRequest(
+                customer,
+                wallet,
+                requestDto.getRequestAmount(),
+                Currency.KRW,
+                BigDecimal.ZERO,
+                requestDto.getBankType(),
+                requestDto.getAccountHolder(),
+                requestDto.getAccountNumber(),
+                withdrawCode
+        );
+
+        // 저장
+        WithdrawRequest savedWithdraw = withdrawPersistenceRequestPort.saveWithdrawRequest(withdrawRequest);
+
+        //거래 기록 저장
+        transactionService.createAccountHistory(
+                savedWithdraw.getCustomerUuid(),
+                savedWithdraw.getWalletUuid(),
+                TransactionType.WITHDRAWAL,
+                savedWithdraw.getWithdrawCode(),
+                savedWithdraw.getRequestAmount(),
+                TransactionStatus.REQUEST
+        );
+
+        return paymentMapper.createWithdrawResponse(savedWithdraw);
+
     }
 
+    // --- 업데이트
+
     /**
-     * 출금 요청 승인
+     * 출금 요청 승인 -> 추가적으로 하루 이상 미승인된 결제내역의 스케줄 관리 구현이 필요함
      *
+     * @param adminUserUuid
      * @param requestUuid
-     * @param adminUuid
      * @param requestDto
      * @return
      */
     @Transactional
     @Override
-    public WithdrawResponseDto approveWithdrawRequest(UUID requestUuid, UUID adminUuid, WithdrawRequestDto requestDto) {
+    public WithdrawResponseDto approveWithdrawRequest(UUID adminUserUuid, UUID requestUuid, WithdrawRequestDto requestDto) {
         log.info("Start withdraw approval process for request uuid: {}", requestUuid);
 
         //　관리자 조회 후 검증
-        User admin = findUserByUserUuid(adminUuid);
+        User admin = findUserByUserUuid(adminUserUuid);
         admin.validateAdminRole();
 
         WithdrawRequest withdrawRequest = findWithdrawRequestByRequestUuid(requestUuid);
 
         try {
-            withdrawRequest.approve(adminUuid, requestDto.getMemo());
+            WithdrawRequest approveWithdraw = processWithdrawApprove(admin.getUserUuid(), withdrawRequest, requestDto);
 
-            WalletResponseDto wallet = updateWalletUseCase.withdrawal(
-                    withdrawRequest.getCustomerUuid(),
-                    withdrawRequest.getTotalDeductAmount());
+            return paymentMapper.approvedWithdrawResponse(approveWithdraw);
 
-            log.info("Completed withdraw approval process for request uuid: {} , withdraw amount: {}", requestUuid, withdrawRequest.getConvertedAmount());
-            return paymentMapper.approvedWithdrawResponse(withdrawRequest, wallet);
-
-        } catch (InsufficientBalanceException e) {
-            log.error("Insufficient balance for deposit approval: {}", requestUuid, e);
-            withdrawRequest.markAsFailed( "잔액 부족:" + e.getMessage());
-            throw new WithdrawApprovalException("잔액이 부족합니다", e);
-        } catch (WalletNotActiveException e) {
-            log.error("WalletJpaEntity not active for deposit approval: {}", requestUuid, e);
-            withdrawRequest.markAsFailed( "비활성된 지갑:" + e.getMessage());
-            throw new WalletNotActiveException("지갑이 비활성 상태입니다", e);
-        } catch (WithdrawRequestNotFoundException | WithdrawRequestStatusException e) {
-            log.error("Invalid withdraw request for approval: {} ", requestUuid, e);
-            throw e;
-        } catch (OptimisticLockException e) {
-            throw new ConcurrentModificationException("다른 관리자가 동시에 처리 중 입니다. 새로고침 후 다시 시도해주세요");
         } catch (Exception e) {
-            log.error("Unexpected error during deposit approval: {}", requestUuid, e);
-            withdrawRequest.markAsFailed( "시스템 오류:" + e.getMessage());
-            throw new PaymentProcessingException("출금 승인 중 예상치 못한 오류가 발생했습니다", e);
+            log.error("Error occurred, publishing failure event...", e);
+            eventPublisher.publishEvent(new WithdrawFailedEvent(withdrawRequest.getRequestUuid(), e.getMessage()));
+            throw e;
         }
 
     }
+
+    // 승인절차 프로세스
+    private WithdrawRequest processWithdrawApprove(UUID adminUserUuid, WithdrawRequest withdrawRequest, WithdrawRequestDto requestDto) {
+
+        // 검증 및 승인처리
+        withdrawRequest.approve(adminUserUuid, requestDto.getMemo());
+
+        // 거래 기록갱신
+        transactionService.completedPayment(withdrawRequest.getCustomerUuid(), withdrawRequest.getWithdrawCode());
+
+        // 저장
+        withdrawPersistenceRequestPort.saveWithdrawRequest(withdrawRequest);
+
+
+        return withdrawRequest;
+
+    }
+
 
     /**
      * 관리자가 유저의 출금 요청 정보 조회
@@ -182,6 +217,7 @@ public class WithdrawRequestApplicationService implements CreateWithdrawUseCase,
 
     /**
      * 유저 - 출금 리스트 조회
+     *
      * @param adminUuid
      * @param pageable
      * @return
@@ -199,17 +235,17 @@ public class WithdrawRequestApplicationService implements CreateWithdrawUseCase,
 
     /**
      * 관리자 - 승인대기 리스트
-     * @param adminUuid
-     * @param depositorName
-     * @param pageable
-     * @return
      */
     @Override
-    public Page<WithdrawResponseDto> getWithdrawByApprovalPending(UUID adminUuid, String depositorName, Pageable pageable) {
+    public Page<WithdrawResponseDto> getWithdrawsByStatus(UUID adminUuid, WithdrawStatus status, Pageable pageable) {
+
+        // 관리자 권한 검증
         User admin = findUserByUserUuid(adminUuid);
         admin.validateAdminRole();
 
-        Page<WithdrawRequest> withdrawRequests = withdrawPersistenceRequestPort.findAllByWithdrawStatus(depositorName, WithdrawStatus.PENDING_ADMIN_APPROVAL, pageable);
+        //조회
+        Page<WithdrawRequest> withdrawRequests = withdrawPersistenceRequestPort.findAllByStatus(status, pageable);
+
         return withdrawRequests.map(paymentMapper::withdrawInfoResponse);
 
     }

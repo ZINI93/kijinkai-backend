@@ -1,9 +1,16 @@
 package com.kijinkai.domain.user.application.service;
 
+import com.kijinkai.domain.address.application.port.in.UpdateAddressUseCase;
+import com.kijinkai.domain.address.application.port.out.AddressPersistencePort;
+import com.kijinkai.domain.customer.application.port.in.UpdateCustomerUseCase;
+import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPersistencePort;
+import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
+import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.jwt.service.JwtService;
 import com.kijinkai.domain.mail.service.EmailService;
 import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
 import com.kijinkai.domain.user.application.dto.CustomOAuth2User;
+import com.kijinkai.domain.user.application.dto.response.UserEditInfoResponse;
 import com.kijinkai.domain.user.application.port.in.*;
 import com.kijinkai.domain.user.application.validator.UserValidator;
 import com.kijinkai.domain.user.application.dto.request.UserRequestDto;
@@ -60,6 +67,12 @@ public class UserApplicationService extends DefaultOAuth2UserService implements 
     private final UserFactory userFactory;
     private final UserMapper userMapper;
     private final UserValidator userValidator;
+
+    private final UpdateCustomerUseCase updateCustomerUseCase;
+    private final CustomerPersistencePort customerPersistencePort;
+
+    private final UpdateAddressUseCase updateAddressUseCase;
+    private final AddressPersistencePort addressPersistencePort;
 
 
     /**
@@ -170,7 +183,7 @@ public class UserApplicationService extends DefaultOAuth2UserService implements 
 
 
     /**
-     * 유저 프로필, 바밀번호 업데이트
+     * 유저정보 수정
      *
      * @param userUuid
      * @param updateDto
@@ -178,34 +191,41 @@ public class UserApplicationService extends DefaultOAuth2UserService implements 
      */
     @Override
     @Transactional
-    public UserResponseDto updateUserProfile(UUID userUuid, UserUpdateDto updateDto) {
+    public UserResponseDto updateUserInfo(UUID userUuid, UserUpdateDto updateDto) {
 
-        try {
+        // 유저 조회 활성화 검증
+        User user = findUserByUserUuid(userUuid);
+        user.validateActive();
 
-            // 검증
-            userValidator.validateUpdateUserRequest(updateDto);
+        //변경 요청받은 비밀번호 인코딩
 
-            // 유저 조회, 활성화 검증
-            User user = findUserByUserUuid(userUuid);
-            user.validateActive();
 
-            // 비밀번호 중복 검증 후 인코딩
-            userValidator.validateUserPassword(passwordEncoder, updateDto, user);
-            String encodedPassword = passwordEncoder.encode(updateDto.getNewPassword());
+        String encodedPassword = null;
 
-            // 업데이트
-            user.updateUser(updateDto.getNickname(), encodedPassword);
-
-            // 업데이트 된 유저정보 저장
-            User savedUser = userPersistencePort.saveUser(user);
-
-            return userMapper.toResponse(savedUser);
-        } catch (UserNotFoundException | InvalidUserDataException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Unexpected error updating user with UUID: {}", userUuid, e);
-            throw new UserUpdateException("Failed to update user due to internal error", e);
+        if (updateDto.getNewPassword() != null){
+            encodedPassword = passwordEncoder.encode(updateDto.getNewPassword());
         }
+
+
+        // 업데이트
+        user.updateUser(updateDto.getNickname(), encodedPassword);
+
+        // 구매자 업데이트 후 저장
+        UUID customer = updateCustomerUseCase.updateCustomer(
+                userUuid,
+                updateDto.getFirstName(),
+                updateDto.getLastName(),
+                updateDto.getPhoneNumber(),
+                updateDto.getPcc(),
+                updateDto.getBankType(),
+                updateDto.getAccountHolder(),
+                updateDto.getAccountNumber()
+        );
+
+        // 업데이트 된 유저정보 저장
+        User savedUser = userPersistencePort.saveUser(user);
+
+        return userMapper.updatedResponse(savedUser.getUserUuid(), customer);
     }
 
     /**
@@ -222,7 +242,6 @@ public class UserApplicationService extends DefaultOAuth2UserService implements 
         try {
             User user = findUserByUserUuid(userUuid);
 
-            userValidator.validateUserPassword(passwordEncoder, updateDto, user);
             String newEncodedPassword = passwordEncoder.encode(updateDto.getNewPassword());
             user.updatePassword(newEncodedPassword);
             User savedUser = userPersistencePort.saveUser(user);
@@ -426,6 +445,32 @@ public class UserApplicationService extends DefaultOAuth2UserService implements 
         user.updatePassword(encodedPassword);
         userPersistencePort.saveUser(user);
     }
+
+
+    // 조회.
+
+    /**
+     * 유저 회원정보 수정 조회
+     *
+     * @param userUuid
+     * @return
+     */
+    @Override
+    public UserEditInfoResponse userEditInfo(UUID userUuid) {
+
+        // 유저 조회
+        User user = findUserByUserUuid(userUuid);
+
+        // 구매자 조회
+        Customer customer = customerPersistencePort.findByUserUuid(userUuid)
+                .orElseThrow(() -> new CustomerNotFoundException("Not found customer"));
+
+
+        return userMapper.toEditResponse(user, customer);
+    }
+
+
+    // helper
 
 
 }

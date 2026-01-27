@@ -21,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -35,7 +36,7 @@ import static com.kijinkai.domain.payment.adapter.in.messaging.PaymentMassage.WI
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(
-        value = "/api/v1/payments",
+        value = "/api/v1/withdraws",
         produces = MediaType.APPLICATION_JSON_VALUE
 )
 public class WithdrawRequestController {
@@ -53,7 +54,7 @@ public class WithdrawRequestController {
             description = "유저가 출금위해 관리자에게 요청을 생성합니다",
             tags = {"결제관리"}
     )
-    @PostMapping("/withdraw")
+    @PostMapping("/create")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "출금 생성 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청"),
@@ -61,52 +62,23 @@ public class WithdrawRequestController {
             @ApiResponse(responseCode = "500", description = "서버오류")
     })
     public ResponseEntity<BasicResponseDto<WithdrawResponseDto>> createWithdraw(
-            Authentication authentication,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @Valid @RequestBody WithdrawRequestDto requestDto
     ) {
 
-        UUID userUuid = getUserUuid(authentication);
         log.info("Withdraw request created - User: {}, Amount: {}",
-                userUuid, requestDto.getRequestAmount());
+                customUserDetails.getUserUuid(), requestDto.getRequestAmount());
 
         try {
-            WithdrawResponseDto response = createWithdrawUseCase.processWithdrawRequest(userUuid, requestDto);
+            WithdrawResponseDto response = createWithdrawUseCase.processWithdrawRequest(customUserDetails.getUserUuid(), requestDto);
             return createCreatedResponse(WITHDRAW_CREATE_SUCCESS, response, "/api/v1/payments/withdraw/{requestUuid}", response.getRequestUuid());
         } catch (Exception e) {
-            log.error("Failed to process withdraw request - User: {}", userUuid, e);
+            log.error("Failed to process withdraw request - User: {}", customUserDetails.getUserUuid(), e);
             throw e;
         }
     }
 
-    @Operation(
-            summary = "관리자가 출금 요청 처리",
-            description = "관리자가 유저가 요청한 출금 요청을 처리 합니다.",
-            tags = {"결제관리"}
-    )
-    @PostMapping("/admin/withdraw/{requestUuid}/approve")
-    @PreAuthorize("hasRole('Admin')")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "입금 처리 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
-            @ApiResponse(responseCode = "404", description = "출금내역을 찾을 수 없음"),
-            @ApiResponse(responseCode = "500", description = "서버오류")
-    })
-    public ResponseEntity<BasicResponseDto<WithdrawResponseDto>> approveWithdraw(
-            Authentication authentication,
-            @PathVariable UUID requestUuid,
-            @RequestBody WithdrawRequestDto requestDto
-    ) {
-        UUID userUuid = getUserUuid(authentication);
-        log.info("Withdraw request approved - admin: {}", userUuid);
 
-        try {
-            WithdrawResponseDto response = updateWithdrawUseCase.approveWithdrawRequest(requestUuid, userUuid, requestDto);
-            return createSuccessResponse(WITHDRAW_APPROVE_SUCCESS, response);
-        } catch (Exception e) {
-            log.error("Failed to process withdraw request - admin: {}", userUuid, e);
-            throw e;
-        }
-    }
 
 
     @Operation(
@@ -169,37 +141,7 @@ public class WithdrawRequestController {
     }
 
 
-    @Operation(
-            summary = "관리자가 유저의 출금 승인요청 대기 내역을 조회",
-            description = "관리자가 출금 승인을 위해서 내역을 조회합니다.",
-            tags = {"결제관리"}
-    )
-    @GetMapping("/admin/withdraws/pending")
-    @PreAuthorize("hasRole('Admin')")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "입금 요청 내역 조회 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
-            @ApiResponse(responseCode = "404", description = "입금 내역을 찾을 수 없음"),
-            @ApiResponse(responseCode = "500", description = "서버오류")
-    })
-    public ResponseEntity<BasicResponseDto<Page<WithdrawResponseDto>>> getWithdrawRequestByPending(
-            @RequestParam(required = false) String withdrawName,
-            @PageableDefault(size = 20, page = 0) Pageable pageable,
-            Authentication authentication
-    ) {
 
-        UUID userUuid = getUserUuid(authentication);
-        log.info("Withdraws request retrieved by admin - admin: {}", userUuid);
-
-        try {
-            Page<WithdrawResponseDto> response = getWithdrawUseCase.getWithdrawByApprovalPending(userUuid, withdrawName, pageable);
-
-            return createSuccessResponse(WITHDRAW_RETRIEVED_SUCCESS, response);
-        } catch (Exception e) {
-            log.error("Failed to process deposit request - admin: {}", userUuid, e);
-            throw e;
-        }
-    }
 
     @Operation(
             summary = "출금 내역 전체 조회",

@@ -2,6 +2,9 @@ package com.kijinkai.domain.common.service;
 
 
 import com.kijinkai.domain.common.dto.MyPageResponseDto;
+import com.kijinkai.domain.exchange.doamin.Currency;
+import com.kijinkai.domain.exchange.dto.ExchangeRateResponseDto;
+import com.kijinkai.domain.exchange.service.ExchangeRateService;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
 import com.kijinkai.domain.orderitem.application.port.in.GetOrderItemUseCase;
 import com.kijinkai.domain.orderitem.domain.model.OrderItem;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,13 +35,23 @@ public class MyPageService {
     private final GetOrderItemUseCase getOrderItemUseCase;
     private final ShipmentService shipmentService;
 
+    private final ExchangeRateService exchangeRateService;
 
-    public MyPageResponseDto myPage(UUID userUuid){
+
+    public MyPageResponseDto myPage(UUID userUuid) {
 
         UserResponseDto userInfo = getUserUseCase.getUserInfo(userUuid);
 
+        //원화 환률
+        ExchangeRateResponseDto exchangeRate = exchangeRateService.getExchangeRateInfoByCurrency(Currency.KRW);
+
+
         // 지갑 관련
         WalletBalanceResponseDto walletBalance = getWalletUseCase.getWalletBalance(userUuid);
+
+
+        //구매 가능금액
+        BigDecimal availableBalance = walletBalance.getBalance().multiply(exchangeRate.getRate()).multiply(BigDecimal.valueOf(0.01)).setScale(0, RoundingMode.HALF_UP);
 
 
         // 미결제 금액
@@ -81,15 +95,15 @@ public class MyPageService {
         int internationalShippingOrders = shipmentService.countShipmentByStatus(userUuid, ShipmentStatus.SHIPPED);
 
         //배송완료
-        int deliveredOrders = shipmentService.countShipmentByStatus(userUuid,ShipmentStatus.DELIVERED);
+        int deliveredOrders = shipmentService.countShipmentByStatus(userUuid, ShipmentStatus.DELIVERED);
 
         return MyPageResponseDto.builder()
                 //유저 정보관련
                 .nickname(userInfo.getNickname())
 
                 //지갑관련
-                .depositBalance(walletBalance.getBalance()) //전체 잔액
-                .availableBalance(walletBalance.getBalance().subtract(outstandingBalance)) //결제가능금액
+                .depositBalance(walletBalance.getBalance().setScale(0,RoundingMode.HALF_UP)) //전체 잔액
+                .availableBalance(availableBalance) //결제가능금액
                 .outstandingBalance(outstandingBalance) // 미결제 금액
 
                 //배송 출고 관련

@@ -1,11 +1,13 @@
 package com.kijinkai.domain.orderitem.application.port.in;
 
-import com.kijinkai.domain.orderitem.application.dto.OrderItemApprovalRequestDto;
-import com.kijinkai.domain.orderitem.application.dto.OrderItemResponseDto;
-import com.kijinkai.domain.orderitem.application.dto.OrderItemUpdateDto;
+import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
+import com.kijinkai.domain.orderitem.application.dto.*;
 import com.kijinkai.domain.orderitem.domain.model.OrderItem;
 import com.kijinkai.domain.payment.application.dto.request.OrderPaymentRequestDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -15,12 +17,6 @@ public interface UpdateOrderItemUseCase {
     OrderItem updateOrderItemWithValidate(UUID userUuid, UUID orderUuid, OrderItemUpdateDto updateDto);
 
     OrderItem updateOrderItemByAdmin(UUID userUuid, UUID orderUuid, OrderItemUpdateDto updateDto);
-
-    //관리자가 구매승인
-//    List<OrderItemResponseDto> approveOrderItemByAdmin(UUID userUuid, OrderItemApprovalRequestDto requestDto);
-
-    // 구매자의 결제 list, status 변경
-    List<OrderItem> firstOrderItemPayment(UUID customerUuid, OrderPaymentRequestDto request, UUID productPaymentUuid);
 
     List<String> processFirstOderItem(UUID userUuid, OrderItemApprovalRequestDto requestDto);
 
@@ -39,5 +35,6 @@ public interface UpdateOrderItemUseCase {
     void startDelivery(UUID shipmentUuid);
 
     void delivered(UUID shipmentUuid);
+    String rejectOrderItem(UUID userAdminUuid, UUID orderItemUuid, OrderItemRejectRequestDto requestDto);
 }
 

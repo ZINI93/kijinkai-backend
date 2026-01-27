@@ -2,6 +2,7 @@ package com.kijinkai.domain.payment.domain.model;
 
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.payment.application.dto.request.WithdrawRequestDto;
+import com.kijinkai.domain.payment.domain.enums.BankType;
 import com.kijinkai.domain.payment.domain.enums.WithdrawStatus;
 import com.kijinkai.domain.payment.domain.exception.PaymentAmountException;
 import lombok.*;
@@ -20,13 +21,13 @@ public class WithdrawRequest {
     private UUID requestUuid;
     private UUID customerUuid;
     private UUID walletUuid;
+    private String withdrawCode;
     private BigDecimal requestAmount;
     private BigDecimal withdrawFee;
     private BigDecimal totalDeductAmount;
     private Currency targetCurrency;
-    private BigDecimal convertedAmount;
-    private BigDecimal exchangeRate;
-    private String bankName;
+
+    private BankType bankType;
     private String accountNumber;
     private String accountHolder;
     private WithdrawStatus status;
@@ -34,7 +35,6 @@ public class WithdrawRequest {
     private LocalDateTime processedAt;
     private String adminMemo;
     private String rejectionReason;
-    private LocalDateTime expiresAt;
     private Long version;
 
     private LocalDateTime createdAt;
@@ -87,14 +87,14 @@ public class WithdrawRequest {
     }
 
     private void validateMinimumAmount() {
-        BigDecimal minimumAmount = new BigDecimal("20000"); // 2만엔 최소
+        BigDecimal minimumAmount = new BigDecimal("5000"); // 최소 출금금액
         if (this.requestAmount.compareTo(minimumAmount) < 0) {
-            throw new IllegalArgumentException("최소 출금 금액은 " + minimumAmount + "엔입니다");
+            throw new IllegalArgumentException("최소 출금 금액은 " + minimumAmount + "원입니다");
         }
     }
 
     public void markAsFailed(String reason){
-        if (this.status == WithdrawStatus.APPROVED){
+        if (this.status != WithdrawStatus.PENDING_ADMIN_APPROVAL){
             throw new IllegalStateException("완료된 요청은 실패 될 수 없습니다.");
         }
         this.status = WithdrawStatus.FAILED;
@@ -102,18 +102,15 @@ public class WithdrawRequest {
     }
 
     /**
-     * 출금 요청 받은 돈은 300엔 상이여야 한다. 수수료
+     * 출금 요청 받은 돈은 1000원 상이여야 한다.
      */
     public void validateWithdrawEligibility(WithdrawRequestDto withdrawRequestDto) {
-        BigDecimal minimumAmount = new BigDecimal("300");
+        BigDecimal minimumAmount = new BigDecimal("1000");
         if (withdrawRequestDto.getRequestAmount().compareTo(minimumAmount) < 0) {
-            throw new PaymentAmountException("The minimum withdraw is 300 en");
+            throw new PaymentAmountException("The minimum withdraw is 1000 won");
         }
     }
 
-    private BigDecimal calculateConvertedAmount(BigDecimal exchangeRate) {
-        return this.convertedAmount.multiply(exchangeRate);
-    }
 
     public boolean isPendingApproval() {
         return this.status == WithdrawStatus.PENDING_ADMIN_APPROVAL;

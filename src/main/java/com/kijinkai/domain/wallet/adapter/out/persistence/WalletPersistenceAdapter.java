@@ -68,5 +68,11 @@ public class WalletPersistenceAdapter implements WalletPersistencePort {
                 .map(walletPersistenceMapper::toWallet);
 
     }
+
+    @Override
+    public Optional<Wallet> findByCustomerUuidWithLock(UUID customerUuid) {
+        return walletRepository.findByCustomerUuidWithLock(customerUuid)
+                .map(walletPersistenceMapper::toWallet);
+    }
 }
 

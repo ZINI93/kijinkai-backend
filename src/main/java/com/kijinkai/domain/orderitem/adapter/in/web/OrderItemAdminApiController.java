@@ -1,7 +1,10 @@
 package com.kijinkai.domain.orderitem.adapter.in.web;
 
 import com.kijinkai.domain.common.BasicResponseDto;
+import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
 import com.kijinkai.domain.orderitem.application.dto.OrderItemApprovalRequestDto;
+import com.kijinkai.domain.orderitem.application.dto.OrderItemRejectRequestDto;
+import com.kijinkai.domain.orderitem.application.dto.OrderItemRequestDto;
 import com.kijinkai.domain.orderitem.application.dto.OrderItemResponseDto;
 import com.kijinkai.domain.orderitem.application.port.in.CreateOrderItemUseCase;
 import com.kijinkai.domain.orderitem.application.port.in.DeleteOrderItemUseCase;
@@ -13,11 +16,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -69,6 +77,57 @@ public class OrderItemAdminApiController {
 
         return ResponseEntity.ok(BasicResponseDto.success("Successfully complete local delivery", response));
     }
+
+
+    // -- 업데이트.
+    @PutMapping(value = "/{orderItemUuid}/reject")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "거절 성공"),
+            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "상품을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<String>> completedLocalDelivery(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PathVariable UUID orderItemUuid,
+            @Valid @RequestBody OrderItemRejectRequestDto requestDto
+            ) {
+
+        String orderItem = updateOrderItemUseCase.rejectOrderItem(customUserDetails.getUserUuid(), orderItemUuid, requestDto);
+
+
+        return ResponseEntity.ok(BasicResponseDto.success("Successfully complete local delivery", orderItem));
+    }
+
+
+
+
+
+    // -- 조회.
+    @GetMapping("/list")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "상품 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "상품을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<Page<OrderItemResponseDto>>> getOrderItems(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @RequestParam(required = false) OrderItemStatus status,
+            @RequestParam(required = false) String orderItemCode,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @PageableDefault(size = 20, page = 0) Pageable pageable
+    ){
+        Page<OrderItemResponseDto> orderItems = getOrderItemUseCase.getAdminOrderItemsByStatus(
+                customUserDetails.getUserUuid(), status, orderItemCode, startDate, endDate, pageable
+        );
+
+        return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved orderItems", orderItems));
+    }
+
+
+
 
 
     @GetMapping(value = "/{deliveryUuid}/item-detail")

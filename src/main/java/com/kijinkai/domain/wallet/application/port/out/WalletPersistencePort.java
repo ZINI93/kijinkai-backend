@@ -30,4 +30,7 @@ public interface WalletPersistencePort {
     Optional<Wallet> findByCustomerUuidAndWalletUuid(UUID customerUuid, UUID walletUuid);
 
     Optional<Wallet> findByCustomerUuid(UUID customerUuid);
+
+    Optional<Wallet> findByCustomerUuidWithLock(UUID customerUuid);
+
 }

@@ -20,18 +20,18 @@ public class UserValidator {
         validatePassword(password);
         validateNickname(nickname);
     }
+//
+//    public void validateUpdateUserRequest(UserUpdateDto updateDto){
+//        validatePassword(updateDto.getCurrentPassword());
+//        validateNickname(updateDto.getNickname());
+//    }
 
-    public void validateUpdateUserRequest(UserUpdateDto updateDto){
-        validatePassword(updateDto.getCurrentPassword());
-        validateNickname(updateDto.getNickname());
-    }
 
-
-    public void validateUserPassword(PasswordEncoder passwordEncoder, UserUpdateDto updateDto, User user){
-        if (!passwordEncoder.matches(updateDto.getCurrentPassword(), user.getPassword())) {
-            throw new UserUpdateException("Not match password");
-        }
-    }
+//    public void validateUserPassword(PasswordEncoder passwordEncoder, UserUpdateDto updateDto, User user){
+//        if (!passwordEncoder.matches(updateDto.getCurrentPassword(), user.getPassword())) {
+//            throw new UserUpdateException("Not match password");
+//        }
+//    }
 
 
 

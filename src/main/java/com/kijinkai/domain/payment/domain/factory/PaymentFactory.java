@@ -33,8 +33,6 @@ public class PaymentFactory {
                 .walletUuid(wallet.getWalletUuid())
                 .amountOriginal(originalAmount)
                 .currencyOriginal(originalCurrency)
-                .amountConverted(convertAmount)
-                .exchangeRate(exchangeRate)
                 .depositorName(depositorName)
                 .bankType(bankType)
                 .build();
@@ -42,24 +40,21 @@ public class PaymentFactory {
 
     public WithdrawRequest createWithdrawRequest(
             Customer customer, Wallet wallet, BigDecimal requestAmount, Currency tagetCurrency
-            , BigDecimal withdrawFee, String bankName, String accountHolder, BigDecimal convertedAmount, String accountNumber,
-            BigDecimal exchangeRate) {
+            , BigDecimal withdrawFee, BankType bankType, String accountHolder, String accountNumber, String withdrawCode) {
 
         return WithdrawRequest.builder()
                 .requestUuid(UUID.randomUUID())
+                .withdrawCode(withdrawCode)
                 .customerUuid(customer.getCustomerUuid())
                 .status(WithdrawStatus.PENDING_ADMIN_APPROVAL)
                 .walletUuid(wallet.getWalletUuid())
                 .requestAmount(requestAmount)
                 .withdrawFee(withdrawFee)
                 .targetCurrency(tagetCurrency)
-                .exchangeRate(exchangeRate)
                 .totalDeductAmount(requestAmount.add(withdrawFee))
-                .convertedAmount(convertedAmount)
                 .accountNumber(accountNumber)
-                .bankName(bankName)
+                .bankType(bankType)
                 .accountHolder(accountHolder)
-                .expiresAt(LocalDateTime.now().plusDays(3))
                 .build();
     }
 
@@ -79,17 +74,17 @@ public class PaymentFactory {
                 .build();
     }
 
-    public OrderPayment createOrderFirstPayment(
-            Customer customer, Wallet wallet, UUID adminUuid) {
+    public OrderPayment createProductPayment(
+            UUID customerUuid, UUID walletUuid, String paymentCode, BigDecimal totalAmount) {
         return OrderPayment.builder()
                 .paymentUuid(UUID.randomUUID())
-                .customerUuid(customer.getCustomerUuid())
-                .walletUuid(wallet.getWalletUuid())
-                .paymentAmount(BigDecimal.ZERO)
+                .customerUuid(customerUuid)
+                .orderPaymentCode(paymentCode)
+                .walletUuid(walletUuid)
+                .paymentAmount(totalAmount)
                 .paymentType(PaymentType.PRODUCT_PAYMENT)
                 .orderPaymentStatus(OrderPaymentStatus.COMPLETED)
                 .paymentOrder(PaymentOrder.FIRST)
-                .createdByAdminUuid(adminUuid)
                 .build();
     }
     public OrderPayment createOrderSecondPayment(

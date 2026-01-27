@@ -1,6 +1,7 @@
 package com.kijinkai.domain.payment.application.dto.response;
 
 import com.kijinkai.domain.exchange.doamin.Currency;
+import com.kijinkai.domain.payment.domain.enums.BankType;
 import com.kijinkai.domain.payment.domain.enums.WithdrawStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
@@ -16,6 +17,7 @@ import java.util.UUID;
 @Builder
 public class WithdrawResponseDto {
 
+
     UUID requestUuid;
     UUID customerUuid;
     UUID walletUuid;
@@ -25,7 +27,7 @@ public class WithdrawResponseDto {
     Currency targetCurrency;
     BigDecimal convertedAmount;
     BigDecimal exchangeRate;
-    String bankName;
+    BankType bankType;
     String accountNumber;
     WithdrawStatus status;
     String accountHolder;

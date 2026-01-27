@@ -53,6 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -330,89 +331,81 @@ public class OrderApplicationService implements CreateOrderUseCase, GetOrderUseC
         }
     }
 
+    @Override
     @Transactional
-    private OrderResponseDto processFirstOrderCompletion(UUID userUuid, OrderRequestDto requestDto) {
+    public OrderResponseDto createAndSaveOrder(UUID customerUuid, List<OrderItem> orderItems, Map<String,Boolean> inspectedPhotoRequest, String orderCode, BigDecimal totalPrice){
 
-        log.info("Completing order for user uuid:{}", userUuid);
+        // 주문 상품의 상태 변경 및 사진 추가 요청 체크
+        updateOrderItemUseCase.updateOrderItemStatusByFirstComplete(orderItems, inspectedPhotoRequest);
 
-
-        //userUuid로  구매자 조회
-        Customer customer = findCustomerByUserUuid(userUuid);
-
-        //구매 대기중 상품 조회.. 전체결제가 아님 list로 받아서 결제
-        List<OrderItem> orderItems = orderItemApplicationService.getOrderItemsByCodeAndStatus(requestDto.getOrderItemCodes(), OrderItemStatus.PENDING_APPROVAL);
-
-        //상품 상태 변경
-        updateOrderItemUseCase.updateOrderItemStatusByFirstComplete(orderItems, requestDto.getInspectedPhotoRequest());
-
-        //결제 요청 받은 상품의 가격의 합
-        BigDecimal totalPrice = orderItems.stream()
-                .map(OrderItem::calculateFinalPrice)
-                .filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        if (totalPrice.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new OrderItemValidateException("결제 금액은 0원보다 커야 합니다.");
-        }
-
-        //주문 생성
-        String orderCode = generateBusinessItemCode.generateBusinessCode(userUuid.toString(), BusinessCodeType.ORD);
-        Order order = orderFactory.createOrder(customer.getCustomerUuid(), totalPrice, orderCode);
-
-        // 지갑 금액 차감
-        WalletResponseDto withdrawal = updateWalletUseCase.withdrawal(customer.getCustomerUuid(), totalPrice);
-
-        // 저장
+        // 주문 생성 및 저장
+        Order order = orderFactory.createOrder(customerUuid, totalPrice, orderCode);
         Order savedOrder = orderPersistencePort.saveOrder(order);
 
-        // Order 추가
+        // Order item 에 order Uuid 추가 -
         orderItems.forEach(orderItem ->
                 orderItem.addOrderUuid(savedOrder.getOrderUuid()));
 
         orderItemPersistencePort.saveAllOrderItem(orderItems);
 
-
-
-        //결제 이력생성
-        BigDecimal beforeBalance = withdrawal.getBalance().add(totalPrice);
-        transactionService.createTransactionWithValidate(userUuid, withdrawal.getWalletUuid(), savedOrder.getOrderUuid(), TransactionType.PAYMENT, totalPrice, beforeBalance, withdrawal.getBalance(), TransactionStatus.COMPLETED);
-
         log.info("Completed order for order uuid:{}", savedOrder.getOrderUuid());
 
-        return orderMapper.toResponse(savedOrder);
+        return orderMapper.toResponse(order);
     }
 
-//    private OrderResponseDto processOrderCompletion(UUID userUuid, UUID orderUuid) {
-//
+
+
+
+    @Transactional
+    private OrderResponseDto processFirstOrderCompletion(UUID userUuid, OrderRequestDto requestDto) {
+
 //        log.info("Completing order for user uuid:{}", userUuid);
 //
-//        Customer customer = findCustomerByUserUuid(userUuid);
-//        Order order = findOrderByCustomerUuidAndOrderUuid(customer, orderUuid);
-//        orderValidator.requireAwaitingOrderStatus(order);
+//        //userUuid로  구매자 조회
+////        Customer customer = findCustomerByUserUuid(userUuid);
 //
-//        Wallet wallet = findWalletByCustomerUuid(customer.getCustomerUuid());
-//        walletValidator.requireActiveStatus(wallet);
+//        //구매 대기중 상품 조회.. 전체결제가 아님 list로 받아서 결제
+////        List<OrderItem> orderItems = orderItemApplicationService.getOrderItemsByCodeAndStatus(requestDto.getOrderItemCodes(), OrderItemStatus.PENDING_APPROVAL);
 //
-//        BigDecimal amountToPay = order.getTotalPriceOriginal();
-//        walletValidator.requireSufficientBalance(wallet, amountToPay);
+//        //상품 상태 변경. -> db 변경
+//        updateOrderItemUseCase.updateOrderItemStatusByFirstComplete(orderItems, requestDto.getInspectedPhotoRequest());
 //
-//        int updatedRows = walletPersistencePort.decreaseBalanceAtomic(wallet.getWalletUuid(), amountToPay);
+//        //결제 요청 받은 상품의 가격의 합
+////        BigDecimal totalPrice = orderItems.stream()
+////                .map(OrderItem::calculateFinalPrice)
+////                .filter(Objects::nonNull)
+////                .reduce(BigDecimal.ZERO, BigDecimal::add);
 //
-//        if (updatedRows == 0) {
-//            throw new WalletUpdateFailedException("Insufficient balance for payment or wallet update failed");
-//        }
+////        if (totalPrice.compareTo(BigDecimal.ZERO) <= 0) {
+////            throw new OrderItemValidateException("결제 금액은 0원보다 커야 합니다.");
+////        }
 //
-//        order.completePayment();  // order status change paid
+//        //주문 생성  -> db 변경
+//        String orderCode = generateBusinessItemCode.generateBusinessCode(userUuid.toString(), BusinessCodeType.ORD);
+//        Order order = orderFactory.createOrder(customer.getCustomerUuid(), totalPrice, orderCode);
+//
+//
+//
+//        // 지갑 금액 차감  -> db 변경
+//        WalletResponseDto withdrawal = updateWalletUseCase.withdrawal(customer.getCustomerUuid(), totalPrice);
+//
+//        // 저장 -> db 변경
 //        Order savedOrder = orderPersistencePort.saveOrder(order);
 //
+//        // Order 추가 -> db 변경
+//        orderItems.forEach(orderItem ->
+//                orderItem.addOrderUuid(savedOrder.getOrderUuid()));
 //
-//        Wallet updateWallet = walletPersistencePort.findByWalletId(wallet.getWalletId()).orElseThrow(() -> new WalletNotFoundException(String.format("WalletJpaEntity not found for wallet id: %s", wallet.getWalletId())));
-//        BigDecimal balanceAfter = updateWallet.getBalance();
-//        transactionService.createTransactionWithValidate(userUuid, wallet.getWalletUuid(), orderUuid, TransactionType.PAYMENT, amountToPay, wallet.getBalance(), balanceAfter, TransactionStatus.COMPLETED);
+//        orderItemPersistencePort.saveAllOrderItem(orderItems);
+//
 //
 //        log.info("Completed order for order uuid:{}", savedOrder.getOrderUuid());
 //
 //        return orderMapper.toResponse(savedOrder);
-//    }
+
+        return null;
+    }
+
+
 }
 

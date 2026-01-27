@@ -4,6 +4,7 @@ package com.kijinkai.domain.order.adapter.in.web;
 import com.kijinkai.domain.common.BasicResponseDto;
 import com.kijinkai.domain.order.application.dto.OrderRequestDto;
 import com.kijinkai.domain.order.application.dto.OrderResponseDto;
+import com.kijinkai.domain.order.application.port.in.OrderFacadeUseCase;
 import com.kijinkai.domain.order.application.service.OrderApplicationService;
 import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -34,7 +35,8 @@ import java.util.UUID;
 )
 public class OrderApiController {
 
-    private final OrderApplicationService orderApplicationService;
+    private final OrderFacadeUseCase orderFacadeUseCase;
+
 
     @PostMapping(value = "/first-order/complete", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses({
@@ -49,7 +51,7 @@ public class OrderApiController {
     ) {
 
 
-        OrderResponseDto order = orderApplicationService.completedOrder(customUserDetails.getUserUuid(), requestDto);
+        OrderResponseDto order = orderFacadeUseCase.completedOrder(customUserDetails.getUserUuid(), requestDto);
 
         log.info("Order successfully created. OrderUuid: {}, UserUuid: {}",
                 order.getOrderUuid(), customUserDetails.getUserUuid());

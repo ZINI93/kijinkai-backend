@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 
-
 @Getter
 @Builder
 @AllArgsConstructor
@@ -56,8 +55,8 @@ public class User {
     /**
      * 게정 활성화 체크
      */
-    public void validateActive(){
-        if (this.userStatus != UserStatus.ACTIVE){
+    public void validateActive() {
+        if (this.userStatus != UserStatus.ACTIVE) {
             throw new InvalidUserStatusException("User is not eligible for customer registration");
         }
     }
@@ -76,11 +75,11 @@ public class User {
      * @param encodedPassword
      */
     public void updateUser(String nickname, String encodedPassword) {
-        this.password = encodedPassword;
-        this.nickname = nickname;
+        this.nickname = (nickname != null) ? nickname : this.nickname;
+        this.password = (encodedPassword != null) ? encodedPassword : this.password;
     }
 
-    public void oAuth2LoginUpdate(String nickname){
+    public void oAuth2LoginUpdate(String nickname) {
         this.nickname = nickname;
     }
 

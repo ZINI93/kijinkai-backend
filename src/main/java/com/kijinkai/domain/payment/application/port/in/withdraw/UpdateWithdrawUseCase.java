@@ -6,5 +6,5 @@ import com.kijinkai.domain.payment.application.dto.response.WithdrawResponseDto;
 import java.util.UUID;
 
 public interface UpdateWithdrawUseCase {
-    WithdrawResponseDto approveWithdrawRequest(UUID requestUuid, UUID adminUuid, WithdrawRequestDto request);
+    WithdrawResponseDto approveWithdrawRequest(UUID adminUserUuid ,UUID requestUuid, WithdrawRequestDto request);
 }

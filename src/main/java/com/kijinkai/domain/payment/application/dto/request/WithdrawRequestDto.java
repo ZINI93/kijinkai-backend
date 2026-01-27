@@ -2,6 +2,7 @@ package com.kijinkai.domain.payment.application.dto.request;
 
 
 import com.kijinkai.domain.exchange.doamin.Currency;
+import com.kijinkai.domain.payment.domain.enums.BankType;
 import lombok.Builder;
 import lombok.Value;
 
@@ -13,11 +14,9 @@ public class WithdrawRequestDto {
 
     BigDecimal requestAmount;
     Currency currency;
-    String bankName;
+    BankType bankType;
     String accountNumber;
     String accountHolder;
 
     String memo;
-
-
 }

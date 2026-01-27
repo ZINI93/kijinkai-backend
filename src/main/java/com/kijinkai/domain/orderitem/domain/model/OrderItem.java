@@ -36,6 +36,7 @@ public class OrderItem {
     private Currency currencyOriginal; //JYP
     private String memo;
     private OrderItemStatus orderItemStatus;
+    private String rejectReason;
 
     private Boolean inspectionRequested;
 
@@ -120,6 +121,15 @@ public class OrderItem {
     }
 
     // 상태변경.
+
+    public void reject(String rejectReason){
+        if (this.orderItemStatus != OrderItemStatus.PENDING) {
+            throw new OrderItemValidateException("대기 중 상품만 승인이 가능합니다.");
+        }
+
+        this.orderItemStatus = OrderItemStatus.REJECTED;
+        this.rejectReason = rejectReason;
+    }
 
     public void delivered(){
         if (this.orderItemStatus != OrderItemStatus.IN_TRANSIT){

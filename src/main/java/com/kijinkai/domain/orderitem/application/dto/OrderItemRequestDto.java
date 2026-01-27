@@ -8,19 +8,13 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 @Getter
+@Builder
 public class OrderItemRequestDto {
 
     private String productLink;
     private int quantity;
     private String memo;
     private BigDecimal priceOriginal;
+    private String rejectReason;
 
-
-    @Builder
-    public OrderItemRequestDto(String productLink, int quantity, String memo, BigDecimal priceOriginal) {
-        this.productLink = productLink;
-        this.quantity = quantity;
-        this.memo = memo;
-        this.priceOriginal = priceOriginal;
-    }
 }

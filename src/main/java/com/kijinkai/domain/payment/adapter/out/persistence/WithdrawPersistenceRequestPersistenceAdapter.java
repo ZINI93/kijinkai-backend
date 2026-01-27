@@ -4,6 +4,7 @@ import com.kijinkai.domain.payment.adapter.out.persistence.entity.WithdrawReques
 import com.kijinkai.domain.payment.adapter.out.persistence.mapper.WithdrawRequestPersistenceMapper;
 import com.kijinkai.domain.payment.adapter.out.persistence.repository.SpringDataJpaWithdrawRequestRepository;
 import com.kijinkai.domain.payment.application.port.out.WithdrawPersistenceRequestPort;
+import com.kijinkai.domain.payment.domain.enums.BankType;
 import com.kijinkai.domain.payment.domain.enums.WithdrawStatus;
 import com.kijinkai.domain.payment.domain.model.WithdrawRequest;
 import lombok.RequiredArgsConstructor;
@@ -43,8 +44,8 @@ public class WithdrawPersistenceRequestPersistenceAdapter implements WithdrawPer
     }
 
     @Override
-    public Page<WithdrawRequest> findAllByWithdrawStatus(String bankName, WithdrawStatus status, Pageable pageable) {
-        return withdrawRequestRepository.findByWithdrawPaymentUuidByStatus(bankName,status,pageable)
+    public Page<WithdrawRequest> findAllByStatus(WithdrawStatus status, Pageable pageable) {
+        return withdrawRequestRepository.findAllByStatus(status,pageable)
                 .map(withdrawRequestPersistenceMapper::toWithdrawRequest);
 
     }

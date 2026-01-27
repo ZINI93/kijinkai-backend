@@ -38,6 +38,7 @@ public class OrderItemMapper {
                 .quantity(orderItem.getQuantity())
                 .memo(orderItem.getMemo())
                 .createdAt(orderItem.getCreatedAt())
+                .rejectReason(orderItem.getRejectReason())
                 .build();
     }
     public OrderItemResponseDto toApprovalDetailDto(OrderItem orderItem, BigDecimal depositBalance) {

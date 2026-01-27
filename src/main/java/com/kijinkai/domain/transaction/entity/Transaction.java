@@ -5,18 +5,21 @@ import com.kijinkai.domain.common.BaseEntity;
 import com.kijinkai.domain.order.adapter.out.persistence.entity.OrderJpaEntity;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.order.domain.model.Order;
+import com.kijinkai.domain.payment.domain.exception.PaymentProcessingException;
 import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
 import com.kijinkai.domain.wallet.domain.model.Wallet;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Comment;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Getter
-@Table(name = "transactions")
+@Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "transactions")
 @Entity
 public class Transaction extends BaseEntity {
 
@@ -36,6 +39,10 @@ public class Transaction extends BaseEntity {
 
     @Column(name = "order_uuid", nullable = false)
     private UUID orderUuid;
+
+    @Comment("각각의 거래 코드")
+    @Column(name = "payment_code")
+    private String paymentCode;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "transaction_type", nullable = false, length = 20)
@@ -62,19 +69,21 @@ public class Transaction extends BaseEntity {
     private String memo;
 
 
-    @Builder
-    public Transaction(UUID transactionUuid, UUID customerUuid, UUID walletUuid, UUID orderUuid, TransactionType transactionType, BigDecimal amount, BigDecimal balanceBefore, BigDecimal balanceAfter, Currency currency, TransactionStatus transactionStatus, String memo) {
-        this.transactionUuid = transactionUuid != null ? transactionUuid : UUID.randomUUID();
-        this.customerUuid = customerUuid;
-        this.walletUuid = walletUuid;
-        this.orderUuid = orderUuid;
-        this.transactionType = transactionType;
-        this.amount = amount;
-        this.balanceBefore = balanceBefore;
-        this.balanceAfter = balanceAfter;
-        this.currency = currency != null ? currency : Currency.JPY;
-        this.transactionStatus = transactionStatus;
-        this.memo = memo;
+
+    public void completedPayment(){
+        if (this.transactionStatus != TransactionStatus.REQUEST){
+            throw new PaymentProcessingException("요청 상태에서만 처리완료를 해줄수 있습니다.");
+        }
+
+        this.transactionStatus = TransactionStatus.COMPLETED;
     }
 
+
+    public void failedPayment(){
+        if (this.transactionStatus != TransactionStatus.REQUEST){
+            throw new PaymentProcessingException("요청 상태에서만 가능합니다.");
+        }
+
+        this.transactionStatus = TransactionStatus.FAILED;
+    }
 }

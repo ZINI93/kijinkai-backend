@@ -32,4 +32,19 @@ public class TransactionFactory {
                 .memo(null)
                 .build();
     }
+
+
+    public Transaction createAccountHistory(UUID customerUuid, UUID walletUuid, TransactionType transactionType, String paymentCode, BigDecimal amount, TransactionStatus transactionStatus){
+
+        return Transaction.builder()
+                .transactionUuid(UUID.randomUUID())
+                .customerUuid(customerUuid)
+                .walletUuid(walletUuid)
+                .paymentCode(paymentCode)
+                .transactionType(transactionType)
+                .amount(amount)
+                .currency(Currency.KRW)
+                .transactionStatus(transactionStatus)
+                .build();
+    }
 }

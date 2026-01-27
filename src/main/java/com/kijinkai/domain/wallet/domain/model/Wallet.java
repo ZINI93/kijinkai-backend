@@ -6,6 +6,7 @@ import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletStatus;
 import com.kijinkai.domain.wallet.application.dto.WalletFreezeRequest;
 import com.kijinkai.domain.wallet.domain.exception.InsufficientBalanceException;
 import com.kijinkai.domain.wallet.domain.exception.WalletStatusException;
+import com.kijinkai.domain.wallet.domain.exception.WalletUpdateFailedException;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -25,6 +26,15 @@ public class Wallet {
     private WalletStatus walletStatus;
     private String freezeReason;
     private Long version;
+
+
+    //검증
+
+    public void validateActive(){
+        if (this.walletStatus != WalletStatus.ACTIVE){
+            throw new WalletStatusException("활성화 상태에서만 결제가 가능합니다.");
+        }
+    }
 
 
     public void freeze(WalletFreezeRequest request) {
@@ -50,6 +60,22 @@ public class Wallet {
             throw new WalletStatusException("Wallet must be in active status to proceed");
         }
     }
+
+
+    public void increaseBalance(BigDecimal amount){
+
+        // 음수 값 거절
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) < 0){
+            throw new WalletUpdateFailedException("증가시킬 금액은 0 보다 커야 합니다.");
+        }
+
+        // 잔액의 null일 경우
+        BigDecimal currentBalance = (this.balance == null) ? BigDecimal.ZERO : this.balance;
+
+        // 환불금액 증가
+        this.balance = this.getBalance().add(amount);
+    }
+
 
     /**
      * 잔액 부족 검증

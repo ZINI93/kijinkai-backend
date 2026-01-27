@@ -9,22 +9,17 @@ import java.util.UUID;
 @Component
 public class TransactionMapper {
 
-    public TransactionResponseDto toResponse(Transaction transaction){
+    public TransactionResponseDto toRecordResponse(Transaction transaction){
 
         return TransactionResponseDto.builder()
-                .transactionUuid(transaction.getTransactionUuid())
-                .walletUuid(transaction.getWalletUuid())
-                .orderUuid(transaction.getOrderUuid())
+                .createdAt(transaction.getCreatedAt())
+                .updatedAt(transaction.getUpdatedAt())
+                .paymentCode(transaction.getPaymentCode())
+                .transactionStatus(transaction.getTransactionStatus())
                 .transactionType(transaction.getTransactionType())
                 .amount(transaction.getAmount())
-                .balanceBefore(transaction.getBalanceBefore())
-                .balanceAfter(transaction.getBalanceAfter())
                 .currency(transaction.getCurrency())
-                .transactionStatus(transaction.getTransactionStatus())
                 .build();
-
-
-
-
     }
+
 }

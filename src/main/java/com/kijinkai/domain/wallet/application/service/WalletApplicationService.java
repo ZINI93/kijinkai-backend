@@ -43,12 +43,12 @@ public class WalletApplicationService implements CreateWalletUseCase, GetWalletU
     private final CustomerPersistencePort customerPersistencePort;
 
 
-
     // 금액차감
 
 
     /**
      * 지갑 생성
+     *
      * @param customerUuid
      * @return
      */
@@ -75,6 +75,7 @@ public class WalletApplicationService implements CreateWalletUseCase, GetWalletU
 
     /**
      * 관리자가 유저 월렛 조회
+     *
      * @param userUuid
      * @param walletUuid
      * @return
@@ -128,7 +129,7 @@ public class WalletApplicationService implements CreateWalletUseCase, GetWalletU
     @Override
     @Transactional
     public WalletResponseDto withdrawal(UUID customerUuid, BigDecimal amount) {
-        log.info("Withdrawal customer: {} to amount: {}",customerUuid, amount);
+        log.info("Withdrawal customer: {} to amount: {}", customerUuid, amount);
 
         // 지갑 조회 및 검증
         Wallet wallet = findWalletByCustomerUuid(customerUuid);
@@ -150,48 +151,44 @@ public class WalletApplicationService implements CreateWalletUseCase, GetWalletU
         return walletMapper.toResponse(updatedWallet);
     }
 
-//    /**
-//     * 출금 프로세스
-//     *
-//     * @param customerUuid
-//     * @param walletUuid
-//     * @param amount
-//     * @return
-//     */
-//    @Override
-//    @Transactional
-//    public WalletResponseDto withdrawal(UUID customerUuid, UUID walletUuid, BigDecimal amount) {
-//        log.info("Withdrawal amount: {} to wallet: {}", amount, walletUuid);
-//
-//        Wallet wallet = findWalletByCustomerUuidAndWalletUuid(customerUuid, walletUuid);
-//        wallet.requireActiveStatus();
-//        wallet.validateMinimumExchangeAmount();
-//
-//        int updateRows = walletPersistencePort.decreaseBalanceAtomic(wallet.getWalletUuid(), amount);
-//        if (updateRows == 0) {
-//            throw new InsufficientBalanceException("지갑 잔액 출금에 실패했습니다.");
-//        }
-//
-//        Wallet updateWallet = findWalletByWalletUuid(wallet.getWalletUuid());
-//
-//        log.info("Successfully Withdrawal {} to wallet: {}. New balance: {}", amount, wallet.getWalletUuid(), updateWallet.getBalance());
-//
-//        return walletMapper.toResponse(updateWallet);
-//    }
+
+    // 관리자
+    @Override
+    @Transactional
+    public Wallet refund(UUID customerUuid, UUID walletUuid, BigDecimal amount) {
+
+        // 지갑 조회 및 검증
+        Wallet wallet = findWalletByCustomerUuidAndWalletUuid(customerUuid, walletUuid);
+        wallet.requireActiveStatus();
+
+        int updateRows = walletPersistencePort.increaseBalanceAtomic(wallet.getWalletUuid(), amount);
+
+        if (updateRows == 0) {
+            throw new InsufficientBalanceException("환불 처리 중 지갑을 찾을 수 없습니다.");
+        }
+
+        // 환불금액 증가
+        wallet.increaseBalance(amount);
+
+        log.info("Refund successful. Wallet: {}, Amount: {}", walletUuid, amount);
+
+        return wallet;
+    }
 
     /**
      * 관리자가 규약 위반한 유저의 지갑 동결
-     * @param adminUUid
+     *
+     * @param adminUuid
      * @param walletUuid
      * @param request
      * @return
      */
     @Override
     @Transactional
-    public WalletResponseDto freezeWallet(UUID adminUUid, UUID walletUuid, WalletFreezeRequest request) {
+    public WalletResponseDto freezeWallet(UUID adminUuid, UUID walletUuid, WalletFreezeRequest request) {
         log.info("Freezing wallet: {} for reason: {}", walletUuid, request);
 
-        User user = findUserByUserUUid(adminUUid);
+        User user = findUserByUserUUid(adminUuid);
         user.validateAdminRole();
 
         Wallet wallet = findWalletByWalletUuid(walletUuid);
@@ -204,6 +201,7 @@ public class WalletApplicationService implements CreateWalletUseCase, GetWalletU
     /**
      * 관리자가 규약 위반한 유저의 지갑 동결 해제
      * 객페 업데이트
+     *
      * @param userUuid
      * @param walletUuid
      * @return
@@ -230,6 +228,7 @@ public class WalletApplicationService implements CreateWalletUseCase, GetWalletU
         return userPersistencePort.findByUserUuid(userUuid)
                 .orElseThrow(() -> new UserNotFoundException(String.format("User not found for user uuid: %s", userUuid)));
     }
+
     private Wallet findWalletByWalletUuid(UUID walletUuid) {
         return walletPersistencePort.findByWalletUuid(walletUuid)
                 .orElseThrow(() -> new WalletNotFoundException(String.format("WalletJpaEntity not found for wallet uuid: %s", walletUuid)));

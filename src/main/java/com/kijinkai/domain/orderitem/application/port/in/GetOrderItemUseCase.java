@@ -7,6 +7,7 @@ import com.kijinkai.domain.orderitem.domain.model.OrderItem;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,6 +19,8 @@ public interface GetOrderItemUseCase {
     // 구매자의 구매요청 대기상태의 리스트 조회
     Page<OrderItemResponseDto> getOrderItemByStatus(UUID userUuid, OrderItemStatus orderItemStatus, Pageable pageable);
 
+    Page<OrderItemResponseDto> getAdminOrderItemsByStatus(UUID userAdminUuid, OrderItemStatus status, String orderItemCode, LocalDate startDate, LocalDate endDate, Pageable pageable);
+
     OrderItemResponseDto getOrderItemInfo(UUID userUuid, UUID orderItemUuid);
     OrderItemCountResponseDto orderItemDashboardCount(UUID userUuid);
 
@@ -25,4 +28,6 @@ public interface GetOrderItemUseCase {
     List<OrderItem> getOrderItemsByCustomerAndOrderItemsStatus(UUID userUuid, List<OrderItemStatus> orderItemStatuses);
     int countOrderItemsByStatus(UUID userUuid, OrderItemStatus orderItemStatus);
     int countOrderItemByStatusIn(UUID userUuid, List<OrderItemStatus> orderItemStatus);
+
+    List<OrderItem> getOrderItemsByCodeAndStatus(List<String> orderItemCode, OrderItemStatus status);
 }

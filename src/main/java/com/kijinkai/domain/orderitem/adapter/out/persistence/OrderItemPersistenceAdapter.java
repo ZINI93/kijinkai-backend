@@ -5,6 +5,7 @@ import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemJpa
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.mapper.OrderItemPersistenceMapper;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.repostiory.OrderItemRepository;
+import com.kijinkai.domain.orderitem.adapter.out.persistence.repostiory.OrderItemSearchCondition;
 import com.kijinkai.domain.orderitem.application.port.out.OrderItemPersistencePort;
 import com.kijinkai.domain.orderitem.domain.model.OrderItem;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -73,6 +75,13 @@ public class OrderItemPersistenceAdapter implements OrderItemPersistencePort {
         return orderItemRepository.findAllByCustomerUuidAndOrderItemStatusOrderByCreatedAtDesc(customerUuid, status, pageable)
                 .map(orderItemPersistenceMapper::toOrderItem);
     }
+
+    @Override
+    public Page<OrderItem> searchAdminOrderItemsByStatus(OrderItemSearchCondition condition, Pageable pageable) {
+        return orderItemRepository.searchAdminOrderItemsByStatus(condition, pageable)
+                .map(orderItemPersistenceMapper::toOrderItem);
+    }
+
 
     @Override
     public List<OrderItem> findByOrderItemUuidInAndCustomerUuid(List<UUID> orderItemUuids, UUID customerUuid) {

@@ -1,7 +1,9 @@
 package com.kijinkai.domain.wallet.adapter.out.persistence.repository;
 
 import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -42,6 +44,12 @@ public interface WalletRepository extends JpaRepository<WalletJpaEntity, Long> {
     Optional<WalletJpaEntity> findByCustomerUuidAndWalletUuid(UUID customerUuid, UUID walletUuid);
 
     Optional<WalletJpaEntity> findByCustomerUuid(UUID customerUuid);
+
+
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select w from WalletJpaEntity w where w.customerUuid = :customerUuid")
+    Optional<WalletJpaEntity> findByCustomerUuidWithLock(@Param("customerUuid") UUID customerUuid);
 
 
 

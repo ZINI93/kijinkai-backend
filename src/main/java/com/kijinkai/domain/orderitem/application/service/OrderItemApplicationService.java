@@ -6,6 +6,7 @@ import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.exchange.service.PriceCalculationService;
 import com.kijinkai.domain.order.application.validator.OrderValidator;
 import com.kijinkai.domain.order.domain.model.Order;
+import com.kijinkai.domain.orderitem.adapter.out.persistence.repostiory.OrderItemSearchCondition;
 import com.kijinkai.util.BusinessCodeType;
 import com.kijinkai.util.GenerateBusinessItemCode;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
@@ -34,6 +35,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -221,64 +224,38 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
         return orderItem;
     }
 
-//    /**
-//     * 유저가 구입을 원하는 상품들을 승인처리
-//     * @param userUuid
-//     * @param requestDto
-//     * @return
-//     */
-//    @Override
-//    @Transactional
-//    public List<OrderItemResponseDto> approveOrderItemByAdmin(UUID userUuid, OrderItemApprovalRequestDto requestDto) {
-//
-//        //1. 관리자 검증
-//        User user = userPersistencePort.findByUserUuid(userUuid)
-//                .orElseThrow(() -> new UserNotFoundException(String.format("User not found for user Uuid: %s", userUuid)));
-//        user.validateAdminRole();
-//
-//        List<OrderItem> orderItems = orderItemPersistencePort.findAllByOrderItemUuidIn(requestDto.getOrderItemUuids());
-//
-//        //2.주문상품들을 구매승인으로 전환
-//        orderItems.forEach(OrderItem::approveOrderItem);
-//
-//        List<OrderItem> savedOrderItems = orderItemPersistencePort.saveAllOrderItem(orderItems);
-//
-//        return orderItemMapper.toResponseDtoList(savedOrderItems);
-//    }
-
-
-    /**
-     * 첫번째 결제에 상품에 대한 완료 처리, 검증
-     *
-     * @param customerUuid
-     * @param request
-     * @param productPaymentUuid
-     * @return
-     */
-    @Override
-    @Transactional
-    public List<OrderItem> firstOrderItemPayment(UUID customerUuid, OrderPaymentRequestDto request, UUID productPaymentUuid) {
-
-        // 검증 절차
-        List<OrderItem> orderItems = orderItemPersistencePort.findAllByOrderItemUuidIn(request.getOrderItemUuids());
-        orderItemValidator.validateOrderItems(orderItems, request.getOrderItemUuids(), OrderItemStatus.PENDING_APPROVAL);
-
-        // 각각 순회하면서 완료로 상태 변경
-        orderItems.forEach(OrderItem::changeStatusToProductPaymentCompleted);
-        orderItems.forEach((orderItem -> orderItem.markAsPaymentCompleted(productPaymentUuid)));
-
-        // 저장
-        return orderItemPersistencePort.saveAllOrderItem(orderItems);
-    }
-
 
     // ---- 업데이트. ----
 
+    @Override
+    @Transactional
+    public String rejectOrderItem(UUID userAdminUuid, UUID orderItemUuid, OrderItemRejectRequestDto requestDto) {
+
+        if (requestDto.getRejectReason() == null || requestDto.getRejectReason().isEmpty()){
+            throw new OrderItemValidateException("이유 없이 거절은 할수 없습니다;");
+        }
+
+        // 관리자 검증 및 조회
+        User userAdmin = findUserByUserUuid(userAdminUuid);
+        userAdmin.validateAdminRole();
+
+        // 상품 조회
+        OrderItem orderItem = findOrderItemByOrderItemUuid(orderItemUuid);
+
+        // 거절 상태변경 및 이유 추가
+        orderItem.reject(requestDto.getRejectReason());
+
+        // 저장
+        OrderItem savedOrderitem = orderItemPersistencePort.saveOrderItem(orderItem);
+
+        return savedOrderitem.getOrderItemCode();
+    }
+
 
     @Override
     @Transactional
-    public void delivered(UUID shipmentUuid){
-        List<OrderItem> orderItems = orderItemPersistencePort.findAllByShipmentUuidAndOrderItemStatus(shipmentUuid , OrderItemStatus.IN_TRANSIT);
+    public void delivered(UUID shipmentUuid) {
+        List<OrderItem> orderItems = orderItemPersistencePort.findAllByShipmentUuidAndOrderItemStatus(shipmentUuid, OrderItemStatus.IN_TRANSIT);
         for (OrderItem orderItem : orderItems) {
             orderItem.delivered();
         }
@@ -287,12 +264,11 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
     }
 
 
-
     @Override
     @Transactional
-    public void startDelivery(UUID shipmentUuid){
+    public void startDelivery(UUID shipmentUuid) {
 
-        List<OrderItem> orderItems = orderItemPersistencePort.findAllByShipmentUuidAndOrderItemStatus(shipmentUuid , OrderItemStatus.DELIVERY_FEE_PAYMENT_COMPLETED);
+        List<OrderItem> orderItems = orderItemPersistencePort.findAllByShipmentUuidAndOrderItemStatus(shipmentUuid, OrderItemStatus.DELIVERY_FEE_PAYMENT_COMPLETED);
         for (OrderItem orderItem : orderItems) {
             orderItem.startDelivery();
         }
@@ -301,16 +277,15 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
     }
 
 
-
-
     /**
      * 결제 완료 상태변화
+     *
      * @param customerUuid
      * @param shipmentUuid
      */
     @Override
     @Transactional
-    public void completedDeliveryPayment(UUID customerUuid, List<UUID> shipmentUuids){
+    public void completedDeliveryPayment(UUID customerUuid, List<UUID> shipmentUuids) {
 
         List<OrderItem> orderItems = orderItemPersistencePort.findAllByCustomerUuidAndOrderItemStatusAndShipmentUuidIn(customerUuid, OrderItemStatus.DELIVERY_FEE_PAYMENT_REQUEST, shipmentUuids);
         for (OrderItem orderItem : orderItems) {
@@ -323,7 +298,7 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
 
     @Override
     @Transactional
-    public void assignToShipment(List<String> orderItemCodes, UUID shipmentUuid){
+    public void assignToShipment(List<String> orderItemCodes, UUID shipmentUuid) {
 
         // dliveryUuid로 조회된 상품을 orderitemCodes를 통해 적정 수량을 가져온다.
         // 상자에 넣게 가져온다. 전체가 아님으로.
@@ -344,12 +319,13 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
 
     /**
      * 상품 배송요청
+     *
      * @param orderItemCods
      * @param deliveryUuid
      */
     @Override
     @Transactional
-    public void registerDeliveryToOrderItems(List<String> orderItemCods, UUID deliveryUuid){
+    public void registerDeliveryToOrderItems(List<String> orderItemCods, UUID deliveryUuid) {
         List<OrderItem> orderItems = orderItemPersistencePort.findAllByOrderItemCodeInAndOrderItemStatus(orderItemCods, OrderItemStatus.LOCAL_DELIVERY_COMPLETED);
         orderItems.forEach(
                 orderItem -> {
@@ -364,7 +340,8 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
     @Override
     public void requestPhotoInspection(List<OrderItem> orderItems, Map<String, Boolean> inspectionRequestMap) {
         orderItems.forEach(orderItem ->
-        {Boolean requested = inspectionRequestMap.get(orderItem.getOrderItemCode());
+        {
+            Boolean requested = inspectionRequestMap.get(orderItem.getOrderItemCode());
             if (Boolean.TRUE.equals(requested)) {
                 orderItem.requestPhotoInspection();
             }
@@ -377,7 +354,7 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
 
         orderItems.forEach(orderItem -> {
             Boolean requested = inspectionRequestMap.get(orderItem.getOrderItemCode());
-            if (Boolean.TRUE.equals(requested)){
+            if (Boolean.TRUE.equals(requested)) {
                 orderItem.requestPhotoInspection();
             }
             orderItem.completeFirstOrderItemPayment();
@@ -418,10 +395,9 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
     }
 
 
-
     @Override
     @Transactional
-    public List<String> completeLocalDelivery(UUID userUuid, OrderItemApprovalRequestDto requestDto){
+    public List<String> completeLocalDelivery(UUID userUuid, OrderItemApprovalRequestDto requestDto) {
 
         // 토큰으로 부터 유저권한이 관리자인지 검증
         User user = findUserByUserUuid(userUuid);
@@ -445,8 +421,38 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
 
     // ----- 조회. -----
 
+    /**
+     * 관리자 -> 상태별, 주문상품번호, 날짜별 조회
+     *
+     * @param userAdminUuid
+     * @param status
+     * @return
+     */
     @Override
-    public List<OrderItemResponseDto> getOrderItemByDeliveryUuid(UUID userUuid, UUID deliveryUuid){
+    public Page<OrderItemResponseDto> getAdminOrderItemsByStatus(UUID userAdminUuid, OrderItemStatus status, String orderItemCode, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+
+        User userAdmin = findUserByUserUuid(userAdminUuid);
+        userAdmin.validateAdminRole();
+
+
+        // 검색 조건 설정
+        OrderItemSearchCondition condition = new OrderItemSearchCondition();
+        condition.setStatus(status);
+        condition.setOrderItemCode(orderItemCode);
+        condition.setStartDate(startDate);
+        condition.setEndDate(endDate);
+
+
+        //조회
+
+        Page<OrderItem> orderItems = orderItemPersistencePort.searchAdminOrderItemsByStatus(condition, pageable);
+
+        return orderItems.map(orderItemMapper::toResponseDto);
+    }
+
+
+    @Override
+    public List<OrderItemResponseDto> getOrderItemByDeliveryUuid(UUID userUuid, UUID deliveryUuid) {
 
         // 관리자 검증
         User user = findUserByUserUuid(userUuid);
@@ -458,6 +464,7 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
     }
 
 
+    @Override
     public List<OrderItem> getOrderItemsByCodeAndStatus(List<String> orderItemCode, OrderItemStatus status) {
         return orderItemPersistencePort.findAllByOrderItemCodeInAndOrderItemStatus(orderItemCode, status);
     }

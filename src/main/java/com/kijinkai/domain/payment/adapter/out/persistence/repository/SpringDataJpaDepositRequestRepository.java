@@ -29,5 +29,4 @@ public interface SpringDataJpaDepositRequestRepository extends JpaRepository<Dep
     Page<DepositRequestJpaEntity> findAllByStatus(@Param("status") DepositStatus status, Pageable pageable);
 
     Page<DepositRequestJpaEntity> findAllByCustomerUuid(UUID customerUuid, Pageable pageable);
-
 }

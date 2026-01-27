@@ -7,8 +7,10 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Builder
 @Getter
 public class TransactionResponseDto {
 
@@ -17,24 +19,11 @@ public class TransactionResponseDto {
     public UUID orderUuid;
     public TransactionType transactionType;
     public BigDecimal amount;
-    public BigDecimal balanceBefore;
-    public BigDecimal balanceAfter;
     public Currency currency;
     public TransactionStatus transactionStatus;
+    public LocalDateTime updatedAt;
+    public LocalDateTime createdAt;
+    public String paymentCode;
     public String memo;
 
-
-    @Builder
-    public TransactionResponseDto(UUID transactionUuid, UUID walletUuid, UUID orderUuid, TransactionType transactionType, BigDecimal amount, BigDecimal balanceBefore, BigDecimal balanceAfter, Currency currency, TransactionStatus transactionStatus, String memo) {
-        this.transactionUuid = transactionUuid;
-        this.walletUuid = walletUuid;
-        this.orderUuid = orderUuid;
-        this.transactionType = transactionType;
-        this.amount = amount;
-        this.balanceBefore = balanceBefore;
-        this.balanceAfter = balanceAfter;
-        this.currency = currency;
-        this.transactionStatus = transactionStatus;
-        this.memo = memo;
-    }
 }

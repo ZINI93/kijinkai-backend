@@ -1,6 +1,7 @@
 package com.kijinkai.domain.user.application.port.in;
 
 import com.kijinkai.domain.user.application.dto.request.UserRequestDto;
+import com.kijinkai.domain.user.application.dto.response.UserEditInfoResponse;
 import com.kijinkai.domain.user.application.dto.response.UserResponseDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,4 +17,5 @@ public interface GetUserUseCase {
 
     Boolean existsByUser(UserRequestDto userRequestDto);
 
+    UserEditInfoResponse userEditInfo(UUID userUuid);
 }
