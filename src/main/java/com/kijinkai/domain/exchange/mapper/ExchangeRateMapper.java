@@ -11,7 +11,6 @@ public class ExchangeRateMapper {
 
     public ExchangeRateResponseDto toResponse(ExchangeRate exchangeRate){
         return ExchangeRateResponseDto.builder()
-                .currency(exchangeRate.getCurrency())
                 .rate(exchangeRate.getRate())
                 .build();
     }

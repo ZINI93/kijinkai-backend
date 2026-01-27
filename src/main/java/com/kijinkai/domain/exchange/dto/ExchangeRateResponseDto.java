@@ -24,4 +24,5 @@ public class ExchangeRateResponseDto {
         this.rate = rate;
         this.fetchedAt = fetchedAt;
     }
+
 }

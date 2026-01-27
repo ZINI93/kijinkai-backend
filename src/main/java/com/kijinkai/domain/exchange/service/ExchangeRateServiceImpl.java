@@ -39,6 +39,12 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
     private final UserRepository userRepository;
     private final UserApplicationValidator userValidator;
 
+    /**
+     * 환률생성
+     * @param adminUuid
+     * @param requestDto
+     * @return
+     */
     @Override
     @Transactional
     public ExchangeRateResponseDto createExchangeRate(UUID adminUuid, ExchangeRateRequestDto requestDto) {
@@ -51,6 +57,13 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
         return exchangeRateMapper.toResponse(savedExchangeRate);
     }
 
+    /**
+     * 환률 업데이트
+     * @param adminUuid
+     * @param exchangeId
+     * @param updateDto
+     * @return
+     */
     @Override
     @Transactional
     public ExchangeRateResponseDto updateExchangeRate(UUID adminUuid, Long exchangeId, ExchangeRateUpdateDto updateDto) {
@@ -61,11 +74,17 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
         return exchangeRateMapper.toResponse(exchangeRate);
     }
 
+    /**
+     * 환률 조회
+     * @param exchangeId
+     * @return
+     */
     @Override
     public ExchangeRateResponseDto getExchangeRateInfo(Long exchangeId) {
         ExchangeRate exchangeRate = findExchangeByExchangeId(exchangeId);
         return exchangeRateMapper.toResponse(exchangeRate);
     }
+
 
     @Override
     public ExchangeRateResponseDto getExchangeRateInfoByCurrency(Currency currency) {

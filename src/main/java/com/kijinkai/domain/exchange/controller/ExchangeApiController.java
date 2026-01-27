@@ -29,7 +29,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(
-        value = "/exchange-rate",
+        value = "/api/v1/exchange-rate",
         produces = MediaType.APPLICATION_JSON_VALUE
 )
 public class ExchangeApiController {
@@ -141,7 +141,21 @@ public class ExchangeApiController {
     }
 
 
-    @GetMapping()
+    @GetMapping("/korea")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "환율 정보 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "환율정보를 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<ExchangeRateResponseDto>> getExchangeRateByKorea(){
+        ExchangeRateResponseDto exchange = exchangeRateService.getExchangeRateInfoByCurrency(Currency.KRW);
+
+        return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved korea exchange rate", exchange));
+    }
+
+
+
 
     // helper
     private static UUID getUserUuid(Authentication authentication) {
