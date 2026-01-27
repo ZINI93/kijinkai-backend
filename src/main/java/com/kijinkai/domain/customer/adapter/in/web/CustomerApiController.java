@@ -65,26 +65,26 @@ public class CustomerApiController {
 //        return ResponseEntity.created(location).body(BasicResponseDto.success("일반유저에서 고객으로 가입 성공",customer));
 //    }
 
-    @PostMapping("/update-info")
-    @Operation(summary = "고객 정보 수정", description = "유저 본인의 정보를 수정합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "고객으로 정보 수정 성공"),
-            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
-            @ApiResponse(responseCode = "404", description = "고객을 찾을 수 없음"),
-            @ApiResponse(responseCode = "500", description = "서버오류")
-    })
-    public ResponseEntity<BasicResponseDto<CustomerResponseDto>> updateCustomer(
-                                                              Authentication authentication,
-                                                              @Valid @RequestBody CustomerUpdateDto customerUpdateDto){
-        UUID userUuid = getUserUuid(authentication);
-        log.info("고객 업데이트 요청 - 사용자 UUID: {}", userUuid);
-
-        CustomerResponseDto customer = updateCustomerUseCase.updateCustomer(
-                userUuid, customerUpdateDto);
-        log.info("고객 업데이트 완료 - 고객 UUID: {}", customer.getCustomerUuid());
-
-        return ResponseEntity.ok(BasicResponseDto.success("고객 정보 변경 성공", customer));
-    }
+//    @PostMapping("/update-info")
+//    @Operation(summary = "고객 정보 수정", description = "유저 본인의 정보를 수정합니다.")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "200", description = "고객으로 정보 수정 성공"),
+//            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+//            @ApiResponse(responseCode = "404", description = "고객을 찾을 수 없음"),
+//            @ApiResponse(responseCode = "500", description = "서버오류")
+//    })
+//    public ResponseEntity<BasicResponseDto<CustomerResponseDto>> updateCustomer(
+//                                                              Authentication authentication,
+//                                                              @Valid @RequestBody CustomerUpdateDto customerUpdateDto){
+//        UUID userUuid = getUserUuid(authentication);
+//        log.info("고객 업데이트 요청 - 사용자 UUID: {}", userUuid);
+//
+//        CustomerResponseDto customer = updateCustomerUseCase.updateCustomer(
+//                userUuid, customerUpdateDto);
+//        log.info("고객 업데이트 완료 - 고객 UUID: {}", customer.getCustomerUuid());
+//
+//        return ResponseEntity.ok(BasicResponseDto.success("고객 정보 변경 성공", customer));
+//    }
 
     @GetMapping("/profile/me")
     @ApiResponses({

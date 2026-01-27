@@ -3,6 +3,8 @@ package com.kijinkai.domain.customer.adapter.out.persistence.entity;
 import com.kijinkai.domain.common.BaseEntity;
 import com.kijinkai.domain.customer.domain.model.CustomerTier;
 import com.kijinkai.domain.customer.application.dto.CustomerUpdateDto;
+import com.kijinkai.domain.payment.domain.enums.BankType;
+import com.kijinkai.util.AttributeEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -40,6 +42,21 @@ public class CustomerJpaEntity extends BaseEntity {
 
     @Column(name = "user_uuid", nullable = false, unique = true)
     private UUID userUuid;
+
+
+    @Column(name = "bank_type")
+    private BankType bankType;
+
+    @Column(name = "account_holder")
+    private String accountHolder;
+
+    @Convert(converter = AttributeEncryptor.class)
+    @Column(name = "account_number")
+    private String accountNumber;
+
+    @Convert(converter = AttributeEncryptor.class)
+    @Column(name = "pcc")
+    private String pcc;
 
 }
 

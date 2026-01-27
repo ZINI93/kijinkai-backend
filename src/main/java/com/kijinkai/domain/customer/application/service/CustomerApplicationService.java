@@ -3,9 +3,6 @@ package com.kijinkai.domain.customer.application.service;
 
 import com.kijinkai.domain.address.application.port.out.AddressPersistencePort;
 import com.kijinkai.domain.address.domain.factory.AddressFactory;
-import com.kijinkai.domain.address.domain.model.Address;
-import com.kijinkai.domain.customer.application.dto.CustomerCreateResponse;
-import com.kijinkai.domain.customer.application.dto.CustomerRequestDto;
 import com.kijinkai.domain.customer.application.dto.CustomerResponseDto;
 import com.kijinkai.domain.customer.application.dto.CustomerUpdateDto;
 import com.kijinkai.domain.customer.application.mapper.CustomerMapper;
@@ -19,6 +16,7 @@ import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.domain.factory.CustomerFactory;
 import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.customer.domain.model.CustomerTier;
+import com.kijinkai.domain.payment.domain.enums.BankType;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
 import com.kijinkai.domain.user.domain.model.User;
@@ -33,7 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 
-// exception, jpa 의존 변경 필요
 
 @Slf4j
 @RequiredArgsConstructor
@@ -104,14 +101,26 @@ public class CustomerApplicationService implements CreateCustomerUseCase, GetCus
 
     @Override
     @Transactional
-    public CustomerResponseDto updateCustomer(UUID userUuid, CustomerUpdateDto updateDto) {
+    public UUID updateCustomer(UUID userUuid, String firstName, String lastName, String phoneNumber, String pcc, BankType bankType, String accountHolder, String accountNumber) {
         Customer customer = customerPersistencePort.findByUserUuid(userUuid)
-                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for userUuid: %s", updateDto)));
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for userUuid: %s", userUuid)));
 
-        customer.updateCustomer(updateDto);
+        customer.updateCustomer(firstName,lastName,phoneNumber,pcc,bankType,accountHolder,accountNumber);
+
         Customer savedCustomer = customerPersistencePort.saveCustomer(customer);
 
-        return customerMapper.toResponse(savedCustomer);
+        return savedCustomer.getCustomerUuid();
+    }
+
+
+    // 업데이트
+    @Override
+    @Transactional
+    public void updatePcc(Customer customer, String pcc){
+
+        customer.updatePcc(pcc);
+
+        customerPersistencePort.saveCustomer(customer);
     }
 
 
@@ -121,8 +130,9 @@ public class CustomerApplicationService implements CreateCustomerUseCase, GetCus
         // 현재 미구현
         // 회원 탈퇴한 유저들의 고객정보를 모아서 주기적으로 삭제하는 로직이 필요
     }
-    // helper method
 
+
+    // helper method
     private Customer findCustomerByUserUuid(UUID userUuid) {
         return customerPersistencePort.findByUserUuid(userUuid)
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for userUuid: %s", userUuid)));
