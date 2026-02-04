@@ -7,6 +7,7 @@ import com.kijinkai.domain.wallet.domain.model.Wallet;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Component
 public class WalletMapper {
@@ -24,7 +25,7 @@ public class WalletMapper {
     public WalletBalanceResponseDto balanceMapper(BigDecimal balance){
 
         return WalletBalanceResponseDto.builder()
-                .balance(balance)
+                .balance(balance.setScale(0, RoundingMode.HALF_UP))
                 .build();
     }
 
