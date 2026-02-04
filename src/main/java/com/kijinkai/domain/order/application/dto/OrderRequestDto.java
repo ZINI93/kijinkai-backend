@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 
 @Getter
@@ -16,6 +17,7 @@ import java.util.Map;
 @NoArgsConstructor
 public class OrderRequestDto {
 
+    private UUID userCouponUuid;
     private List<OrderItemRequestDto> orderItems;
     private String memo;
     private String convertedCurrency;

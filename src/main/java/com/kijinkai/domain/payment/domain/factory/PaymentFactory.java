@@ -75,13 +75,16 @@ public class PaymentFactory {
     }
 
     public OrderPayment createProductPayment(
-            UUID customerUuid, UUID walletUuid, String paymentCode, BigDecimal totalAmount) {
+            UUID customerUuid, UUID walletUuid, String paymentCode, BigDecimal totalAmount,
+            BigDecimal discountAmount) {
         return OrderPayment.builder()
                 .paymentUuid(UUID.randomUUID())
                 .customerUuid(customerUuid)
                 .orderPaymentCode(paymentCode)
                 .walletUuid(walletUuid)
                 .paymentAmount(totalAmount)
+                .discountAmount(discountAmount)
+                .finalPaymentAmount(totalAmount.subtract(discountAmount))
                 .paymentType(PaymentType.PRODUCT_PAYMENT)
                 .orderPaymentStatus(OrderPaymentStatus.COMPLETED)
                 .paymentOrder(PaymentOrder.FIRST)

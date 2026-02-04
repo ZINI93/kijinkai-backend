@@ -1,5 +1,6 @@
 package com.kijinkai.domain.payment.application.service;
 
+import com.kijinkai.domain.coupon.application.port.in.usercoupon.UpdateUserCouponUseCase;
 import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPersistencePort;
 import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.domain.model.Customer;
@@ -19,6 +20,7 @@ import com.kijinkai.domain.payment.application.port.in.orderPayment.UpdateOrderP
 import com.kijinkai.domain.payment.application.port.out.OrderPaymentPersistencePort;
 import com.kijinkai.domain.payment.domain.enums.OrderPaymentStatus;
 import com.kijinkai.domain.payment.domain.enums.PaymentType;
+import com.kijinkai.domain.payment.domain.exception.OrderPaymentCompletionException;
 import com.kijinkai.domain.payment.domain.exception.OrderPaymentNotFoundException;
 import com.kijinkai.domain.payment.domain.exception.PaymentProcessingException;
 import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
@@ -74,6 +76,7 @@ public class OrderPaymentApplicationService implements CreateOrderPaymentUseCase
     private final ShipmentService shipmentService;
 
 
+    private final UpdateUserCouponUseCase updateUserCouponUseCase;
     private final TransactionService transactionService;
     private final PaymentFactory paymentFactory;
     private final PaymentMapper paymentMapper;
@@ -83,24 +86,28 @@ public class OrderPaymentApplicationService implements CreateOrderPaymentUseCase
     private final BigDecimal AGENCY_FEE = BigDecimal.valueOf(0.1);
 
 
-
-
     @Override
     @Transactional
-    public OrderPayment saveOrderItem(Customer customer, BigDecimal exchangedAmount){
+    public OrderPayment saveOrderItem(Customer customer, BigDecimal exchangedAmount, BigDecimal discountAmount, BigDecimal finalPaymentAmount, UUID userCouponUuid){
 
         // 지갑에서 출금. // db
-        WalletResponseDto wallet = updateWalletUseCase.withdrawal(customer.getCustomerUuid(), exchangedAmount);
+        WalletResponseDto wallet = updateWalletUseCase.withdrawal(customer.getCustomerUuid(), finalPaymentAmount);
 
         // 결제코드 생성 // db
         String paymentCode = generateBusinessItemCode.generateBusinessCode(customer.getUserUuid().toString(), BusinessCodeType.ORP);
+
+        // 쿠폰 상태변경
+        if (userCouponUuid != null){
+            updateUserCouponUseCase.useCoupon(customer.getUserUuid(), userCouponUuid, discountAmount);
+        }
 
         //생성 // db
         OrderPayment orderPayment = paymentFactory.createProductPayment(
                 customer.getCustomerUuid(),
                 wallet.getWalletUuid(),
                 paymentCode,
-                exchangedAmount
+                exchangedAmount,
+                discountAmount
         );
 
         //저장 // db
@@ -111,7 +118,7 @@ public class OrderPaymentApplicationService implements CreateOrderPaymentUseCase
                 customer.getCustomerUuid(),wallet.getWalletUuid(),
                 TransactionType.ORDER,
                 savedOrderPayment.getOrderPaymentCode(),
-                savedOrderPayment.getPaymentAmount(),
+                savedOrderPayment.getFinalPaymentAmount(),
                 TransactionStatus.COMPLETED
         );
 
@@ -398,8 +405,6 @@ public class OrderPaymentApplicationService implements CreateOrderPaymentUseCase
 
         return paymentMapper.orderPaymentDashboardCount(firstPending, firstCompleted, secondPending, secondCompleted);
     }
-
-
 
 
     //helper method

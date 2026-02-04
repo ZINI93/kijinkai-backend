@@ -42,8 +42,8 @@ public class OrderFacade implements OrderFacadeUseCase {
     private final GetOrderItemUseCase getOrderItemUseCase;
     private final GenerateBusinessItemCode generateBusinessItemCode;
 
-    private final OrderMapper orderMapper;
 
+    private final OrderMapper orderMapper;
 
 
     /**
@@ -68,9 +68,7 @@ public class OrderFacade implements OrderFacadeUseCase {
         List<OrderItem> orderItems = getOrderItemUseCase.getOrderItemsByCodeAndStatus(requestDto.getOrderItemCodes(), OrderItemStatus.PENDING_APPROVAL);
 
         // 주문 상품 결제
-        OrderPayment orderPayment = orderPaymentFacade.processProductPayment(customer, orderItems);
-
-
+        OrderPayment orderPayment = orderPaymentFacade.processProductPayment(customer, orderItems, requestDto.getUserCouponUuid());
 
 
         try {
@@ -80,7 +78,7 @@ public class OrderFacade implements OrderFacadeUseCase {
                 List<OrderItem> freshOrderItems = getOrderItemUseCase.getOrderItemsByCodeAndStatus(requestDto.getOrderItemCodes(), OrderItemStatus.PENDING_APPROVAL);
 
                 // 저장
-                return createOrderUseCase.createAndSaveOrder(
+                OrderResponseDto savedOrder = createOrderUseCase.createAndSaveOrder(
                         customer.getCustomerUuid(),
                         freshOrderItems,
                         requestDto.getInspectedPhotoRequest(),
@@ -88,8 +86,11 @@ public class OrderFacade implements OrderFacadeUseCase {
                         orderPayment.getPaymentAmount()
                 );
 
+                return orderMapper.toOrderResponse(savedOrder, orderPayment);
+
             });
-        }catch (Exception e){
+
+        } catch (Exception e) {
             log.error("주문 저장 최종 실패. 결제 취소 진행합니다. error={}", e.getMessage());
             // 취소 처리 및 환불
             updateOrderPaymentUseCase.failOrderPayment(customer.getCustomerUuid(), orderPayment.getPaymentUuid());

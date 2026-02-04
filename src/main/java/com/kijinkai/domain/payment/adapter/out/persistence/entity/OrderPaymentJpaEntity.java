@@ -33,6 +33,10 @@ public class OrderPaymentJpaEntity extends BaseEntity {
     @Column(name = "wallet_uuid", nullable = false, updatable = false)
     private UUID walletUuid;
 
+    @Column(name = "user_coupon_uuid", updatable = false)
+    private UUID userCouponUuid;
+
+
     @Column(name = "order_uuid", updatable = false)
     private UUID orderUuid;
 
@@ -41,6 +45,12 @@ public class OrderPaymentJpaEntity extends BaseEntity {
 
     @Column(name = "payment_amount", nullable = false, precision = 19, scale = 4)
     private BigDecimal paymentAmount;
+
+    @Column(name = "discount_amount", updatable = false)
+    private BigDecimal discountAmount;
+
+    @Column(name = "final_payment_amount", updatable = false)
+    private BigDecimal finalPaymentAmount;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_order", nullable = false, length = 20)

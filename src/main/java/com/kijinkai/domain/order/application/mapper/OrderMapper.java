@@ -2,7 +2,10 @@ package com.kijinkai.domain.order.application.mapper;
 
 import com.kijinkai.domain.order.application.dto.OrderResponseDto;
 import com.kijinkai.domain.order.domain.model.Order;
+import com.kijinkai.domain.payment.domain.model.OrderPayment;
 import org.springframework.stereotype.Component;
+
+import java.math.RoundingMode;
 
 
 @Component
@@ -14,9 +17,21 @@ public class OrderMapper {
                 .orderUuid(order.getOrderUuid())
                 .customerUuid(order.getCustomerUuid())
                 .totalPriceOriginal(order.getTotalPriceOriginal())
-                .finalPriceOriginal(order.getFinalPriceOriginal())
                 .memo(order.getMemo())
                 .build();
     }
+
+    public OrderResponseDto toOrderResponse(OrderResponseDto order, OrderPayment orderPayment){
+
+        return OrderResponseDto.builder()
+                .orderUuid(order.getOrderUuid())
+                .customerUuid(order.getCustomerUuid())
+                .totalPriceOriginal(order.getTotalPriceOriginal().setScale(0, RoundingMode.HALF_UP))
+                .discountAmount(orderPayment.getDiscountAmount().setScale(0,RoundingMode.HALF_UP))
+                .finalAmount(orderPayment.getFinalPaymentAmount().setScale(0,RoundingMode.HALF_UP))
+                .memo(order.getMemo())
+                .build();
+    }
+
 
 }

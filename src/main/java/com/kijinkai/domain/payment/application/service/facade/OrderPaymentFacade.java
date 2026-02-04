@@ -1,5 +1,9 @@
 package com.kijinkai.domain.payment.application.service.facade;
 
+import com.kijinkai.domain.coupon.application.dto.response.UserCouponResponseDto;
+import com.kijinkai.domain.coupon.application.port.in.usercoupon.GetUserCouponUseCase;
+import com.kijinkai.domain.coupon.application.port.in.usercoupon.UpdateUserCouponUseCase;
+import com.kijinkai.domain.coupon.domain.modal.UserCoupon;
 import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.exchange.dto.ExchangeRateResponseDto;
@@ -22,27 +26,32 @@ public class OrderPaymentFacade {
 
 
     private final CreateOrderPaymentUseCase createOrderPaymentUseCase;
+    private final GetUserCouponUseCase getUserCouponUseCase;
     private final ExchangeRateService exchangeRateService;
 
 
-
-    public OrderPayment processProductPayment(Customer customer, List<OrderItem> orderItems){
+    public OrderPayment processProductPayment(Customer customer, List<OrderItem> orderItems, UUID userCouponUuid) {
 
         // 결제요청 받은 가격의 합 계산
         BigDecimal totalPrice = calculateTotalPrice(orderItems);
 
-        // 환룰조회
+        // 환률조회 및 환전 -> KRW
         ExchangeRateResponseDto exchangeRateByKor = exchangeRateService.getExchangeRateInfoByCurrency(Currency.KRW);
-
-        // 환전
         BigDecimal exchangedAmount = totalPrice.multiply(exchangeRateByKor.getRate());
 
+        //쿠폰 계산
+        BigDecimal discountAmount = BigDecimal.ZERO;
+        if (userCouponUuid != null){
+            discountAmount = getUserCouponUseCase.discountValue(customer.getUserUuid(), userCouponUuid, exchangedAmount);
+        }
 
-        return createOrderPaymentUseCase.saveOrderItem(customer, exchangedAmount);
+        BigDecimal finalPaymentAmount = exchangedAmount.subtract(discountAmount);
+
+        return createOrderPaymentUseCase.saveOrderItem(customer, exchangedAmount, discountAmount, finalPaymentAmount, userCouponUuid);
     }
 
 
-    private BigDecimal calculateTotalPrice(List<OrderItem> orderItems){
+    private BigDecimal calculateTotalPrice(List<OrderItem> orderItems) {
         BigDecimal totalPrice = orderItems.stream()
                 .map(OrderItem::calculateFinalPrice)
                 .filter(Objects::nonNull)

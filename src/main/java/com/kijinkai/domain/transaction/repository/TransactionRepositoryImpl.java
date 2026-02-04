@@ -70,7 +70,7 @@ public class TransactionRepositoryImpl implements TransactionRepositoryCustom {
     private BooleanExpression dateBetween(LocalDate start, LocalDate end) {
 
         // 둘다 없는경우
-        if (start == null || end == null) {
+        if (start == null && end == null) {
             return null;
         }
 

@@ -9,6 +9,16 @@ services:
       MYSQL_DATABASE: kijinkai
       MYSQL_USER: kijinkai_local_user
       MYSQL_PASSWORD: 251001
+#    # 데이터 보존을 위해 볼륨 추가 (데이터 유실 방지)
+#    volumes:
+#      - ./mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:latest
+    container_name: redis_container
+    ports:
+      - "6379:6379"
+    restart: always
 
   kijinkai:
     build: .

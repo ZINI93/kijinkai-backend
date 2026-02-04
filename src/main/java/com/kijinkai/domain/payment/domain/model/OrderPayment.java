@@ -24,7 +24,13 @@ public class OrderPayment {
     private UUID customerUuid;
     private UUID walletUuid;
     private UUID orderUuid;
+
     private BigDecimal paymentAmount;
+    private BigDecimal discountAmount;
+    private BigDecimal finalPaymentAmount;
+
+
+
     private PaymentOrder paymentOrder;
     private OrderPaymentStatus orderPaymentStatus;
     private PaymentType paymentType;
