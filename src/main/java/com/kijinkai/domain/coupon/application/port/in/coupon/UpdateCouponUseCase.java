@@ -13,6 +13,7 @@ public interface UpdateCouponUseCase {
     CouponResponseDto updateCoupon(UUID userAdminUuid, UUID couponUuid, CouponUpdateRequestDto requestDto);
     void issueCoupon(UUID userUuid, UUID couponUuid);
     void issueByCouponCode(UUID userUuid, CouponIssuanceRequestDto requestDto);
+    void addCampaignUuid(UUID couponUuid, UUID campaignUuid);
 
 
 }

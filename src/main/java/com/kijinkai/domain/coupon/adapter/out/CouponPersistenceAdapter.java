@@ -44,6 +44,12 @@ public class CouponPersistenceAdapter implements CouponPersistencePort {
         }
 
     @Override
+    public Optional<Coupon> findByCampaignUuid(UUID campaignUuid) {
+        return couponJpaEntityRepository.findByCampaignUuid(campaignUuid)
+                .map(couponPersistenceMapper::toCoupon);
+    }
+
+    @Override
     public Page<Coupon> searchCoupon(CouponSearchCondition condition, Pageable pageable) {
         return couponJpaEntityRepository.searchCoupons(condition, pageable)
                 .map(couponPersistenceMapper::toCoupon);

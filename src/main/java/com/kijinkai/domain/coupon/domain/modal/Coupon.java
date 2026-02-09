@@ -1,8 +1,10 @@
 package com.kijinkai.domain.coupon.domain.modal;
 
+import com.kijinkai.domain.campaign.domain.modal.Campaign;
 import com.kijinkai.domain.coupon.application.dto.request.CouponUpdateRequestDto;
 import com.kijinkai.domain.coupon.domain.exception.CouponValidateException;
 import lombok.*;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -93,6 +95,16 @@ public class Coupon {
         this.active = true;
     }
 
+    /*
+    캠페인 추가
+     */
+
+    public void addCampaignUuid(UUID campaignUuid){
+        if (this.campaignUuid != null){
+            throw new CouponValidateException("현재 캠페인이 등록된 쿠폰 입니다.");
+        }
+        this.campaignUuid = campaignUuid;
+    }
 
     /**
      * 쿠폰 업데이트

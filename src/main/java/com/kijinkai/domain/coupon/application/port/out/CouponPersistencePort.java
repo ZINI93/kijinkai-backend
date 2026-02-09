@@ -19,6 +19,7 @@ public interface CouponPersistencePort {
 
     Optional<Coupon> findByCouponUuid(UUID couponUuid);
     Optional<Coupon> findByCouponCode(String couponCode);
+    Optional<Coupon> findByCampaignUuid(UUID campaignUuid);
     Page<Coupon> searchCoupon(CouponSearchCondition condition, Pageable pageable);
     List<Coupon> findAllByCouponUuids(List<UUID> couponUuids);
 

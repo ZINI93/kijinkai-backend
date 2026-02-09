@@ -136,7 +136,7 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.POST, "/api/auth/forget-password", "/api/auth/issuance-password-token").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").authenticated()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/main-page","/api/v1/transactions/**").authenticated()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/exchange-rate/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/exchange-rate/**", "/api/v1/campaigns/**").permitAll()
                                 .requestMatchers(HttpMethod.DELETE, "/api/v1/order-items/**").authenticated()
 
 

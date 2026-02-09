@@ -138,7 +138,6 @@ public class CouponJpaEntityRepositoryImpl implements CouponJpaEntityRepositoryC
                 case "totalQuantity":
                     orders.add(new OrderSpecifier<>(direction, couponJpaEntity.totalQuantity));
                     break;
-
             }
 
         });

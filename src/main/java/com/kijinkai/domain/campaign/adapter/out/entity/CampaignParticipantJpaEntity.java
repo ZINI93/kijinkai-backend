@@ -18,36 +18,38 @@ import java.util.UUID;
 @Entity
 public class CampaignParticipantJpaEntity extends BaseEntity {
 
+
+    @Comment("참여 내역 고유 식별자 (PK)")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "campaign_participant_id")
-    @Comment("참여 내역 고유 식별자 (PK)")
     private Long campaignParticipantId;
 
-    @Column(nullable = false, unique = true, columnDefinition = "BINARY(16)")
     @Comment("참여 내역 외부 확인용 UUID")
+    @Column(name = "campaign_participant_uuid", nullable = false, unique = true, columnDefinition = "BINARY(16)")
     private UUID campaignParticipantUuid;
 
+    @Comment("참여한 캠페인 ID (FK)")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "campaign_id", nullable = false)
-    @Comment("참여한 캠페인 ID (FK)")
     private CampaignJpaEntity campaign;
 
-    @Column(nullable = false, columnDefinition = "BINARY(16)")
     @Comment("참여한 사용자의 식별자 (외부 회원 UUID)")
+    @Column(name = "user_uuid", nullable = false, columnDefinition = "BINARY(16)")
     private UUID userUuid;
 
-    @Column(nullable = false)
     @Comment("참여 일시")
+    @Column(name = "participated_at", nullable = false)
     private LocalDateTime participatedAt;
 
-    @Column(nullable = false)
     @Comment("보상 지급 여부")
+    @Column(name = "reward_given", nullable = false)
     private Boolean rewardGiven;
 
-    @Enumerated(EnumType.STRING)
-    @Column(length = 50)
+
     @Comment("보상 유형 (예: POINT, COUPON, BADGE)")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "reward_type", length = 50)
     private RewardType rewardType;
 
     /**

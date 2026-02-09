@@ -4,6 +4,8 @@ package com.kijinkai.domain.campaign.adapter.out.mapper;
 import com.kijinkai.domain.campaign.adapter.out.entity.CampaignImageJpaEntity;
 import com.kijinkai.domain.campaign.domain.modal.CampaignImage;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
 
 import java.util.List;
 
@@ -11,10 +13,9 @@ import java.util.List;
 public interface CampaignImagePersistenceMapper {
 
     CampaignImage toCampaignImage(CampaignImageJpaEntity campaignImageJpaEntity);
-    CampaignImageJpaEntity toCampaignImageJapEntity(CampaignImage campaignImage);
+
+    CampaignImageJpaEntity toCampaignImageJpaEntity(CampaignImage campaignImage);
 
 
     List<CampaignImage> toCampaignImageList(List<CampaignImageJpaEntity> jpaEntities);
-    List<CampaignImageJpaEntity> toCampaignImageJpaEntityList(List<CampaignImage> campaignImages);
-
-}
+    List<CampaignImageJpaEntity> toCampaignImageJpaEntityList(List<CampaignImage> campaignImages);}

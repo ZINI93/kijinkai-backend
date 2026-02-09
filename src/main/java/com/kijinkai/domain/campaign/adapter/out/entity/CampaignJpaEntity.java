@@ -27,51 +27,59 @@ public class CampaignJpaEntity extends BaseEntity  {
     private Long campaignId;
 
     @Comment("캠페인 외부 노출용 UUID")
-    @Column(nullable = false, unique = true, columnDefinition = "BINARY(16)")
+    @Column(name = "campaign_uuid", nullable = false, unique = true, columnDefinition = "BINARY(16)")
     private UUID campaignUuid;
 
+    @Comment("생성한 관리자")
+    @Column(name = "created_admin_uuid", nullable = false ,columnDefinition = "BINARY(16)", updatable = false)
+    private UUID createdAdminUuid;
+
+
     @Comment("캠페인 제목")
-    @Column(nullable = false, length = 200)
+    @Column(name = "title", nullable = false, length = 200)
     private String title;
 
     @Comment("캠페인 요약 설명")
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Comment("캠페인 상세 내용")
-    @Column(columnDefinition = "LONGTEXT")
+    @Column(name = "content", columnDefinition = "LONGTEXT")
     private String content;
 
     @Comment("캠페인 유형")
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
+    @Column(name = "campaign_type", nullable = false, length = 50)
     private CampaignType campaignType;
 
     @Comment("캠페인 상태")
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
+    @Column(name = "campaign_status", nullable = false, length = 50)
     private CampaignStatus campaignStatus;
 
     @Comment("캠페인 시작 일시")
-    @Column(nullable = false)
+    @Column(name = "start_date")
     private LocalDateTime startDate;
 
     @Comment("캠페인 종료 일시")
-    @Column(nullable = false)
+    @Column(name = "end_date")
     private LocalDateTime endDate;
 
     @Comment("메인 노출 여부")
-    @Column(nullable = false)
+    @Column(name = "featured", nullable = false)
     private boolean featured;
 
     @Comment("노출 순서")
-    @Column(nullable = false)
+    @Column(name = "display_order", nullable = false)
     private int displayOrder;
 
     @Comment("현재 참여자 수")
-    @Column(nullable = false)
+    @Column(name = "participant_count", nullable = false)
     private int participantCount;
 
+    @Comment("상시 캠페인 여부")
+    @Column(name = "always_on", nullable = false)
+    private boolean alwaysOn;
 
     @PrePersist
     public void prePersist() {

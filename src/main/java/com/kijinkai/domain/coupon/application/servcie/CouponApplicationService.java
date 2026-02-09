@@ -1,5 +1,6 @@
 package com.kijinkai.domain.coupon.application.servcie;
 
+import com.kijinkai.domain.campaign.domain.modal.Campaign;
 import com.kijinkai.domain.coupon.adapter.out.repository.coupon.CouponSearchCondition;
 import com.kijinkai.domain.coupon.application.dto.request.CouponCreateRequestDto;
 import com.kijinkai.domain.coupon.application.dto.request.CouponIssuanceRequestDto;
@@ -131,6 +132,27 @@ public class CouponApplicationService implements CreateCouponUseCase, GetCouponU
     }
 
     // --- 업데이트.
+
+
+
+    /*
+    캠페인에 쿠폰 등록
+     */
+    @Override
+    @Transactional
+    public void addCampaignUuid(UUID couponUuid, UUID campaignUuid){
+
+        //쿠폰 조회
+        Coupon coupon = findCouponByCouponUuid(couponUuid);
+
+        //동륵
+        coupon.addCampaignUuid(campaignUuid);
+
+        //저장
+        couponPersistencePort.saveCoupon(coupon);
+
+    }
+
 
     /**
      * 발급

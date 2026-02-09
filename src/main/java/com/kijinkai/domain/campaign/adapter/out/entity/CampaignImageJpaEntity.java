@@ -1,6 +1,7 @@
 package com.kijinkai.domain.campaign.adapter.out.entity;
 
 
+import com.kijinkai.domain.campaign.domain.modal.CampaignImageType;
 import com.kijinkai.domain.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,37 +17,44 @@ import java.util.UUID;
 @Entity
 public class CampaignImageJpaEntity extends BaseEntity {
 
+    @Comment("캠페인 이미지 고유 식별자 (PK)")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "campaign_image_id")
-    @Comment("캠페인 이미지 고유 식별자 (PK)")
     private Long campaignImageId;
 
-    @Column(nullable = false, unique = true, columnDefinition = "BINARY(16)")
     @Comment("이미지 외부 노출용 UUID")
+    @Column(name = "campaign_image_uuid", nullable = false, unique = true, columnDefinition = "BINARY(16)")
     private UUID campaignImageUuid;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "campaign_id", nullable = false)
+    @Comment("생성한 관리자")
+    @Column(name = "created_admin_uuid", nullable = false ,columnDefinition = "BINARY(16)", updatable = false)
+    private UUID createdAdminUuid;
+
+
     @Comment("연관된 캠페인 ID (FK)")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "campaign_id")
     private CampaignJpaEntity campaign;
 
-    @Column(nullable = false, length = 500)
     @Comment("이미지 저장 경로 (URL)")
+    @Column(name = "image_url", nullable = false, length = 500)
     private String imageUrl;
 
-    @Column(nullable = false, length = 50)
-    @Enumerated(EnumType.STRING)
-    @Comment("이미지 유형 (예: THUMBNAIL, BANNER, CONTENT)")
-    private String imageType;
 
-    @Column(nullable = false)
+    @Comment("이미지 유형")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "image_type", nullable = false, length = 50)
+    private CampaignImageType imageType;
+
     @Comment("이미지 노출 순서")
+    @Column(name = "display_order", nullable = false)
     private int displayOrder;
 
-    @Column(length = 200)
     @Comment("이미지 대체 텍스트 (웹 접근성용)")
+    @Column(name = "alt_text", length = 200)
     private String altText;
+
 
     /**
      * 신규 이미지 생성 시 UUID 자동 생성

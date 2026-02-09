@@ -4,7 +4,6 @@ import com.kijinkai.domain.common.BasicResponseDto;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
 import com.kijinkai.domain.orderitem.application.dto.OrderItemApprovalRequestDto;
 import com.kijinkai.domain.orderitem.application.dto.OrderItemRejectRequestDto;
-import com.kijinkai.domain.orderitem.application.dto.OrderItemRequestDto;
 import com.kijinkai.domain.orderitem.application.dto.OrderItemResponseDto;
 import com.kijinkai.domain.orderitem.application.port.in.CreateOrderItemUseCase;
 import com.kijinkai.domain.orderitem.application.port.in.DeleteOrderItemUseCase;
