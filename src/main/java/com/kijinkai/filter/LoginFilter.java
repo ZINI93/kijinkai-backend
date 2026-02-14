@@ -2,6 +2,7 @@ package com.kijinkai.filter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kijinkai.headler.LoginFailureHandler;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletInputStream;
@@ -40,9 +41,10 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
 
 
-    public LoginFilter(AuthenticationManager authenticationManager, AuthenticationSuccessHandler authenticationSuccessHandler) {
+    public LoginFilter(AuthenticationManager authenticationManager, AuthenticationSuccessHandler authenticationSuccessHandler, LoginFailureHandler loginFailureHandler) {
         super(DEFAULT_ANT_PATH_REQUEST_MATCHER, authenticationManager);
         this.authenticationSuccessHandler = authenticationSuccessHandler;
+        this.setAuthenticationFailureHandler(loginFailureHandler);
     }
 
     @Override
@@ -86,9 +88,7 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
-                                              AuthenticationException failed) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write("{\"message\":\"로그인 실패\"}");
+                                              AuthenticationException failed) throws IOException, ServletException {
+        getFailureHandler().onAuthenticationFailure(request, response, failed);
     }
 }

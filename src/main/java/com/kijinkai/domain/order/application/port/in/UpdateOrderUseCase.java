@@ -11,4 +11,5 @@ public interface UpdateOrderUseCase {
     OrderResponseDto updateOrderEstimate(UUID userUuid, UUID orderUuid, OrderUpdateDto updateDto);
     OrderResponseDto cancelOrder(UUID userUuid, UUID orderUuid);
     OrderResponseDto confirmOrder(UUID userUuid, UUID orderUuid);
+    void changeIsReviewed(UUID userUuid, String orderItemCode);
 }

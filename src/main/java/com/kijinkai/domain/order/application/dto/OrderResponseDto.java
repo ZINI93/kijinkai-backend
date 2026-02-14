@@ -17,12 +17,13 @@ public class OrderResponseDto {
 
     private UUID orderUuid;
     private UUID customerUuid;
+    private String orderCode;
     private BigDecimal deliveryFee;
     private BigDecimal totalPriceOriginal;   // 엔화의 상품전체가격
     private BigDecimal discountAmount;
     private BigDecimal finalAmount;
     private String convertedCurrency;
-    private OrderStatus orderstate;
+    private OrderStatus orderState;
     private String memo;
     private String rejectedReason;
     private PaymentStatus paymentStatus;

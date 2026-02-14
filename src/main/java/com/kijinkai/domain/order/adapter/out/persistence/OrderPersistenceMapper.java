@@ -1,6 +1,7 @@
 package com.kijinkai.domain.order.adapter.out.persistence;
 
 import com.kijinkai.domain.order.adapter.out.persistence.entity.OrderJpaEntity;
+import com.kijinkai.domain.order.adapter.out.persistence.entity.OrderStatus;
 import com.kijinkai.domain.order.adapter.out.persistence.mapper.OrderPersistenceMapper;
 import com.kijinkai.domain.order.adapter.out.persistence.repository.OrderRepository;
 import com.kijinkai.domain.order.application.port.out.OrderPersistencePort;
@@ -8,6 +9,7 @@ import com.kijinkai.domain.order.domain.model.Order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -35,6 +37,18 @@ class OrderPersistenceAdapter implements OrderPersistencePort {
     public Optional<Order> findByOrderUuid(UUID orderUuid) {
         return orderRepository.findByOrderUuid(orderUuid)
                 .map(orderPersistenceMapper::toOrder);
+    }
+
+    @Override
+    public Optional<Order> findByCustomerUuidAndOrderCode(UUID customerUuid, String orderCode) {
+        return orderRepository.findByCustomerUuidAndOrderCode(customerUuid, orderCode)
+                .map(orderPersistenceMapper::toOrder);
+    }
+
+    @Override
+    public List<Order> findAllByCustomerUuidAndOrderStatusAndIsReviewed(UUID customerUuid, OrderStatus status, boolean isReviewed) {
+        List<OrderJpaEntity> orderJpaEntities = orderRepository.findAllByCustomerUuidAndOrderStatusAndIsReviewed(customerUuid, status, isReviewed);
+        return orderPersistenceMapper.toOrders(orderJpaEntities);
     }
 
     @Override

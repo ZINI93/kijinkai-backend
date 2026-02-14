@@ -5,6 +5,7 @@ import com.kijinkai.domain.user.domain.model.UserStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,6 +24,10 @@ public interface UserPersistencePort{
     Optional<User> findByEmailAndIsSocial(String email, Boolean isSocial);
     Optional<User> findByEmailAndUserStatusAndIsSocial(String email, UserStatus userStatus, Boolean isSocial);
     Optional<User> findByEmailAndUserStatus(String email, UserStatus userStatus) ;
+    Optional<User> findByNickname(String nickname);
+
+    List<User> findAllByUserUuidIn(List<UUID> userUuid);
+
 
     Page<User> findAllByEmailAndNickName(String email, String nickname, Pageable pageable);
 

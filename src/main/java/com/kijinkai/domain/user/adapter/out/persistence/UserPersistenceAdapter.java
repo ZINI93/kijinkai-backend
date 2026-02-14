@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -54,8 +55,20 @@ public class UserPersistenceAdapter implements UserPersistencePort {
 
     @Override
     public Optional<User> findByEmailAndUserStatus(String email, UserStatus userStatus) {
-        return userRepository.findByEmailAndUserStatus(email,userStatus)
+        return userRepository.findByEmailAndUserStatus(email, userStatus)
                 .map(userPersistenceMapper::toUser);
+    }
+
+    @Override
+    public Optional<User> findByNickname(String nickname) {
+        return userRepository.findByNickname(nickname)
+                .map(userPersistenceMapper::toUser);
+    }
+
+    @Override
+    public List<User> findAllByUserUuidIn(List<UUID> userUuid) {
+        return userRepository.findAllByUserUuidIn(userUuid)
+                .stream().map(userPersistenceMapper::toUser).toList();
     }
 
 

@@ -3,6 +3,7 @@ package com.kijinkai.domain.order.domain.model;
 
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.order.adapter.out.persistence.entity.OrderStatus;
+import com.kijinkai.domain.order.domain.exception.OrderValidationException;
 import com.kijinkai.domain.payment.domain.enums.PaymentType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,12 +29,22 @@ public class Order {
     private String memo;
     private String rejectedReason;
     private PaymentType paymentType;  // 필요없을거 같음
+    private boolean isReviewed;
 
 
     public Order(UUID customerUuid, String memo) {
         this.customerUuid = customerUuid;
         this.memo = memo;
     }
+
+    public void changeIsReviewed(){
+        if (orderStatus != OrderStatus.DELIVERED){
+            throw new OrderValidationException("배송이 끝나지 않는 주문코드는 리뷰를 작성할 수 없습니다.");
+        }
+
+        this.isReviewed = true;
+    }
+
 
     public void fistOrderPayment(){
         this.orderStatus = OrderStatus.FIRST_PAID;

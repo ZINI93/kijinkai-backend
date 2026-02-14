@@ -5,6 +5,7 @@ import com.kijinkai.domain.jwt.service.JwtService;
 import com.kijinkai.domain.user.domain.model.UserRole;
 import com.kijinkai.filter.JwtFilter;
 import com.kijinkai.filter.LoginFilter;
+import com.kijinkai.headler.LoginFailureHandler;
 import com.kijinkai.headler.RefreshTokenLogoutHandler;
 import com.kijinkai.headler.SocialSuccessHandler;
 import com.kijinkai.util.JwtUtil;
@@ -43,15 +44,17 @@ public class SecurityConfig {
 
     private final AuthenticationConfiguration authenticationConfiguration;
     private final AuthenticationSuccessHandler loginSuccessHandler;
+    private final LoginFailureHandler loginFailureHandler;
     private final SocialSuccessHandler socialSuccessHandler;
     private final String allowedOrigins;
     private final JwtService jwtService;
     private final JwtUtil jwtUtil;
 
     public SecurityConfig(AuthenticationConfiguration authenticationConfiguration,
-                          @Qualifier("loginSuccessHandler") AuthenticationSuccessHandler loginSuccessHandler, SocialSuccessHandler socialSuccessHandler, @Value("${cors.allowed-origins}") String allowedOrigins, JwtService jwtService, JwtUtil jwtUtil) {
+                          @Qualifier("loginSuccessHandler") AuthenticationSuccessHandler loginSuccessHandler, LoginFailureHandler loginFailureHandler, SocialSuccessHandler socialSuccessHandler, @Value("${cors.allowed-origins}") String allowedOrigins, JwtService jwtService, JwtUtil jwtUtil) {
         this.authenticationConfiguration = authenticationConfiguration;
         this.loginSuccessHandler = loginSuccessHandler;
+        this.loginFailureHandler = loginFailureHandler;
         this.socialSuccessHandler = socialSuccessHandler;
         this.allowedOrigins = allowedOrigins;
         this.jwtService = jwtService;
@@ -136,7 +139,9 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.POST, "/api/auth/forget-password", "/api/auth/issuance-password-token").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").authenticated()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/main-page","/api/v1/transactions/**").authenticated()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/exchange-rate/**", "/api/v1/campaigns/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/exchange-rate/**", "/api/v1/campaigns/**", "/api/v1/posts/notices/search/**", "/api/v1/posts/reviews/search/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/exchange-rate/**", "/api/v1/campaigns/**", "/api/v1/posts/notices/search/**", "/api/v1/posts/reviews/search/**").permitAll()
+                                .requestMatchers("/images/**").permitAll()
                                 .requestMatchers(HttpMethod.DELETE, "/api/v1/order-items/**").authenticated()
 
 
@@ -182,7 +187,7 @@ public class SecurityConfig {
 
         // JWT 필터 추가 (기존 필터 앞에 배치)
         http
-                .addFilterBefore(new LoginFilter(authenticationManager(authenticationConfiguration), loginSuccessHandler), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new LoginFilter(authenticationManager(authenticationConfiguration), loginSuccessHandler, loginFailureHandler), UsernamePasswordAuthenticationFilter.class);
 
 
         // 세션 필터 설정 (stateless)

@@ -23,6 +23,7 @@ public class OrderFactory {
                 .totalPriceOriginal(totalPrice)
                 .orderStatus(OrderStatus.FIRST_PAID)
                 .paymentType(PaymentType.DEPOSIT)
+                .isReviewed(false)
                 .build();
     }
 }

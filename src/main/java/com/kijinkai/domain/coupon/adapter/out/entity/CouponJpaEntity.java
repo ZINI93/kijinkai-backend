@@ -46,12 +46,10 @@ public class CouponJpaEntity extends BaseEntity {
     @Column(name = "coupon_name", nullable = false)
     private String couponName;
 
-
     @Comment("할인종류 퍼센트/금액")
     @Enumerated(EnumType.STRING)
     @Column(name = "discount_type", nullable = false, updatable = false)
     private DiscountType discountType;
-
 
     @Comment("발행 쿠폰의 타입")
     @Enumerated(EnumType.STRING)

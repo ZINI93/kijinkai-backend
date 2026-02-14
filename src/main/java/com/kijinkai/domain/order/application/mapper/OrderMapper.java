@@ -34,4 +34,13 @@ public class OrderMapper {
     }
 
 
+    public OrderResponseDto toReviewResponse(Order order){
+
+        return OrderResponseDto.builder()
+                .orderUuid(order.getOrderUuid())
+                .orderCode(order.getOrderCode())
+                .build();
+    }
+
+
 }

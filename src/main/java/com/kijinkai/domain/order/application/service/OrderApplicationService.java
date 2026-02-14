@@ -48,6 +48,7 @@ import com.kijinkai.util.GenerateBusinessItemCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -333,7 +334,7 @@ public class OrderApplicationService implements CreateOrderUseCase, GetOrderUseC
 
     @Override
     @Transactional
-    public OrderResponseDto createAndSaveOrder(UUID customerUuid, List<OrderItem> orderItems, Map<String,Boolean> inspectedPhotoRequest, String orderCode, BigDecimal totalPrice){
+    public OrderResponseDto createAndSaveOrder(UUID customerUuid, List<OrderItem> orderItems, Map<String, Boolean> inspectedPhotoRequest, String orderCode, BigDecimal totalPrice) {
 
         // 주문 상품의 상태 변경 및 사진 추가 요청 체크
         updateOrderItemUseCase.updateOrderItemStatusByFirstComplete(orderItems, inspectedPhotoRequest);
@@ -354,6 +355,30 @@ public class OrderApplicationService implements CreateOrderUseCase, GetOrderUseC
     }
 
 
+    @Override
+    @Transactional
+    public void changeIsReviewed(UUID userUuid, String orderItemCode){
+
+        Customer customer = findCustomerByUserUuid(userUuid);
+
+        Order order = orderPersistencePort.findByCustomerUuidAndOrderCode(customer.getCustomerUuid(), orderItemCode)
+                .orElseThrow(() -> new OrderItemNotFoundException("주문을 찾을 수 없습니다."));
+
+        order.changeIsReviewed();
+
+        orderPersistencePort.saveOrder(order);
+    }
+
+
+    @Override
+    public List<OrderResponseDto> getPendingReviewOrders(UUID userUuid) {
+
+        Customer customer = findCustomerByUserUuid(userUuid);
+
+        List<Order> orders = orderPersistencePort.findAllByCustomerUuidAndOrderStatusAndIsReviewed(customer.getCustomerUuid(), OrderStatus.DELIVERED, false);
+
+        return orders.stream().map(orderMapper::toReviewResponse).toList();
+    }
 
 
     @Transactional
