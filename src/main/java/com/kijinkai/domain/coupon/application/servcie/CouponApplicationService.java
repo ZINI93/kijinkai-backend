@@ -1,6 +1,5 @@
 package com.kijinkai.domain.coupon.application.servcie;
 
-import com.kijinkai.domain.campaign.domain.modal.Campaign;
 import com.kijinkai.domain.coupon.adapter.out.repository.coupon.CouponSearchCondition;
 import com.kijinkai.domain.coupon.application.dto.request.CouponCreateRequestDto;
 import com.kijinkai.domain.coupon.application.dto.request.CouponIssuanceRequestDto;
@@ -14,10 +13,7 @@ import com.kijinkai.domain.coupon.application.port.in.coupon.UpdateCouponUseCase
 import com.kijinkai.domain.coupon.application.port.out.CouponPersistencePort;
 import com.kijinkai.domain.coupon.application.servcie.issuance.IssuanceTransactionManager;
 import com.kijinkai.domain.coupon.application.util.CouponCodeGenerator;
-import com.kijinkai.domain.coupon.domain.exception.CouponCodeGenerateException;
-import com.kijinkai.domain.coupon.domain.exception.CouponException;
-import com.kijinkai.domain.coupon.domain.exception.CouponNotFoundException;
-import com.kijinkai.domain.coupon.domain.exception.CouponValidateException;
+import com.kijinkai.domain.coupon.domain.exception.*;
 import com.kijinkai.domain.coupon.domain.factory.CouponFactory;
 import com.kijinkai.domain.coupon.domain.modal.Coupon;
 import com.kijinkai.domain.coupon.domain.modal.DiscountType;
@@ -31,7 +27,6 @@ import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -279,7 +274,7 @@ public class CouponApplicationService implements CreateCouponUseCase, GetCouponU
         Coupon coupon = findCouponByCouponUuid(couponUuid);
 
         if (coupon.isActive()) {
-            throw new CouponValidateException("활성화 중인 쿠폰은 삭제할수 없습니다.");
+            throw new CouponValidateException(CouponErrorCode.CANNOT_DELETE_ACTIVE_COUPON);
         }
 
 

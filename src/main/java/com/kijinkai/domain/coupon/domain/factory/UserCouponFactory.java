@@ -1,10 +1,9 @@
 package com.kijinkai.domain.coupon.domain.factory;
 
-import com.kijinkai.domain.coupon.domain.exception.CouponValidateException;
+import com.kijinkai.domain.coupon.domain.exception.UserCouponValidateException;
 import com.kijinkai.domain.coupon.domain.modal.CouponIssuedType;
 import com.kijinkai.domain.coupon.domain.modal.UserCoupon;
 import com.kijinkai.domain.coupon.domain.modal.UserCouponStatus;
-import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -36,13 +35,13 @@ public class UserCouponFactory {
     private void validateCreateInput(UUID userUuid, UUID couponUuid, LocalDateTime expiredAt ) {
 
         if (userUuid == null) {
-            throw new CouponValidateException("발급 대상 유저 정보가 없습니다.");
+            throw new UserCouponValidateException("발급 대상 유저 정보가 없습니다.");
         }
         if (couponUuid == null) {
-            throw new CouponValidateException("발급할 쿠폰 정보가 없습니다.");
+            throw new UserCouponValidateException("발급할 쿠폰 정보가 없습니다.");
         }
         if (expiredAt == null) {
-            throw new CouponValidateException("쿠폰의 만료일 정보가 없습니다.");
+            throw new UserCouponValidateException("쿠폰의 만료일 정보가 없습니다.");
         }
     }
 

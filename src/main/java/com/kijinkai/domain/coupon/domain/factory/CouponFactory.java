@@ -1,6 +1,7 @@
 package com.kijinkai.domain.coupon.domain.factory;
 
 import com.kijinkai.domain.coupon.application.dto.request.CouponCreateRequestDto;
+import com.kijinkai.domain.coupon.domain.exception.CouponErrorCode;
 import com.kijinkai.domain.coupon.domain.exception.CouponValidateException;
 import com.kijinkai.domain.coupon.domain.modal.Coupon;
 import com.kijinkai.domain.coupon.domain.modal.DiscountType;
@@ -45,15 +46,15 @@ public class CouponFactory {
             throw new UserNotFoundException("User uuid can't be null");
         }
         if (requestDto.getValidFrom().isAfter(requestDto.getValidUntil())) {
-            throw new CouponValidateException("시작일은 종료일 보다 전이여야 합니다.");
+            throw new CouponValidateException(CouponErrorCode.INVALID_DATE_RANGE);
         }
 
         if (requestDto.getValidFrom().isAfter(now)) {
-            throw new CouponValidateException("쿠폰 시작일은 현재 시간보다 이전일 수 없습니다.");
+            throw new CouponValidateException(CouponErrorCode.START_DATE_BEFORE_NOW);
         }
 
         if (requestDto.getValidUntil().isBefore(now)) {
-            throw new CouponValidateException("쿠폰 종료일은 현재 시간보다 미래여야 합니다.");
+            throw new CouponValidateException(CouponErrorCode.END_DATE_BEFORE_NOW);
         }
 
     }
@@ -65,16 +66,16 @@ public class CouponFactory {
 
         if (type == DiscountType.PERCENT) {
             if (value.compareTo(BigDecimal.ZERO) <= 0 || value.compareTo(new BigDecimal("100")) > 0) {
-                throw new IllegalArgumentException("퍼센트 할인은 1에서 100 사이여야 합니다.");
+                throw new CouponValidateException(CouponErrorCode.INVALID_DISCOUNT_RATE_RANGE);
             }
 
             if (requestDto.getMaxDiscountAmount() == null) {
-                throw new CouponValidateException("할인 최대가격을 설정하세요");
+                throw new CouponValidateException(CouponErrorCode.MAX_DISCOUNT_AMOUNT_REQUIRED);
             }
         }
         if (type == DiscountType.FIXED) {
             if (value.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("할인금액은 0보다 커야 합니다.");
+                throw new CouponValidateException(CouponErrorCode.INVALID_DISCOUNT_AMOUNT);
             }
         }
 

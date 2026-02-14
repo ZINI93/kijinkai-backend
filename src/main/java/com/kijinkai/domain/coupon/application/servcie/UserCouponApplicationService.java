@@ -8,6 +8,7 @@ import com.kijinkai.domain.coupon.application.port.in.usercoupon.GetUserCouponUs
 import com.kijinkai.domain.coupon.application.port.in.usercoupon.UpdateUserCouponUseCase;
 import com.kijinkai.domain.coupon.application.port.out.CouponPersistencePort;
 import com.kijinkai.domain.coupon.application.port.out.UserCouponPersistencePort;
+import com.kijinkai.domain.coupon.domain.exception.CouponErrorCode;
 import com.kijinkai.domain.coupon.domain.exception.CouponNotFoundException;
 import com.kijinkai.domain.coupon.domain.exception.CouponValidateException;
 import com.kijinkai.domain.coupon.domain.exception.UserCouponNotFoundException;
@@ -55,7 +56,7 @@ public class UserCouponApplicationService implements CreateUserCouponUseCase, Ge
         // 중복 발행 검증
         Boolean existsByUserCoupon = userCouponPersistencePort.existsByUserUuidAndCouponUuid(userUuid, couponUuid);
         if (existsByUserCoupon) {
-            throw new CouponValidateException("이미 발급받은 쿠폰 입니다.");
+            throw new CouponValidateException(CouponErrorCode.COUPON_ALREADY_ISSUED);
         }
 
         // 생성
@@ -108,7 +109,7 @@ public class UserCouponApplicationService implements CreateUserCouponUseCase, Ge
     @Override
     public UserCouponResponseDto getMyCouponInfo(UUID userUuid, UUID userCouponUuid) {
         if (userUuid == null || userCouponUuid == null) {
-            throw new CouponValidateException("유저의 쿠폰을 찾을 수 없습니다.");
+            throw new UserCouponNotFoundException("유저의 쿠폰을 찾을 수 없습니다.");
         }
 
         // 유저 쿠폰 조회
@@ -159,16 +160,16 @@ public class UserCouponApplicationService implements CreateUserCouponUseCase, Ge
         LocalDateTime now = LocalDateTime.now();
 
         if (!coupon.isActive()) {
-            throw new CouponValidateException("현재 비활성화된 쿠폰입니다.");
+            throw new CouponValidateException(CouponErrorCode.INACTIVE);
         }
         if (coupon.getMinOrderAmount().compareTo(orderAmount) > 0) {
-            throw new CouponValidateException("최소 주문 금액을 충족하지 않습니다.");
+            throw new CouponValidateException(CouponErrorCode.COUPON_MIN_ORDER_AMOUNT_NOT_MET);
         }
         if (coupon.getValidFrom().isAfter(now)) {
-            throw new CouponValidateException("아직 사용 기간이 아닙니다.");
+            throw new CouponValidateException(CouponErrorCode.NOT_STARTED, coupon.getValidFrom());
         }
         if (coupon.getValidUntil().isBefore(now)) {
-            throw new CouponValidateException("사용 기간이 만료된 쿠폰입니다.");
+            throw new CouponValidateException(CouponErrorCode.EXPIRED);
         }
     }
 

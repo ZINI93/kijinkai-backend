@@ -2,6 +2,7 @@ package com.kijinkai.domain.coupon.domain.modal;
 
 import com.kijinkai.domain.campaign.domain.modal.Campaign;
 import com.kijinkai.domain.coupon.application.dto.request.CouponUpdateRequestDto;
+import com.kijinkai.domain.coupon.domain.exception.CouponErrorCode;
 import com.kijinkai.domain.coupon.domain.exception.CouponValidateException;
 import lombok.*;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +37,7 @@ public class Coupon {
 
     // --- 검증.
 
+
     /**
      * 쿠폰 발행 검증
      */
@@ -44,15 +46,15 @@ public class Coupon {
         LocalDateTime now = LocalDateTime.now();
 
         if (this.validUntil.isBefore(now)) {
-            throw new CouponValidateException("기간이 지난 쿠폰은 발행할 수 없습니다.");
+            throw new CouponValidateException(CouponErrorCode.EXPIRED);
         }
 
         if (!this.active) {
-            throw new CouponValidateException("비활성화 쿠폰은 발행할 수 없습니다.");
+            throw new CouponValidateException(CouponErrorCode.INACTIVE);
         }
 
         if (this.totalQuantity != null && this.issuedQuantity >= this.totalQuantity) {
-            throw new CouponValidateException("준비된 쿠폰 수량이 모두 소진되었습니다.");
+            throw new CouponValidateException(CouponErrorCode.SOLD_OUT);
         }
     }
 
@@ -61,11 +63,11 @@ public class Coupon {
         LocalDateTime now = LocalDateTime.now();
 
         if (this.validFrom.isAfter(now)) {
-            throw new CouponValidateException("이 쿠폰은" + validFrom + "이후 부터 사용이 가능합니다.");
+            throw new CouponValidateException(CouponErrorCode.NOT_STARTED, this.validFrom);
         }
 
         if (!this.active) {
-            throw new CouponValidateException("비활성화 쿠폰은 발행할 수 없습니다.");
+            throw new CouponValidateException(CouponErrorCode.INACTIVE);
         }
     }
 
@@ -76,7 +78,7 @@ public class Coupon {
     public void increaseIssuedQuantity() {
 
         if (this.totalQuantity != null && this.issuedQuantity >= this.totalQuantity) {
-            throw new CouponValidateException("발행 가능 수량을 초과하여 더 이상 증가시킬 수 없습니다.");
+            throw new CouponValidateException(CouponErrorCode.ISSUE_LIMIT_EXCEEDED);
         }
 
         this.issuedQuantity++;
@@ -101,7 +103,7 @@ public class Coupon {
 
     public void addCampaignUuid(UUID campaignUuid){
         if (this.campaignUuid != null){
-            throw new CouponValidateException("현재 캠페인이 등록된 쿠폰 입니다.");
+            throw new CouponValidateException(CouponErrorCode.COUPON_REGISTERED_IN_CAMPAIGN);
         }
         this.campaignUuid = campaignUuid;
     }
@@ -114,7 +116,7 @@ public class Coupon {
     public void updateCoupon(CouponUpdateRequestDto requestDto) {
 
         if (!this.active) {
-            throw new CouponValidateException("비활성화 상태에서만 수정할 수 있습니다.");
+            throw new CouponValidateException(CouponErrorCode.INACTIVE);
         }
 
         this.campaignUuid = requestDto.getCampaignUuid();
