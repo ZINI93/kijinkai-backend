@@ -3,6 +3,7 @@ package com.kijinkai.domain.payment.domain.model;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.payment.adapter.out.persistence.entity.DepositRequestJpaEntity;
 import com.kijinkai.domain.payment.domain.enums.BankType;
+import com.kijinkai.domain.payment.domain.enums.DepositMethod;
 import com.kijinkai.domain.payment.domain.enums.DepositStatus;
 import com.kijinkai.domain.payment.domain.exception.PaymentAmountException;
 import lombok.*;
@@ -36,6 +37,8 @@ public class DepositRequest {
     private String rejectionReason;
     private BankType bankType;
     private Long version;
+    private DepositMethod depositMethod;
+
 
     private LocalDateTime createdAt;
 

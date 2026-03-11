@@ -51,9 +51,11 @@ public class UserJpaEntity extends BaseEntity {
     @Column(name = "user_status", nullable = false)
     private UserStatus userStatus;
 
+    @Builder.Default
     @Column(name = "is_service_term_agreed", nullable = false)
     private boolean isServiceTermAgreed = true;
 
+    @Builder.Default
     @Column(name = "is_privacy_policy_agreed", nullable = false)
     private boolean isPrivacyPolicyAgreed = true;
 

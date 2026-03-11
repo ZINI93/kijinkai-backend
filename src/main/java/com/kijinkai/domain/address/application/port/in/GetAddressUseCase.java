@@ -6,5 +6,5 @@ import java.util.UUID;
 
 public interface GetAddressUseCase {
     AddressResponseDto getAddressInfo(UUID userUuid);
-
+    AddressResponseDto getAddressByAdmin(UUID userAdminUuid, UUID customerUuid);
 }

@@ -18,4 +18,6 @@ public interface CreateOrderItemUseCase {
 
     List<UUID> createOrderItems(UUID userUuid, List<OrderItemRequestDto> orderItemRequestDtos);
 
+    List<OrderItem> saveOrderItems(List<OrderItem> orderItems);
+
 }

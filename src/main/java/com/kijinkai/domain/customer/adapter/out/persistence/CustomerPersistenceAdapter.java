@@ -4,6 +4,7 @@ package com.kijinkai.domain.customer.adapter.out.persistence;
 import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEntity;
 import com.kijinkai.domain.customer.adapter.out.persistence.mapper.CustomerPersistenceMapper;
 import com.kijinkai.domain.customer.adapter.out.persistence.repository.CustomerRepository;
+import com.kijinkai.domain.customer.adapter.out.persistence.repository.CustomerSearchCondition;
 import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPersistencePort;
 import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.customer.domain.model.CustomerTier;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -48,10 +50,23 @@ public class CustomerPersistenceAdapter implements CustomerPersistencePort {
                 .map(customerPersistenceMapper::toCustomer);
     }
 
+
     @Override
     public Page<Customer> findAllByCustomers(String firstName, String lastName, String phoneNumber, CustomerTier customerTier, Pageable pageable) {
         return customerRepository.findAllByCustomers(firstName, lastName, phoneNumber, customerTier, pageable)
                 .map(customerPersistenceMapper::toCustomer);
+    }
+
+    @Override
+    public Page<Customer> searchCustomers(CustomerSearchCondition condition, Pageable pageable) {
+        return customerRepository.searchCustomers(condition,pageable)
+                .map(customerPersistenceMapper::toCustomer);
+    }
+
+    @Override
+    public List<Customer> findAllByCustomerUuidIn(List<UUID> customerUuids) {
+        List<CustomerJpaEntity> customerJpaEntities = customerRepository.findAllByCustomerUuidIn(customerUuids);
+        return customerPersistenceMapper.toCustomerList(customerJpaEntities);
     }
 
     @Override

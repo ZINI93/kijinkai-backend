@@ -1,20 +1,22 @@
 package com.kijinkai.domain.orderitem.adapter.out.persistence.repostiory;
 
-import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPersistencePort;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemJpaEntity;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
-import com.kijinkai.domain.orderitem.domain.model.OrderItem;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.StringExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+import static com.kijinkai.domain.customer.adapter.out.persistence.entity.QCustomerJpaEntity.*;
 import static com.kijinkai.domain.orderitem.adapter.out.persistence.entity.QOrderItemJpaEntity.*;
 import static com.kijinkai.domain.transaction.entity.QTransaction.transaction;
 
@@ -29,9 +31,11 @@ public class OrderItemRepositoryImpl implements OrderItemRepositoryCustom {
         // 1. 컨텐츠 조회
         List<OrderItemJpaEntity> content = queryFactory
                 .selectFrom(orderItemJpaEntity)
+                .leftJoin(customerJpaEntity).on(orderItemJpaEntity.customerUuid.eq(customerJpaEntity.customerUuid))
                 .where(
+                        orderItemCodeCon(condition.getOrderItemCode()),
+                        nameCon((condition.getName())),
                         orderItemStatusEq(condition.getStatus()),
-                        orderItemCodeEq(condition.getOrderItemCode()),
                         dateBetween(condition.getStartDate(), condition.getEndDate())
                 )
                 .offset(pageable.getOffset())
@@ -41,36 +45,54 @@ public class OrderItemRepositoryImpl implements OrderItemRepositoryCustom {
 
 
         //카운트 쿼리
-        Long total = queryFactory
+        JPAQuery<Long> countQuery = queryFactory
                 .select(orderItemJpaEntity.count())
                 .from(orderItemJpaEntity)
-                .where(
+                .leftJoin(customerJpaEntity).on(orderItemJpaEntity.customerUuid.eq(customerJpaEntity.customerUuid))                .where(
+                        orderItemCodeCon(condition.getOrderItemCode()),
+                        nameCon((condition.getName())),
                         orderItemStatusEq(condition.getStatus()),
-                        orderItemCodeEq(condition.getOrderItemCode()),
                         dateBetween(condition.getStartDate(), condition.getEndDate())
-                )
-                .fetchOne();
+                );
 
 
-        return new PageImpl<>(content, pageable, total != null ? total : 0);
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
 
     }
 
 
     // helper method
-    private BooleanExpression orderItemStatusEq(OrderItemStatus status) {
-        return status != null ? orderItemJpaEntity.orderItemStatus.eq(status) : null;
+    private BooleanExpression orderItemCodeCon(String orderItemCode) {
+        if (!StringUtils.hasText(orderItemCode)) {
+            return null;
+        }
+
+        return orderItemJpaEntity.orderItemCode.contains(orderItemCode);
     }
 
-    private BooleanExpression orderItemCodeEq(String orderItemCode) {
-        return orderItemCode != null ? orderItemJpaEntity.orderItemCode.eq(orderItemCode) : null;
+
+    private BooleanExpression nameCon(String name) {
+      if (!StringUtils.hasText(name)){
+          return null;
+      }
+
+        BooleanExpression firstNameContains = customerJpaEntity.firstName.contains(name);
+        BooleanExpression lastNameContains = customerJpaEntity.lastName.contains(name);
+        BooleanExpression fullNameCon = customerJpaEntity.lastName.concat(customerJpaEntity.firstName).contains(name);
+
+        return firstNameContains.or(lastNameContains).or(fullNameCon);
+    }
+
+
+    private BooleanExpression orderItemStatusEq(OrderItemStatus status) {
+        return status != null ? orderItemJpaEntity.orderItemStatus.eq(status) : null;
     }
 
     private BooleanExpression dateBetween(LocalDate start, LocalDate end) {
 
 
-        // 둘다 없는 경우
-        if (start == null || end == null) {
+        // 둘 다 없는 경우만 null 반환
+        if (start == null && end == null) {
             return null;
         }
 
@@ -81,7 +103,7 @@ public class OrderItemRepositoryImpl implements OrderItemRepositoryCustom {
 
         // 종료일로 검색하는 경우
         if (start == null && end != null) {
-            return transaction.createdAt.loe(end.atTime(LocalTime.MAX));
+            return orderItemJpaEntity.createdAt.loe(end.atTime(LocalTime.MAX));
         }
 
         return orderItemJpaEntity.createdAt.between(

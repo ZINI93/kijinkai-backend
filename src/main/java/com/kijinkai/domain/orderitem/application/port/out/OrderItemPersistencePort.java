@@ -1,6 +1,8 @@
 package com.kijinkai.domain.orderitem.application.port.out;
 
+import com.kijinkai.domain.order.adapter.out.persistence.repository.CustomerOrderSummary;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
+import com.kijinkai.domain.orderitem.adapter.out.persistence.repostiory.CustomerOrderItemSummary;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.repostiory.OrderItemSearchCondition;
 import com.kijinkai.domain.orderitem.domain.model.OrderItem;
 import com.kijinkai.domain.payment.application.dto.request.OrderPaymentRequestDto;
@@ -8,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +46,8 @@ public interface OrderItemPersistencePort {
 
     List<OrderItem> findAllByOrderItemCodeInAndOrderItemStatus(List<String> orderItemCode, OrderItemStatus status);
 
+    List<OrderItem> findAllByOrderItemCodeIn(List<String> orderItemCode);
+
     List<OrderItem> findAllByCustomerUuidAndOrderItemStatusIn(UUID customerUuid, List<OrderItemStatus> orderItemStatuses);
 
     List<OrderItem> findAllByCustomerUuidAndOrderItemCodeIn(UUID customerUuid, List<String> orderItemCodes);
@@ -50,6 +55,14 @@ public interface OrderItemPersistencePort {
     List<OrderItem> findAllByCustomerUuidAndOrderItemStatusAndShipmentUuidIn(UUID customerUuid,OrderItemStatus status, List<UUID> shipmentUuids);
 
     List<OrderItem> findAllByShipmentUuidAndOrderItemStatus(UUID shipmentUuid, OrderItemStatus status);
+
+    List<OrderItem> findAllByOrderUuid(UUID orderUuid);
+
+    List<CustomerOrderItemSummary> orderItemStatistics(@Param("orderUuids") List<UUID> orderUuids );
+
+    List<OrderItem> findAllByStatusAndLocalArriveAtBefore(OrderItemStatus status, LocalDateTime threshold);
+
+    Page<OrderItem> findAllByDeliveryUuid(UUID deliveryUuid, Pageable pageable);
 
     int findOrderItemCountByStatus(@Param("customerUuid") UUID customerUuid, @Param("orderItemStatus") OrderItemStatus orderItemStatus);
 

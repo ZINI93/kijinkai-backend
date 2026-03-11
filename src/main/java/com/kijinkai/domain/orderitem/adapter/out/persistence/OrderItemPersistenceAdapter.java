@@ -4,6 +4,7 @@ package com.kijinkai.domain.orderitem.adapter.out.persistence;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemJpaEntity;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.mapper.OrderItemPersistenceMapper;
+import com.kijinkai.domain.orderitem.adapter.out.persistence.repostiory.CustomerOrderItemSummary;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.repostiory.OrderItemRepository;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.repostiory.OrderItemSearchCondition;
 import com.kijinkai.domain.orderitem.application.port.out.OrderItemPersistencePort;
@@ -13,7 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -107,6 +108,12 @@ public class OrderItemPersistenceAdapter implements OrderItemPersistencePort {
     }
 
     @Override
+    public List<OrderItem> findAllByOrderItemCodeIn(List<String> orderItemCode) {
+        List<OrderItemJpaEntity> orderItemJpaEntities = orderItemRepository.findAllByOrderItemCodeIn(orderItemCode);
+        return orderItemPersistenceMapper.toOrderItems(orderItemJpaEntities);
+    }
+
+    @Override
     public List<OrderItem> findAllByCustomerUuidAndOrderItemStatusIn(UUID customerUuid, List<OrderItemStatus> orderItemStatuses) {
         return orderItemRepository.findAllByCustomerUuidAndOrderItemStatusIn(customerUuid, orderItemStatuses)
                 .stream().map(orderItemPersistenceMapper::toOrderItem).toList();
@@ -129,6 +136,29 @@ public class OrderItemPersistenceAdapter implements OrderItemPersistencePort {
     public List<OrderItem> findAllByShipmentUuidAndOrderItemStatus(UUID shipmentUuid, OrderItemStatus status) {
         return orderItemRepository.findAllByShipmentUuidAndOrderItemStatus(shipmentUuid, status)
                 .stream().map(orderItemPersistenceMapper::toOrderItem).toList();
+    }
+
+    @Override
+    public List<OrderItem> findAllByOrderUuid(UUID orderUuid) {
+        List<OrderItemJpaEntity> orderItemJpaEntities = orderItemRepository.findAllByOrderUuid(orderUuid);
+        return orderItemPersistenceMapper.toOrderItems(orderItemJpaEntities);
+    }
+
+    @Override
+    public List<CustomerOrderItemSummary> orderItemStatistics(List<UUID> orderUuids) {
+        return orderItemRepository.orderItemStatistics(orderUuids);
+    }
+
+    @Override
+    public List<OrderItem> findAllByStatusAndLocalArriveAtBefore(OrderItemStatus status, LocalDateTime threshold) {
+        List<OrderItemJpaEntity> orderItemJpaEntities = orderItemRepository.findAllByOrderItemStatusAndLocalArrivedAtBefore(status, threshold);
+        return orderItemPersistenceMapper.toOrderItems(orderItemJpaEntities);
+    }
+
+    @Override
+    public Page<OrderItem> findAllByDeliveryUuid(UUID deliveryUuid, Pageable pageable) {
+        return orderItemRepository.findAllByDeliveryUuid(deliveryUuid,pageable)
+                .map(orderItemPersistenceMapper::toOrderItem);
     }
 
 

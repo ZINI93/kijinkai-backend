@@ -2,8 +2,11 @@ package com.kijinkai.domain.payment.adapter.out.persistence;
 
 import com.kijinkai.domain.payment.adapter.out.persistence.entity.DepositRequestJpaEntity;
 import com.kijinkai.domain.payment.adapter.out.persistence.mapper.DepositRequestPersistenceMapper;
+import com.kijinkai.domain.payment.adapter.out.persistence.repository.deposit.DepositSearchCondition;
+import com.kijinkai.domain.payment.application.dto.DepositAdminSearchDto;
+import com.kijinkai.domain.payment.application.dto.DepositAdminSummaryDto;
 import com.kijinkai.domain.payment.application.port.out.DepositRequestPersistencePort;
-import com.kijinkai.domain.payment.adapter.out.persistence.repository.SpringDataJpaDepositRequestRepository;
+import com.kijinkai.domain.payment.adapter.out.persistence.repository.deposit.SpringDataJpaDepositRequestRepository;
 import com.kijinkai.domain.payment.domain.enums.DepositStatus;
 import com.kijinkai.domain.payment.domain.model.DepositRequest;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -71,6 +75,17 @@ public class DepositRequestPersistencePersistenceAdapter implements DepositReque
     public Page<DepositRequest> findAllByCustomerUuid(UUID customerUuid, Pageable pageable) {
         return springDataJpaDepositRequestRepository.findAllByCustomerUuid(customerUuid,pageable)
                 .map(depositRequestPersistenceMapper::toDepositRequest);
+    }
+
+    @Override
+    public Page<DepositAdminSearchDto> searchDeposit(DepositSearchCondition condition, Pageable pageable) {
+        return springDataJpaDepositRequestRepository.searchDeposit(condition,pageable);
+
+    }
+
+    @Override
+    public DepositAdminSummaryDto summary(LocalDate date) {
+        return springDataJpaDepositRequestRepository.summary(date);
     }
 
 }

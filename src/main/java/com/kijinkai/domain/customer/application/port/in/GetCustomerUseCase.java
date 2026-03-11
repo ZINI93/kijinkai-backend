@@ -10,5 +10,5 @@ import java.util.UUID;
 public interface GetCustomerUseCase {
 
     CustomerResponseDto getCustomerInfo(UUID userUuid);
-    Page<CustomerResponseDto> getCustomers(UUID userUuid, String firstName, String lastName, String phoneNumber, CustomerTier customerTier, Pageable pageable);
+    Page<CustomerResponseDto> getCustomers(UUID userUuid, String email, String name, String phoneNumber, CustomerTier customerTier, Pageable pageable);
 }

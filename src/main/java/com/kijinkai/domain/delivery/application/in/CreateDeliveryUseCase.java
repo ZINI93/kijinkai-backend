@@ -1,7 +1,7 @@
 package com.kijinkai.domain.delivery.application.in;
 
-import com.kijinkai.domain.delivery.application.dto.DeliveryRequestDto;
-import com.kijinkai.domain.delivery.application.dto.DeliveryResponseDto;
+import com.kijinkai.domain.delivery.application.dto.request.DeliveryRequestDto;
+import com.kijinkai.domain.delivery.application.dto.response.DeliveryResponseDto;
 
 import java.util.UUID;
 

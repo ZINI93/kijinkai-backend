@@ -1,6 +1,7 @@
 package com.kijinkai.domain.delivery.adpater.out.persistence;
 
 import com.kijinkai.domain.delivery.adpater.out.persistence.entity.DeliveryJpaEntity;
+import com.kijinkai.domain.delivery.adpater.out.persistence.repository.DeliverySearchCondition;
 import com.kijinkai.domain.delivery.domain.model.DeliveryStatus;
 import com.kijinkai.domain.delivery.adpater.out.persistence.persistenceMapper.DeliveryPersistenceMapper;
 import com.kijinkai.domain.delivery.adpater.out.persistence.repository.DeliveryRepository;
@@ -41,6 +42,12 @@ public class DeliveryPersistenceAdapter implements DeliveryPersistencePort {
     }
 
     @Override
+    public Optional<Delivery> findByDeliveryUuid(UUID deliveryUuid) {
+        return deliveryRepository.findByDeliveryUuid(deliveryUuid)
+                .map(deliveryPersistenceMapper::toDelivery);
+    }
+
+    @Override
     public Page<Delivery> findByCustomerUuidByStatus(UUID customerUuid, DeliveryStatus deliveryStatus, Pageable page) {
         return deliveryRepository.findByCustomerUuidByStatus(customerUuid, deliveryStatus,page)
                 .map(deliveryPersistenceMapper::toDelivery);
@@ -49,6 +56,12 @@ public class DeliveryPersistenceAdapter implements DeliveryPersistencePort {
     @Override
     public Page<Delivery> findAllByDeliveryStatus(DeliveryStatus status, Pageable pageable) {
         return deliveryRepository.findAllByDeliveryStatus(status, pageable)
+                .map(deliveryPersistenceMapper::toDelivery);
+    }
+
+    @Override
+    public Page<Delivery> searchDeliveries(DeliverySearchCondition condition, Pageable pageable) {
+        return deliveryRepository.searchDeliveries(condition, pageable)
                 .map(deliveryPersistenceMapper::toDelivery);
     }
 

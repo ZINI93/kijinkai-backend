@@ -23,4 +23,7 @@ public class OrderRequestDto {
     private String convertedCurrency;
     private List<String> orderItemCodes;
     private Map<String,Boolean> inspectedPhotoRequest;
+
+
+
 }

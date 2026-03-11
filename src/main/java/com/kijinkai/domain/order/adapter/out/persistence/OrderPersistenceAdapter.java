@@ -3,19 +3,25 @@ package com.kijinkai.domain.order.adapter.out.persistence;
 import com.kijinkai.domain.order.adapter.out.persistence.entity.OrderJpaEntity;
 import com.kijinkai.domain.order.adapter.out.persistence.entity.OrderStatus;
 import com.kijinkai.domain.order.adapter.out.persistence.mapper.OrderPersistenceMapper;
+import com.kijinkai.domain.order.adapter.out.persistence.repository.CustomerOrderSummary;
 import com.kijinkai.domain.order.adapter.out.persistence.repository.OrderRepository;
+import com.kijinkai.domain.order.adapter.out.persistence.repository.OrderSearchCondition;
 import com.kijinkai.domain.order.application.port.out.OrderPersistencePort;
 import com.kijinkai.domain.order.domain.model.Order;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+
 @Repository
 @RequiredArgsConstructor
-class OrderPersistenceAdapter implements OrderPersistencePort {
+public class OrderPersistenceAdapter  implements OrderPersistencePort {
+
 
     private final OrderPersistenceMapper orderPersistenceMapper;
     private final OrderRepository orderRepository;
@@ -50,6 +56,20 @@ class OrderPersistenceAdapter implements OrderPersistencePort {
         List<OrderJpaEntity> orderJpaEntities = orderRepository.findAllByCustomerUuidAndOrderStatusAndIsReviewed(customerUuid, status, isReviewed);
         return orderPersistenceMapper.toOrders(orderJpaEntities);
     }
+
+
+
+    @Override
+    public List<CustomerOrderSummary> findOrderStatisticsByCustomerUuids(List<UUID> customerUuids, OrderStatus orderStatus) {
+        return orderRepository.findOrderStatisticsByCustomerUuids(customerUuids, orderStatus);
+    }
+
+    @Override
+    public Page<Order> searchOrders(OrderSearchCondition condition, Pageable pageable) {
+        return orderRepository.searchOrders(condition, pageable)
+                .map(orderPersistenceMapper::toOrder);
+    }
+
 
     @Override
     public void deleteOrder(Order order) {

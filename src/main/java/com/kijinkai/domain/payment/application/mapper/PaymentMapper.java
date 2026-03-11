@@ -1,10 +1,13 @@
 package com.kijinkai.domain.payment.application.mapper;
 
+import com.kijinkai.domain.customer.domain.model.Customer;
+import com.kijinkai.domain.payment.application.dto.DepositAdminSearchDto;
 import com.kijinkai.domain.payment.application.dto.response.*;
 import com.kijinkai.domain.payment.domain.model.DepositRequest;
 import com.kijinkai.domain.payment.domain.model.OrderPayment;
 import com.kijinkai.domain.payment.domain.model.RefundRequest;
 import com.kijinkai.domain.payment.domain.model.WithdrawRequest;
+import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.wallet.application.dto.WalletResponseDto;
 import com.kijinkai.domain.wallet.domain.model.Wallet;
 import lombok.Data;
@@ -17,6 +20,9 @@ import java.util.UUID;
 @Data
 @Component
 public class PaymentMapper {
+
+
+
 
     public DepositRequestResponseDto createDepositResponse(DepositRequest request) {
 
@@ -123,11 +129,12 @@ public class PaymentMapper {
                 .build();
     }
 
-    public RefundResponseDto createRefundResponse(RefundRequest refundRequest) {
+    public RefundResponseDto createRefundResponse(RefundRequest refundRequest, UUID historyUuid) {
 
         return RefundResponseDto.builder()
                 .refundUuid(refundRequest.getRefundUuid())
                 .customerUuid(refundRequest.getCustomerUuid())
+                .transactionHistory(historyUuid)
                 .orderItemUuid(refundRequest.getOrderItemUuid())
                 .refundAmount(refundRequest.getRefundAmount())
                 .processedByAdmin(refundRequest.getProcessedByAdmin())
@@ -205,7 +212,6 @@ public class PaymentMapper {
                 .build();
 
     }
-
 
     public OrderPaymentResponseDto orderPaymentInfo(OrderPayment orderPayment) {
 

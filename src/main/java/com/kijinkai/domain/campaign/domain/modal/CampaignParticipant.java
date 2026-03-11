@@ -13,7 +13,7 @@ public class CampaignParticipant {
 
     private Long campaignParticipantId;
     private UUID campaignParticipantUuid;
-    private Long CampaignId;
+    private Campaign campaign;
     private UUID userUuid;
     private LocalDateTime participatedAt;
     private Boolean rewardGiven;

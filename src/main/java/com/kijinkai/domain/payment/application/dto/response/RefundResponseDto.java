@@ -20,6 +20,7 @@ public class RefundResponseDto {
     UUID customerUuid;
     UUID walletUuid;
     UUID orderItemUuid;
+    UUID transactionHistory;
     BigDecimal refundAmount;
     String refundReason;
     RefundType refundType;
@@ -27,6 +28,7 @@ public class RefundResponseDto {
     UUID processedByAdmin;
     LocalDateTime processedAt;
     String adminMemo;
+
 
     LocalDateTime createAt;
     BigDecimal afterBalance;

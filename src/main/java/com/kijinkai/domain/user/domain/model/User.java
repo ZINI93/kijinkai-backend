@@ -25,9 +25,14 @@ public class User {
     private UserStatus userStatus;
     private LocalDateTime createdAt;
 
+    private boolean serviceTermAgreed;
+    private boolean privacyPolicyAgreed;
+
+
     //Social 추가
-    private Boolean isSocial;
+    private Boolean social;
     private SocialProviderType socialProviderType;
+
 
     /**
      * 이메일 인증 처리

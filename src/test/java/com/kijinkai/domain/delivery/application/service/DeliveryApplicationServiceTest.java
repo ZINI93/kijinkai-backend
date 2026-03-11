@@ -6,9 +6,9 @@
 //import com.kijinkai.domain.customer.domain.model.Customer;
 //import com.kijinkai.domain.delivery.domain.model.Carrier;
 //import com.kijinkai.domain.delivery.domain.model.DeliveryStatus;
-//import com.kijinkai.domain.delivery.application.dto.DeliveryRequestDto;
-//import com.kijinkai.domain.delivery.application.dto.DeliveryResponseDto;
-//import com.kijinkai.domain.delivery.application.dto.DeliveryUpdateDto;
+//import com.kijinkai.domain.delivery.application.dto.request.DeliveryRequestDto;
+//import com.kijinkai.domain.delivery.application.dto.response.DeliveryResponseDto;
+//import com.kijinkai.domain.delivery.application.dto.request.DeliveryUpdateDto;
 //import com.kijinkai.domain.delivery.application.mapper.DeliveryMapper;
 //import com.kijinkai.domain.delivery.application.out.DeliveryPersistencePort;
 //import com.kijinkai.domain.delivery.application.validator.DeliveryValidator;

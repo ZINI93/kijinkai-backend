@@ -1,4 +1,4 @@
-package com.kijinkai.domain.delivery.application.dto;
+package com.kijinkai.domain.delivery.application.dto.request;
 
 
 import com.kijinkai.domain.delivery.domain.model.DeliveryType;

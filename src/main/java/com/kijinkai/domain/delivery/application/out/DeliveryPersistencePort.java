@@ -1,6 +1,7 @@
 package com.kijinkai.domain.delivery.application.out;
 
 
+import com.kijinkai.domain.delivery.adpater.out.persistence.repository.DeliverySearchCondition;
 import com.kijinkai.domain.delivery.domain.model.DeliveryStatus;
 import com.kijinkai.domain.delivery.domain.model.Delivery;
 import org.springframework.data.domain.Page;
@@ -17,8 +18,10 @@ public interface DeliveryPersistencePort {
 
     // 조회
     Optional<Delivery> findByCustomerUuidAndDeliveryUuid(UUID customerUuid, UUID deliveryUuid);
+    Optional<Delivery> findByDeliveryUuid(UUID deliveryUuid);
     Page<Delivery> findByCustomerUuidByStatus(@Param("customerUuid") UUID customerUuid, @Param("deliveryStatus") DeliveryStatus deliveryStatus, Pageable page);
     Page<Delivery> findAllByDeliveryStatus(DeliveryStatus status, Pageable pageable);
+    Page<Delivery> searchDeliveries(DeliverySearchCondition condition, Pageable pageable);
 
     int findByDeliveryStatusCount(@Param("customerUuid") UUID customerUuid, @Param("deliveryStatus")  DeliveryStatus deliveryStatus);
 }

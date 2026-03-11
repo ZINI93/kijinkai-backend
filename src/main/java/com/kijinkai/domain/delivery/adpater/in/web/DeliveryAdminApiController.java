@@ -2,16 +2,20 @@ package com.kijinkai.domain.delivery.adpater.in.web;
 
 import com.kijinkai.domain.common.BaseController;
 import com.kijinkai.domain.common.BasicResponseDto;
-import com.kijinkai.domain.delivery.application.dto.DeliveryCountResponseDto;
-import com.kijinkai.domain.delivery.application.dto.DeliveryRequestDto;
-import com.kijinkai.domain.delivery.application.dto.DeliveryResponseDto;
-import com.kijinkai.domain.delivery.application.dto.DeliveryUpdateDto;
+import com.kijinkai.domain.delivery.application.dto.request.DeliveryCancelRequestDto;
+import com.kijinkai.domain.delivery.application.dto.response.DeliveryCountResponseDto;
+import com.kijinkai.domain.delivery.application.dto.request.DeliveryRequestDto;
+import com.kijinkai.domain.delivery.application.dto.response.DeliveryResponseDto;
+import com.kijinkai.domain.delivery.application.dto.request.DeliveryUpdateDto;
 import com.kijinkai.domain.delivery.domain.model.DeliveryStatus;
 import com.kijinkai.domain.delivery.application.in.CreateDeliveryUseCase;
 import com.kijinkai.domain.delivery.application.in.DeleteDeliveryUseCase;
 import com.kijinkai.domain.delivery.application.in.GetDeliveryUseCase;
 import com.kijinkai.domain.delivery.application.in.UpdateDeliveryUseCase;
 import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
@@ -21,7 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,6 +35,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Slf4j
@@ -215,11 +220,30 @@ public class DeliveryAdminApiController extends BaseController {
             @ApiResponse(responseCode = "404", description = "배송을 찾을 수 없음"),
             @ApiResponse(responseCode = "500", description = "서버오류")
     })
-    public ResponseEntity<BasicResponseDto<DeliveryCountResponseDto>> getDeliveriesCountByStatus(
+    public ResponseEntity<BasicResponseDto<DeliveryCountResponseDto>> getDeliveryDetailByAdmin(
             Authentication authentication
     ) {
         UUID userUuid = getUserUuid(authentication);
         DeliveryCountResponseDto response = getDeliveryUseCase.getDeliveryDashboardCount(userUuid);
+
+
+        return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved order payment information", response));
+    }
+
+    @GetMapping("/{deliveryUuid}/request-box")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "배송 정보 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "배송을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<DeliveryResponseDto>> getDeliveriesCountByStatus(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PathVariable UUID deliveryUuid,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.ASC) Pageable pageable
+    ) {
+
+        DeliveryResponseDto response = getDeliveryUseCase.getRequestDeliveryOrderItemByAdmin(customUserDetails.getUserUuid(), deliveryUuid, pageable);
 
 
         return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved order payment information", response));
@@ -237,13 +261,126 @@ public class DeliveryAdminApiController extends BaseController {
     public ResponseEntity<BasicResponseDto<Page<DeliveryResponseDto>>> getDeliveryByRequestPending(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.ASC) Pageable pageable
-            ){
+    ) {
 
         Page<DeliveryResponseDto> deliveriesByPending = getDeliveryUseCase.getDeliveriesByStatus(customUserDetails.getUserUuid(), DeliveryStatus.PENDING, pageable);
 
         return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved deliveries", deliveriesByPending));
     }
 
+
+    @Operation(summary = "배송비 결제 요청", description = "관리자 권한으로 포장된 박스들의 요금을 합산하여 고객에게 배송비 결제를 요청하고 결제 정보를 생성합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "결제 요청 성공: 배송비 합산 및 결제 데이터 생성 완료",
+                    content = @Content(schema = @Schema(implementation = DeliveryResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청: 포장된 박스가 없는 경우 등", content = @Content),
+            @ApiResponse(responseCode = "403", description = "권한 없음: 관리자 권한이 없는 사용자", content = @Content),
+            @ApiResponse(responseCode = "404", description = "찾을 수 없음: 배송 또는 고객 정보가 존재하지 않음", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류", content = @Content)
+    })
+    @PostMapping(value = "/{deliveryUuid}/payment-request", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BasicResponseDto<DeliveryResponseDto>> requestDeliveryPayment(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable UUID deliveryUuid) {
+
+        DeliveryResponseDto response = updateDeliveryUseCase.requestDeliveryPayment(
+                userDetails.getUserUuid(),
+                deliveryUuid
+        );
+
+        return ResponseEntity.ok(BasicResponseDto.success("배송비 결제 요청이 성공적으로 처리되었습니다.", response));
+    }
+
+
+    // -- 조회.
+    @GetMapping
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "배송요청 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "배송을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버오류")
+    })
+    public ResponseEntity<BasicResponseDto<Page<DeliveryResponseDto>>> getDeliveries(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String phoneNumber,
+            @RequestParam(required = false) DeliveryStatus status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @PageableDefault(size = 20, page = 0) Pageable pageable
+    ) {
+
+        Page<DeliveryResponseDto> responses = getDeliveryUseCase.getDeliveriesByAdmin(customUserDetails.getUserUuid(), name, phoneNumber, status, startDate, endDate, pageable);
+
+        return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved delivery", responses));
+    }
+    @Operation(summary = "배송 취소 처리", description = "관리자 권한으로 배송을 취소하고 취소 사유를 기록하며, 연관된 모든 박스(Shipment) 데이터를 삭제합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "취소 성공: 배송 상태 변경 및 관련 데이터 삭제 완료",
+                    content = @Content(schema = @Schema(implementation = DeliveryResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청: 이미 취소되었거나 취소가 불가능한 상태", content = @Content),
+            @ApiResponse(responseCode = "403", description = "권한 없음: 관리자 권한이 없는 사용자", content = @Content),
+            @ApiResponse(responseCode = "404", description = "찾을 수 없음: 해당 배송 정보를 찾을 수 없음", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류", content = @Content)
+    })
+    @PutMapping(value = "/{deliveryUuid}/cancel", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BasicResponseDto<DeliveryResponseDto>> cancelDelivery(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable UUID deliveryUuid,
+            @RequestBody DeliveryCancelRequestDto requestDto) {
+
+        DeliveryResponseDto response = updateDeliveryUseCase.cancelDelivery(
+                userDetails.getUserUuid(),
+                deliveryUuid,
+                requestDto
+        );
+
+        return ResponseEntity.ok(BasicResponseDto.success("배송 취소 처리가 완료되었습니다.", response));
+    }
+
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공: 취소 사유 정보 반환",
+                    content = @Content(schema = @Schema(implementation = DeliveryResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청: 취소 상태가 아닌 배송 건 조회 시도", content = @Content),
+            @ApiResponse(responseCode = "403", description = "권한 없음: 관리자 권한이 없는 사용자", content = @Content),
+            @ApiResponse(responseCode = "404", description = "찾을 수 없음: 해당 배송 정보를 찾을 수 없음", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류", content = @Content)
+    })
+    @GetMapping(value = "/{deliveryUuid}/cancel-reason", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BasicResponseDto<DeliveryResponseDto>> getCancelReason(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable UUID deliveryUuid) {
+
+        DeliveryResponseDto response = getDeliveryUseCase.getCancelReason(
+                userDetails.getUserUuid(),
+                deliveryUuid
+        );
+
+        return ResponseEntity.ok(BasicResponseDto.success("배송 취소 사유 조회가 완료되었습니다.", response));
+    }
+
+    @Operation(summary = "취소된 배송 복구", description = "관리자 권한으로 취소된 배송 건을 다시 '보류(Pending)' 상태로 복구합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "복구 성공: 배송 상태가 보류(Pending)로 변경됨",
+                    content = @Content(schema = @Schema(implementation = DeliveryResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청: 복구가 불가능한 상태이거나 잘못된 식별자", content = @Content),
+            @ApiResponse(responseCode = "403", description = "권한 없음: 관리자 권한이 없는 사용자", content = @Content),
+            @ApiResponse(responseCode = "404", description = "찾을 수 없음: 해당 배송 정보를 찾을 수 없음", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류", content = @Content)
+    })
+    @PutMapping(value = "/{deliveryUuid}/restore", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BasicResponseDto<DeliveryResponseDto>> restoreDelivery(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable UUID deliveryUuid) {
+
+        DeliveryResponseDto response = updateDeliveryUseCase.restoreDelivery(
+                userDetails.getUserUuid(),
+                deliveryUuid
+        );
+
+        return ResponseEntity.ok(BasicResponseDto.success("배송 복구 처리가 완료되었습니다.", response));
+    }
 
 
 

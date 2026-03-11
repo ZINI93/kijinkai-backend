@@ -5,7 +5,9 @@ import com.kijinkai.domain.common.BaseEntity;
 
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.payment.domain.enums.BankType;
+import com.kijinkai.domain.payment.domain.enums.DepositMethod;
 import com.kijinkai.domain.payment.domain.enums.DepositStatus;
+import com.kijinkai.domain.payment.domain.enums.PaymentType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Comment;
@@ -104,6 +106,11 @@ public class DepositRequestJpaEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "bank_type", nullable = false, length = 50)
     private BankType bankType;
+
+    @Comment("지불 방식")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "deposit_method", nullable = false, length = 50)
+    private DepositMethod depositMethod;
 
     @Version
     @Column(name = "version")

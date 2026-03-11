@@ -48,6 +48,7 @@ public class OrderJpaEntity extends BaseEntity {
     @Column(name = "rejected_reason", length = 255)
     private String rejectedReason;
 
+    @Builder.Default
     @Column(name = "is_reviewed", nullable = false)
     private boolean isReviewed = false;
 

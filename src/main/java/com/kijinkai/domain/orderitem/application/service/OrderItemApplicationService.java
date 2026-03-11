@@ -4,6 +4,7 @@ import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPer
 import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.exchange.service.PriceCalculationService;
+import com.kijinkai.domain.mail.service.EmailService;
 import com.kijinkai.domain.order.domain.model.Order;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.repostiory.OrderItemSearchCondition;
 import com.kijinkai.util.BusinessCodeType;
@@ -25,18 +26,20 @@ import com.kijinkai.domain.payment.application.dto.request.OrderPaymentRequestDt
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
 import com.kijinkai.domain.user.domain.model.User;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -58,6 +61,7 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
 
     //outer
     private final UserPersistencePort userPersistencePort;
+    private final EmailService emailService;
     private final PriceCalculationService priceCalculationService;
 
 
@@ -78,7 +82,6 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
 
         return orderItemFactory.createOrderItem(customer, requestDto, orderItemCode);
     }
-
 
     /**
      * 요청 상품들 저장
@@ -118,6 +121,12 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
         return savedAllOrderItem.stream().map(OrderItem::getOrderItemUuid).toList();
     }
 
+    @Override
+    @Transactional
+    public List<OrderItem> saveOrderItems(List<OrderItem> orderItems) {
+        return orderItemPersistencePort.saveAllOrderItem(orderItems);
+    }
+
 
     // 일단 사용하고 리펙토링 할때 위에 코드랑 유사함으로 결합 고려해야함
     @Override
@@ -129,6 +138,24 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
         orderItems.forEach(orderItem -> orderItem.markAsDeliveryPaymentRequest(deliveryPaymentUuid));
         return orderItemPersistencePort.saveAllOrderItem(orderItems);
     }
+
+    @Override
+    @Transactional
+    public OrderItemResponseDto localOrderCompleted(UUID userAdminUuid, UUID orderItemUuid) {
+
+        // 관리자 검증 및 조회
+        User user = userPersistencePort.findByUserUuid(userAdminUuid)
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for user uuid: %s", userAdminUuid)));
+        user.validateAdminRole();
+
+        OrderItem orderItem = findOrderItemByOrderItemUuid(orderItemUuid);
+        orderItem.changeLocalOrderCompleted();
+
+        OrderItem savedOrderItem = orderItemPersistencePort.saveOrderItem(orderItem);
+
+        return orderItemMapper.toOrderItemUuidResponseDto(savedOrderItem);
+    }
+
 
     @Override
     @Transactional
@@ -197,6 +224,137 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
         return orderItem;
     }
 
+
+    // ---- 업데이트. ----
+
+
+    /*
+    현지 상품도착 한 후에 통합
+     */
+    @Override
+    @Transactional
+    public void bulkArriveProcess(ArrivedItemRequestDto requestDto){
+
+        //선택된 아이템 조회
+        List<OrderItem> targetItems = orderItemPersistencePort.findAllByOrderItemUuidIn(requestDto.getOrderItemUuids());
+
+        if (targetItems.isEmpty()) return;
+
+        //고객별로 그루핑
+        Map<UUID, List<OrderItem>> groupedByCustomer = targetItems.stream()
+                .collect(Collectors.groupingBy(OrderItem::getCustomerUuid));
+
+        //고객별 순회
+        groupedByCustomer.forEach((customerUuid, items) -> {
+
+            //상태 변경
+            items.forEach(OrderItem::startConsolidation);
+
+            Customer customer = findCustomerByCustomerUuid(customerUuid);
+            User user = findUserByUserUuid(customer.getUserUuid());
+
+            try {
+                emailService.sendBulkArrivalMail(user.getEmail(), items);
+            } catch (Exception e) {
+                log.error("고객[{}]에게 메일 발송 중 오류 발생. 하지만 상태 변경은 유지됨. 사유: {}",
+                        user.getEmail(), e.getMessage());
+            }
+
+            orderItemPersistencePort.saveAllOrderItem(targetItems);
+
+        });
+        log.info("총 {}건의 아이템 입고 및 통합 처리 완료 (고객 {}명 대상)", targetItems.size(), groupedByCustomer.size());
+
+    }
+
+
+
+
+    @Override
+    public void processStoragePeriodExceeded(OrderItem orderItem) throws MessagingException {
+
+        Customer customer = findCustomerByCustomerUuid(orderItem.getCustomerUuid());
+
+        User user = findUserByUserUuid(customer.getUserUuid());
+
+        // 이메일 전송
+        try {
+            //메일 전송
+            emailService.sendStoragePeriodExceededMail(user.getEmail(), orderItem.getOrderItemCode());
+
+            // 메모리 상에서만 변경
+            orderItem.exceedStoragePeriod();
+
+        } catch (Exception e) {
+            log.error("메일 발송 실패로 인해 제외됨: {}", orderItem.getOrderItemCode());
+            throw e;
+        }
+
+    }
+
+
+
+    @Override
+    @Transactional
+    public OrderItemResponseDto sendInspectionEmail(UUID userAdminUuid, UUID oderItemUuid, List<MultipartFile> photos) {
+
+        // 관리자 검증
+        User userAdmin = userPersistencePort.findByUserUuid(userAdminUuid)
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for user uuid: %s", userAdminUuid)));
+        userAdmin.validateAdminRole();
+
+        // 상품조회
+        OrderItem orderItem = findOrderItemByOrderItemUuid(oderItemUuid);
+
+        //유저 이메일 조회
+
+        Customer customer = customerPersistencePort.findByCustomerUuid(orderItem.getCustomerUuid())
+                .orElseThrow(() -> new CustomerNotFoundException("구매자를 찾을 수 없습니다."));
+        User user = findUserByUserUuid(customer.getUserUuid());
+
+        OrderItem savedOrderItem;
+
+        try {
+            //이메일 첨부
+            emailService.sendInspectionMail(user.getEmail(), orderItem.getOrderItemCode(), photos);
+
+            // 완료로 상태변경
+            orderItem.completeInspection();
+
+            savedOrderItem = orderItemPersistencePort.saveOrderItem(orderItem);
+        } catch (MessagingException e) {
+            // 구체적인 예외 로그를 남기는 것이 유지보수에 좋습니다.
+            log.error("Failed to send inspection email for Item: {}", orderItem.getOrderItemCode(), e);
+            throw new RuntimeException("이메일 발송 중 기술적인 오류가 발생했습니다.");
+        } catch (Exception e) {
+            log.error("Unexpected error during inspection process", e);
+            throw new RuntimeException("검수 처리 중 예상치 못한 오류가 발생했습니다.");
+        }
+
+        return orderItemMapper.toOrderItemUuidResponseDto(savedOrderItem);
+    }
+
+    @Override
+    @Transactional
+    public OrderItemResponseDto localDeliveryCompleted(UUID userAdminUuid, UUID orderitemUuid){
+
+        // 관리자 검증
+        User user = userPersistencePort.findByUserUuid(userAdminUuid)
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for user uuid: %s", userAdminUuid)));
+        user.validateAdminRole();
+
+
+        // 상태변경 및 검증
+        OrderItem orderItem = findOrderItemByOrderItemUuid(orderitemUuid);
+        orderItem.changeLocalDeliveryCompleted();
+
+        //저장
+        OrderItem savedOrderItem = orderItemPersistencePort.saveOrderItem(orderItem);
+
+        return orderItemMapper.toOrderItemUuidResponseDto(savedOrderItem);
+    }
+
+
     /**
      * 관리자가 주문 수정 - 유저 전체의 상품 update 가능
      *
@@ -220,13 +378,11 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
     }
 
 
-    // ---- 업데이트. ----
-
     @Override
     @Transactional
-    public String rejectOrderItem(UUID userAdminUuid, UUID orderItemUuid, OrderItemRejectRequestDto requestDto) {
+    public OrderItemResponseDto rejectOrderItem(UUID userAdminUuid, UUID orderItemUuid, OrderItemRejectRequestDto requestDto) {
 
-        if (requestDto.getRejectReason() == null || requestDto.getRejectReason().isEmpty()){
+        if (requestDto.getRejectReason() == null || requestDto.getRejectReason().isEmpty()) {
             throw new OrderItemValidateException("이유 없이 거절은 할수 없습니다;");
         }
 
@@ -243,7 +399,36 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
         // 저장
         OrderItem savedOrderitem = orderItemPersistencePort.saveOrderItem(orderItem);
 
-        return savedOrderitem.getOrderItemCode();
+        return orderItemMapper.toOrderItemUuidResponseDto(savedOrderitem);
+    }
+
+
+    /**
+     * 구매자 요청을 관리자가 승인
+     *
+     * @param userUuid
+     * @param requestDto
+     * @return
+     */
+    @Override
+    @Transactional
+    public OrderItemResponseDto processFirstOderItem(UUID userUuid, UUID orderItemUuid, OrderItemApprovalRequestDto requestDto) {
+
+        // 관리자 검증 및 조회
+        User user = findUserByUserUuid(userUuid);
+        user.validateAdminRole();
+
+        OrderItem orderItem = orderItemPersistencePort.findByOrderItemUuid(orderItemUuid)
+                .orElseThrow(() -> new OrderItemNotFoundException("주문된 상품을 찾을 수 없습니다."));
+
+        // 상태변경 및 수량, 금액 업데이트
+        orderItem.approveOrderItem(requestDto.getPrice(), requestDto.getQuantity());
+
+        //저장
+        OrderItem savedorderItem = orderItemPersistencePort.saveOrderItem(orderItem);
+
+
+        return orderItemMapper.toOrderItemUuidResponseDto(savedorderItem);
     }
 
 
@@ -291,6 +476,30 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
     }
 
 
+    /*
+    아이템 배송비 결제 요청 상태변경
+     */
+    @Override
+    @Transactional
+    public void requestDeliveryPayment(UUID deliveryUuid) {
+
+        List<OrderItem> orderItems = orderItemPersistencePort.findAllByDeliveryUuid(deliveryUuid);
+        if (orderItems.isEmpty()) {
+            throw new OrderItemValidateException("변경할 아이템이 없습니다.");
+        }
+
+        orderItems.forEach(OrderItem::changeDeliveryFeeRequest);
+
+        orderItemPersistencePort.saveAllOrderItem(orderItems);
+    }
+
+    @Override
+    public void refundOrderItem(OrderItem orderItem) {
+        orderItem.isCancel();
+        orderItemPersistencePort.saveOrderItem(orderItem);
+    }
+
+
     @Override
     @Transactional
     public void assignToShipment(List<String> orderItemCodes, UUID shipmentUuid) {
@@ -303,7 +512,7 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
 
         orderItems.forEach(
                 orderItem -> {
-                    orderItem.requestDeliveryFee();
+                    orderItem.changeDeliveryFeeRequest();
                     orderItem.addShipmentUuid(shipmentUuid);
                 }
         );
@@ -347,46 +556,15 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
     @Transactional
     public void updateOrderItemStatusByFirstComplete(List<OrderItem> orderItems, Map<String, Boolean> inspectionRequestMap) {
 
-        orderItems.forEach(orderItem -> {
-            Boolean requested = inspectionRequestMap.get(orderItem.getOrderItemCode());
-            if (Boolean.TRUE.equals(requested)) {
-                orderItem.requestPhotoInspection();
-            }
-            orderItem.completeFirstOrderItemPayment();
-        });
-    }
+//        orderItems.forEach(orderItem -> {
+//            Boolean requested = inspectionRequestMap.get(orderItem.getOrderItemCode());
+//            if (Boolean.TRUE.equals(requested)) {
+//                orderItem.requestPhotoInspection();
+//            }
+//            orderItem.completeFirstOrderItemPayment();
+//        });
 
 
-    /**
-     * 구매자 요청을 관리자가 승인
-     *
-     * @param userUuid
-     * @param requestDto
-     * @return
-     */
-    @Override
-    @Transactional
-    public List<String> processFirstOderItem(UUID userUuid, OrderItemApprovalRequestDto requestDto) {
-
-        // 토큰으로 부터 유저조회
-        User user = findUserByUserUuid(userUuid);
-
-        // 관리자 권한 검증
-        user.validateAdminRole();
-
-        // 상태별 조회
-        List<OrderItem> orderItems = orderItemPersistencePort.findAllByOrderItemStatusAndOrderItemCodeIn(OrderItemStatus.PENDING, requestDto.getOrderItemCodes());
-
-        // 승인처리
-        for (OrderItem orderItem : orderItems) {
-            orderItem.approveOrderItem();
-        }
-
-        //저장
-        List<OrderItem> savedOrderItems = orderItemPersistencePort.saveAllOrderItem(orderItems);
-
-
-        return savedOrderItems.stream().map(OrderItem::getOrderItemCode).toList();
     }
 
 
@@ -416,6 +594,35 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
 
     // ----- 조회. -----
 
+    @Override
+    public OrderItemResponseDto getRejectReason(UUID userAdminUuid, UUID orderItemUuid) {
+        // 관리자 검증 및 조회
+        User userAdmin = findUserByUserUuid(userAdminUuid);
+        userAdmin.validateAdminRole();
+
+        OrderItem orderItem = findOrderItemByOrderItemUuid(orderItemUuid);
+
+        return orderItemMapper.toRejectResponse(orderItem);
+    }
+
+
+    @Override
+    public List<OrderItemResponseDto> getDetailsOrderItems(UUID userAdminUuid, UUID orderUuid) {
+
+        // 관리자 검증
+        User userAdmin = findUserByUserUuid(userAdminUuid);
+        userAdmin.validateAdminRole();
+
+        List<OrderItem> orderItems = orderItemPersistencePort.findAllByOrderUuid(orderUuid);
+
+        if (orderItems.isEmpty()) {
+            return null;
+        }
+
+        return orderItems.stream().map(orderItemMapper::toDetailOrderItemDto).toList();
+    }
+
+
     /**
      * 관리자 -> 상태별, 주문상품번호, 날짜별 조회
      *
@@ -424,25 +631,58 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
      * @return
      */
     @Override
-    public Page<OrderItemResponseDto> getAdminOrderItemsByStatus(UUID userAdminUuid, OrderItemStatus status, String orderItemCode, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+    public Page<OrderItemResponseDto> getSearchOrderItemsByAdmin(UUID userAdminUuid, String orderItemCode, String name, OrderItemStatus status, LocalDate startDate, LocalDate endDate, Pageable pageable) {
 
         User userAdmin = findUserByUserUuid(userAdminUuid);
         userAdmin.validateAdminRole();
 
-
         // 검색 조건 설정
-        OrderItemSearchCondition condition = new OrderItemSearchCondition();
-        condition.setStatus(status);
-        condition.setOrderItemCode(orderItemCode);
-        condition.setStartDate(startDate);
-        condition.setEndDate(endDate);
-
+        OrderItemSearchCondition condition = OrderItemSearchCondition.builder()
+                .orderItemCode(orderItemCode)
+                .name(name)
+                .status(status)
+                .startDate(startDate)
+                .endDate(endDate)
+                .build();
 
         //조회
-
         Page<OrderItem> orderItems = orderItemPersistencePort.searchAdminOrderItemsByStatus(condition, pageable);
+        List<UUID> customerUuidsByOrderItem = orderItems.stream()
+                .map(OrderItem::getCustomerUuid)
+                .distinct()
+                .toList();
 
-        return orderItems.map(orderItemMapper::toResponseDto);
+
+        Map<UUID, Customer> customerMap = customerPersistencePort.findAllByCustomerUuidIn(customerUuidsByOrderItem)
+                .stream()
+                .collect(Collectors.toMap(
+                        Customer::getCustomerUuid,
+                        customer -> customer,
+                        (existing, replacement) -> existing
+                ));
+
+
+        List<UUID> userUuids = customerMap.values().stream()
+                .map(Customer::getUserUuid)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+
+        Map<UUID, User> userMap = userPersistencePort.findAllByUserUuidIn(userUuids)
+                .stream()
+                .collect(Collectors.toMap(
+                        User::getUserUuid,
+                        user -> user,
+                        (existing, replacement) -> existing
+                ));
+
+
+        return orderItems.map(orderItem -> {
+            Customer customer = customerMap.get(orderItem.getCustomerUuid());
+            User user = (customer != null) ? userMap.get(customer.getUserUuid()) : null;
+            return orderItemMapper.teOrderItemListResponse(user, customer, orderItem);
+        });
     }
 
 
@@ -456,6 +696,46 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
         List<OrderItem> orderItems = orderItemPersistencePort.findAllByDeliveryUuid(deliveryUuid);
 
         return orderItems.stream().map(orderItemMapper::toProductDetailDto).toList();
+    }
+
+    @Override
+    public List<OrderItem> getOrderItemByOrderItemUuids(List<UUID> orderItems) {
+
+        if (orderItems.isEmpty()) {
+            throw new OrderItemValidateException("주문상품이 존재하지 않습니다.");
+        }
+
+        return orderItemPersistencePort.findAllByOrderItemUuidIn(orderItems);
+    }
+
+
+    // 필터 후 true만 order쪽에서 orderItem을 넘김
+    @Override
+    @Transactional
+    public void processFirstPaymentAndRequestPhotos(List<UUID> requestOrderItemUuids, List<OrderItem> allOrderItems, BigDecimal exchangeRate, Map<UUID, BigDecimal> discountMap) {
+
+
+        Set<UUID> requestUuidSet = new HashSet<>(requestOrderItemUuids);
+
+        allOrderItems.forEach(orderItem -> {
+
+                    // 할인금액 조회
+                    BigDecimal discountAmount = discountMap.get(orderItem.getOrderItemUuid());
+
+                    // 금액 환전
+                    BigDecimal paidAmount = orderItem.getPriceOriginal().multiply(exchangeRate).setScale(0, RoundingMode.HALF_UP);
+
+                    // 상태변경
+                    orderItem.completeFirstOrderItemPayment(exchangeRate, paidAmount, discountAmount);
+
+                    // 검수
+                    if (requestUuidSet.contains(orderItem.getOrderItemUuid())) {
+                        orderItem.requestPhotoInspection();
+                    }
+                }
+        );
+
+        orderItemPersistencePort.saveAllOrderItem(allOrderItems);
     }
 
 
@@ -555,6 +835,11 @@ public class OrderItemApplicationService implements CreateOrderItemUseCase, GetO
     private User findUserByUserUuid(UUID userUuid) {
         return userPersistencePort.findByUserUuid(userUuid)
                 .orElseThrow(() -> new UserNotFoundException(String.format("User not found for user uuid: %s", userUuid)));
+    }
+
+    private Customer findCustomerByCustomerUuid(UUID customerUuid) {
+        return customerPersistencePort.findByCustomerUuid(customerUuid)
+                .orElseThrow(() -> new CustomerNotFoundException("구매자가 존재하지 않습니다."));
     }
 
 }

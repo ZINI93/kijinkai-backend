@@ -2,6 +2,7 @@ package com.kijinkai.domain.coupon.application.port.out;
 
 import com.kijinkai.domain.coupon.adapter.out.repository.coupon.CouponSearchCondition;
 import com.kijinkai.domain.coupon.domain.modal.Coupon;
+import com.kijinkai.domain.coupon.domain.modal.CouponIssuedType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -13,7 +14,7 @@ public interface CouponPersistencePort {
 
     // 저장
     Coupon saveCoupon(Coupon coupon);
-
+    List<Coupon> saveCoupons(List<Coupon> coupons);
 
     //조회
 
@@ -22,6 +23,7 @@ public interface CouponPersistencePort {
     Optional<Coupon> findByCampaignUuid(UUID campaignUuid);
     Page<Coupon> searchCoupon(CouponSearchCondition condition, Pageable pageable);
     List<Coupon> findAllByCouponUuids(List<UUID> couponUuids);
+    List<Coupon> findAllByCouponIssuedTypeAndActive(CouponIssuedType type, boolean isActive);
 
 
     //삭제

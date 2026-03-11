@@ -4,6 +4,9 @@ package com.kijinkai.domain.payment.application.service;
 import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPersistencePort;
 import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.domain.model.Customer;
+import com.kijinkai.domain.exchange.doamin.Currency;
+import com.kijinkai.domain.exchange.dto.ExchangeRateResponseDto;
+import com.kijinkai.domain.exchange.service.ExchangeRateService;
 import com.kijinkai.domain.orderitem.application.port.out.OrderItemPersistencePort;
 import com.kijinkai.domain.orderitem.domain.exception.OrderItemNotFoundException;
 import com.kijinkai.domain.orderitem.domain.model.OrderItem;
@@ -14,19 +17,26 @@ import com.kijinkai.domain.payment.application.port.in.refund.CreateRefundUseCas
 import com.kijinkai.domain.payment.application.port.in.refund.DeleteRefundUseCase;
 import com.kijinkai.domain.payment.application.port.in.refund.GetRefundUseCase;
 import com.kijinkai.domain.payment.application.port.in.refund.UpdateRefundUseCase;
+import com.kijinkai.domain.payment.application.port.out.OrderPaymentPersistencePort;
 import com.kijinkai.domain.payment.application.port.out.RefundPersistencePort;
 import com.kijinkai.domain.payment.domain.exception.PaymentProcessingException;
 import com.kijinkai.domain.payment.domain.exception.RefundNotFoundException;
 import com.kijinkai.domain.payment.domain.factory.PaymentFactory;
 import com.kijinkai.domain.payment.domain.model.RefundRequest;
+import com.kijinkai.domain.transaction.entity.TransactionStatus;
+import com.kijinkai.domain.transaction.entity.TransactionType;
+import com.kijinkai.domain.transaction.service.TransactionService;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
 import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.wallet.application.dto.WalletResponseDto;
 import com.kijinkai.domain.wallet.application.port.in.UpdateWalletUseCase;
 import com.kijinkai.domain.wallet.application.port.out.WalletPersistencePort;
+import com.kijinkai.domain.wallet.application.service.WalletApplicationService;
 import com.kijinkai.domain.wallet.domain.exception.WalletNotFoundException;
 import com.kijinkai.domain.wallet.domain.model.Wallet;
+import com.kijinkai.util.BusinessCodeType;
+import com.kijinkai.util.GenerateBusinessItemCode;
 import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +45,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ConcurrentModificationException;
 import java.util.UUID;
 
@@ -55,6 +67,10 @@ public class RefundApplicationService implements CreateRefundUseCase, GetRefundU
 
     private final PaymentMapper paymentMapper;
     private final PaymentFactory paymentFactory;
+    private final ExchangeRateService exchangeRateService;
+    private final TransactionService transactionService;
+    private final WalletApplicationService walletApplicationService;
+    private final GenerateBusinessItemCode generateBusinessItemCode;
 
     //----- 환불  -----
 
@@ -68,29 +84,62 @@ public class RefundApplicationService implements CreateRefundUseCase, GetRefundU
      */
     @Transactional
     @Override
-    public RefundResponseDto processRefundRequest(UUID adminUuid, UUID orderItemUuid, RefundRequestDto requestDto) {
+    public RefundResponseDto processRefundRequest(UUID userAdminUuid, UUID orderItemUuid, RefundRequestDto requestDto) {
 
-        log.info("Creating refund request for admin uuid: {}", adminUuid);
+        log.info("Starting refund process by admin: {} for order item: {}", userAdminUuid, orderItemUuid);
+        //관리자 검증
+        User user = userPersistencePort.findByUserUuid(userAdminUuid)
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for user uuid: %s", userAdminUuid)));
+        user.validateAdminRole();
 
+        // 주문 취소처리
         OrderItem orderItem = orderItemPersistencePort.findByOrderItemUuid(orderItemUuid)
                 .orElseThrow(() -> new OrderItemNotFoundException(String.format("OrderItem not found for OrderItemUuid: %s", orderItemUuid)));
         orderItem.isCancel();
 
+        orderItemPersistencePort.saveOrderItem(orderItem);
+
+        // 구매자, 지갑 조회
         Customer customer = customerPersistencePort.findByCustomerUuid(orderItem.getCustomerUuid())
-                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", adminUuid)));
+                .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for UserUuid: %s", userAdminUuid)));
 
         Wallet wallet = findWalletByCustomerUuid(customer.getCustomerUuid());
 
+        BigDecimal totalPaidAmount = orderItem.getPaidAmount().subtract(orderItem.getDiscountAmount());
+
+        // 환불
+        walletApplicationService.deposit(customer.getCustomerUuid(), wallet.getWalletUuid(), totalPaidAmount);
+
+        String refundCode = generateBusinessItemCode.generateBusinessCode(customer.getUserUuid().toString(), BusinessCodeType.REF);
+
+        // 쿠폰 제외
         RefundRequest refundPayment = paymentFactory.createRefundPayment(
-                customer, wallet, orderItem, orderItem.getPriceOriginal(), adminUuid,
-                requestDto.getRefundReason(), requestDto.getRefundType()
+                userAdminUuid,
+                totalPaidAmount,
+                refundCode,
+                customer,
+                wallet,
+                orderItem,
+                requestDto
         );
 
         RefundRequest savedRefundRequest = refundPersistencePort.save(refundPayment);
 
-        log.info("Created refund request for refund uuid: {}", savedRefundRequest.getRefundUuid());
 
-        return paymentMapper.createRefundResponse(savedRefundRequest);
+        // 환불 내역 생성
+        UUID transaction = transactionService.createAccountHistory(
+                customer.getCustomerUuid(),
+                wallet.getWalletUuid(),
+                TransactionType.REFUND,
+                refundCode,
+                totalPaidAmount,
+                TransactionStatus.COMPLETED
+        );
+
+
+        log.info("Refund successfully completed. Refund ID: {}", savedRefundRequest.getRefundUuid());
+
+        return paymentMapper.createRefundResponse(refundPayment, transaction);
     }
 
     /**

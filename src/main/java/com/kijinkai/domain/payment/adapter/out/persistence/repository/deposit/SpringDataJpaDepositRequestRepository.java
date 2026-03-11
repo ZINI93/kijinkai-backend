@@ -1,4 +1,4 @@
-package com.kijinkai.domain.payment.adapter.out.persistence.repository;
+package com.kijinkai.domain.payment.adapter.out.persistence.repository.deposit;
 
 import com.kijinkai.domain.payment.adapter.out.persistence.entity.DepositRequestJpaEntity;
 import com.kijinkai.domain.payment.domain.enums.DepositStatus;
@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface SpringDataJpaDepositRequestRepository extends JpaRepository<DepositRequestJpaEntity, Long>{
+public interface SpringDataJpaDepositRequestRepository extends JpaRepository<DepositRequestJpaEntity, Long>, SpringDataJpaDepositRequestRepositoryCustom{
 
     Optional<DepositRequestJpaEntity> findByRequestUuid(UUID reqeustUuid);
 

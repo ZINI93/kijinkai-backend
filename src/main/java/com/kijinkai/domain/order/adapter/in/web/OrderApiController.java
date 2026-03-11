@@ -3,6 +3,7 @@ package com.kijinkai.domain.order.adapter.in.web;
 
 import com.kijinkai.domain.common.BasicResponseDto;
 import com.kijinkai.domain.order.adapter.out.persistence.entity.OrderStatus;
+import com.kijinkai.domain.order.application.dto.OrderPaymentRequestDto;
 import com.kijinkai.domain.order.application.dto.OrderRequestDto;
 import com.kijinkai.domain.order.application.dto.OrderResponseDto;
 import com.kijinkai.domain.order.application.port.in.GetOrderUseCase;
@@ -53,7 +54,7 @@ public class OrderApiController {
     })
     public ResponseEntity<BasicResponseDto<OrderResponseDto>> createOrder(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @Valid @RequestBody OrderRequestDto requestDto
+            @Valid @RequestBody OrderPaymentRequestDto requestDto
     ) {
 
 

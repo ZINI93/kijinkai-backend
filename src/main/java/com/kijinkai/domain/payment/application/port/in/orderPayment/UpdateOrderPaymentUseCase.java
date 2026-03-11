@@ -7,6 +7,5 @@ import com.kijinkai.domain.payment.application.dto.response.OrderPaymentResponse
 import java.util.UUID;
 
 public interface UpdateOrderPaymentUseCase {
-    OrderPaymentResponseDto completeFirstPayment(UUID userUuid, OrderPaymentRequestDto requestDto);
     void failOrderPayment(UUID customerUuid, UUID orderPaymentUuid);
 }

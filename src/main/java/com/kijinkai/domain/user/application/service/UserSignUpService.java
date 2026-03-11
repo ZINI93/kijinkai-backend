@@ -7,11 +7,13 @@ import com.kijinkai.domain.user.application.dto.response.UserSignUpResponse;
 import com.kijinkai.domain.user.application.mapper.UserMapper;
 import com.kijinkai.domain.user.application.port.in.CreateUserUseCase;
 import com.kijinkai.domain.user.application.port.in.SignUpUserUseCase;
+import com.kijinkai.domain.user.domain.event.UserResistorEvent;
 import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.wallet.application.port.in.CreateWalletUseCase;
 import com.kijinkai.domain.wallet.domain.model.Wallet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,10 +24,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserSignUpService implements SignUpUserUseCase {
 
+
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final CreateUserUseCase userUseCase;
     private final CreateCustomerUseCase customerUseCase;
     private final CreateWalletUseCase walletUseCase;
-
 
     private final UserMapper userMapper;
 
@@ -37,6 +40,9 @@ public class UserSignUpService implements SignUpUserUseCase {
         User user = userUseCase.createUser(userSignUpRequestDto.getEmail(), userSignUpRequestDto.getPassword(), userSignUpRequestDto.getNickname());
         Customer customer = customerUseCase.createCustomer(user.getUserUuid(), userSignUpRequestDto.getFirstName(), userSignUpRequestDto.getLastName(), userSignUpRequestDto.getPhoneNumber());
         Wallet wallet = walletUseCase.createWallet(customer.getCustomerUuid());
+
+        //회원 가입 후 이벤트 발행
+        applicationEventPublisher.publishEvent(new UserResistorEvent(user));
 
         return userMapper.toSignUpResponse(user,customer, wallet);
     }

@@ -9,6 +9,8 @@ import com.kijinkai.domain.payment.application.port.in.refund.GetRefundUseCase;
 import com.kijinkai.domain.payment.application.port.in.refund.UpdateRefundUseCase;
 import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
@@ -17,10 +19,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -34,7 +38,7 @@ import static com.kijinkai.domain.payment.adapter.in.messaging.PaymentMassage.RE
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(
-        value = "/api/v1/payments",
+        value = "/api/v1/refunds",
         produces = MediaType.APPLICATION_JSON_VALUE
 )
 public class RefundController {
@@ -45,38 +49,38 @@ public class RefundController {
     private final DeleteRefundUseCase deleteRefundUseCase;
 
     //  ---- 환불 ----
-
-    @Operation(
-            summary = "관리자가 상품에 대한 환불처리",
-            description = "관리자가 유저가 요청한 상품리스트에서 흭득을 하지 못한 상품을 환불 처리해줍니다.",
-            tags = {"결제관리"}
-    )
-    @PostMapping("/{orderItemUuid}/refund-request")
-    @PreAuthorize("hasRole('Admin')")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "환불 생성 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
-            @ApiResponse(responseCode = "404", description = "환불내역을 찾을 수 없음"),
-            @ApiResponse(responseCode = "500", description = "서버오류")
-    })
-    public ResponseEntity<BasicResponseDto<RefundResponseDto>> createRefund(
-            Authentication authentication,
-            @Valid @RequestBody RefundRequestDto requestDto,
-            @PathVariable UUID orderItemUuid
-    ) {
-        UUID userUuid = getUserUuid(authentication);
-        log.info("Refund request created - User: {}, OrderItem: {}",
-                userUuid, orderItemUuid);
-
-        try {
-            RefundResponseDto response = createRefundUseCase.processRefundRequest(userUuid, orderItemUuid, requestDto);
-            return createCreatedResponse(REFUND_CREATE_SUCCESS, response, "/api/v1/payments/refund/{refundUuid}", response.getRefundUuid());
-        } catch (Exception e) {
-            log.error("Failed to process refund request - admin: {}", userUuid, e);
-
-            throw e;
-        }
-    }
+//
+//    @Operation(
+//            summary = "관리자가 상품에 대한 환불처리",
+//            description = "관리자가 유저가 요청한 상품리스트에서 흭득을 하지 못한 상품을 환불 처리해줍니다.",
+//            tags = {"결제관리"}
+//    )
+//    @PostMapping("/{orderItemUuid}/refund-request")
+//    @PreAuthorize("hasRole('Admin')")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "201", description = "환불 생성 성공"),
+//            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+//            @ApiResponse(responseCode = "404", description = "환불내역을 찾을 수 없음"),
+//            @ApiResponse(responseCode = "500", description = "서버오류")
+//    })
+//    public ResponseEntity<BasicResponseDto<RefundResponseDto>> createRefund(
+//            Authentication authentication,
+//            @Valid @RequestBody RefundRequestDto requestDto,
+//            @PathVariable UUID orderItemUuid
+//    ) {
+//        UUID userUuid = getUserUuid(authentication);
+//        log.info("Refund request created - User: {}, OrderItem: {}",
+//                userUuid, orderItemUuid);
+//
+//        try {
+//            RefundResponseDto response = createRefundUseCase.processRefundRequest(userUuid, orderItemUuid, requestDto);
+//            return createCreatedResponse(REFUND_CREATE_SUCCESS, response, "/api/v1/payments/refund/{refundUuid}", response.getRefundUuid());
+//        } catch (Exception e) {
+//            log.error("Failed to process refund request - admin: {}", userUuid, e);
+//
+//            throw e;
+//        }
+//    }
 
 
     @Operation(
@@ -205,6 +209,32 @@ public class RefundController {
     }
 
 
+    @Operation(summary = "환불 프로세스 실행", description = "관리자 권한으로 특정 주문 아이템에 대한 환불을 처리합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "환불 처리 성공",
+                    content = @Content(schema = @Schema(implementation = BasicResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터", content = @Content),
+            @ApiResponse(responseCode = "403", description = "관리자 권한 없음", content = @Content),
+            @ApiResponse(responseCode = "404", description = "사용자 또는 주문 아이템 정보를 찾을 수 없음", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류", content = @Content)
+    })
+    @PostMapping(value = "/order-items/{orderItemUuid}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BasicResponseDto<RefundResponseDto>> processRefund(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable UUID orderItemUuid,
+            @RequestBody RefundRequestDto requestDto) {
+
+        RefundResponseDto responseData = createRefundUseCase.processRefundRequest(
+                userDetails.getUserUuid(),
+                orderItemUuid,
+                requestDto
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(BasicResponseDto.success("환불 처리가 완료되었습니다.", responseData));
+    }
+
+
     // -- helper method
 
     private static UUID getUserUuid(Authentication authentication) {
@@ -230,4 +260,6 @@ public class RefundController {
         return ResponseEntity.created(location)
                 .body(BasicResponseDto.success(message, data));
     }
+
+
 }

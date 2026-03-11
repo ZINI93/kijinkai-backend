@@ -1,4 +1,4 @@
-package com.kijinkai.domain.delivery.application.dto;
+package com.kijinkai.domain.delivery.application.dto.response;
 
 import lombok.Builder;
 import lombok.Value;

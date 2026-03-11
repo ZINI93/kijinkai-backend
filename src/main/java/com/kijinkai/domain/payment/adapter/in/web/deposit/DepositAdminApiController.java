@@ -1,7 +1,9 @@
-package com.kijinkai.domain.payment.adapter.in.web.admin;
+package com.kijinkai.domain.payment.adapter.in.web.deposit;
 
 
 import com.kijinkai.domain.common.BasicResponseDto;
+import com.kijinkai.domain.payment.application.dto.DepositAdminSearchDto;
+import com.kijinkai.domain.payment.application.dto.DepositAdminSummaryDto;
 import com.kijinkai.domain.payment.application.dto.request.DepositRequestDto;
 import com.kijinkai.domain.payment.application.dto.response.DepositRequestResponseDto;
 import com.kijinkai.domain.payment.application.port.in.deposit.CreateDepositUseCase;
@@ -11,6 +13,8 @@ import com.kijinkai.domain.payment.application.port.in.deposit.UpdateDepositUseC
 import com.kijinkai.domain.payment.domain.enums.DepositStatus;
 import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
@@ -18,16 +22,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.UUID;
-
-import static com.kijinkai.domain.payment.adapter.in.messaging.PaymentMassage.DEPOSIT_APPROVE_SUCCESS;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -91,6 +93,42 @@ public class DepositAdminApiController {
         Page<DepositRequestResponseDto> depositsByPending = getDepositUseCase.getDepositsByStatus(customUserDetails.getUserUuid(), DepositStatus.PENDING_ADMIN_APPROVAL, pageable);
 
         return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved deposits", depositsByPending));
+    }
+
+
+    @Operation(summary = "입금 내역 검색 조회", description = "관리자가 필터 조건에 따라 입금 내역을 검색하고 페이징 처리하여 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "입금 내역 조회 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 파라미터", content = @Content(schema = @Schema(implementation = BasicResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "관리자 권한 없음", content = @Content(schema = @Schema(implementation = BasicResponseDto.class))),
+            @ApiResponse(responseCode = "404", description = "유저 정보를 찾을 수 없음", content = @Content(schema = @Schema(implementation = BasicResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류", content = @Content(schema = @Schema(implementation = BasicResponseDto.class)))
+    })
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BasicResponseDto<Page<DepositAdminSearchDto>>> searchDeposits(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @ModelAttribute DepositSearchConditionDto conditionDto,
+            Pageable pageable) {
+
+        Page<DepositAdminSearchDto> data = getDepositUseCase.searchDepositsByAdmin(userDetails.getUserUuid(), conditionDto, pageable);
+        return ResponseEntity.ok(BasicResponseDto.success("입금 내역 검색 조회가 완료되었습니다.", data));
+    }
+
+    @Operation(summary = "일별 입금 요약 조회", description = "특정 날짜의 입금 현황 요약 데이터를 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "입금 요약 조회 성공"),
+            @ApiResponse(responseCode = "400", description = "날짜 형식 오류", content = @Content(schema = @Schema(implementation = BasicResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "관리자 권한 없음", content = @Content(schema = @Schema(implementation = BasicResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류", content = @Content(schema = @Schema(implementation = BasicResponseDto.class)))
+    })
+    @GetMapping(value = "/summary", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BasicResponseDto<DepositAdminSummaryDto>> getDepositSummary(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        LocalDate now = LocalDate.now();
+
+        DepositAdminSummaryDto data = getDepositUseCase.summaryByAdmin(userDetails.getUserUuid(), now);
+        return ResponseEntity.ok(BasicResponseDto.success("입금 요약 데이터 조회가 완료되었습니다.", data));
     }
 }
 

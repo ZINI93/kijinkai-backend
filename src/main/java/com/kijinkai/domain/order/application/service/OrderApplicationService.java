@@ -6,6 +6,8 @@ import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.exchange.service.PriceCalculationService;
 import com.kijinkai.domain.order.adapter.out.persistence.entity.OrderStatus;
+import com.kijinkai.domain.order.adapter.out.persistence.repository.CustomerOrderSummary;
+import com.kijinkai.domain.order.adapter.out.persistence.repository.OrderSearchCondition;
 import com.kijinkai.domain.order.application.dto.OrderRequestDto;
 import com.kijinkai.domain.order.application.dto.OrderResponseDto;
 import com.kijinkai.domain.order.application.dto.OrderUpdateDto;
@@ -21,6 +23,7 @@ import com.kijinkai.domain.order.domain.exception.OrderNotFoundException;
 import com.kijinkai.domain.order.domain.factory.OrderFactory;
 import com.kijinkai.domain.order.domain.model.Order;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
+import com.kijinkai.domain.orderitem.adapter.out.persistence.repostiory.CustomerOrderItemSummary;
 import com.kijinkai.domain.orderitem.application.dto.OrderItemRequestDto;
 import com.kijinkai.domain.orderitem.application.dto.OrderItemUpdateDto;
 import com.kijinkai.domain.orderitem.application.port.in.UpdateOrderItemUseCase;
@@ -49,14 +52,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -72,13 +74,10 @@ public class OrderApplicationService implements CreateOrderUseCase, GetOrderUseC
 
     private final OrderValidator orderValidator;
 
-
     //outer
     private final OrderItemApplicationService orderItemApplicationService;
     private final PriceCalculationService priceCalculationService;
-    private final TransactionService transactionService;
 
-    private final UpdateWalletUseCase updateWalletUseCase;
     private final UpdateOrderItemUseCase updateOrderItemUseCase;
     private final UserApplicationValidator userApplicationValidator;
     private final OrderItemPersistencePort orderItemPersistencePort;
@@ -167,20 +166,6 @@ public class OrderApplicationService implements CreateOrderUseCase, GetOrderUseC
         return orderMapper.toResponse(order);
     }
 
-    /**
-     * 유저가 견적을 검토한 후 결제를 진행하는 프로세스
-     * --- 결제 서비스로 이동
-     *
-     * @param userUuid
-     * @param orderUuid
-     * @return 결제 완료된 주문 응답 DTO
-     */
-    @Override
-    @Transactional
-    public OrderResponseDto completedOrder(UUID userUuid, OrderRequestDto requestDto) {
-        return executeWithOptimisticLockRetry(() ->
-                processFirstOrderCompletion(userUuid, requestDto));
-    }
 
     @Override
     @Transactional
@@ -334,10 +319,7 @@ public class OrderApplicationService implements CreateOrderUseCase, GetOrderUseC
 
     @Override
     @Transactional
-    public OrderResponseDto createAndSaveOrder(UUID customerUuid, List<OrderItem> orderItems, Map<String, Boolean> inspectedPhotoRequest, String orderCode, BigDecimal totalPrice) {
-
-        // 주문 상품의 상태 변경 및 사진 추가 요청 체크
-        updateOrderItemUseCase.updateOrderItemStatusByFirstComplete(orderItems, inspectedPhotoRequest);
+    public OrderResponseDto createAndSaveOrder(UUID customerUuid, List<OrderItem> orderItems, List<UUID> requestPhotoItemUuids, String orderCode, BigDecimal totalPrice) {
 
         // 주문 생성 및 저장
         Order order = orderFactory.createOrder(customerUuid, totalPrice, orderCode);
@@ -349,15 +331,13 @@ public class OrderApplicationService implements CreateOrderUseCase, GetOrderUseC
 
         orderItemPersistencePort.saveAllOrderItem(orderItems);
 
-        log.info("Completed order for order uuid:{}", savedOrder.getOrderUuid());
-
         return orderMapper.toResponse(order);
     }
 
 
     @Override
     @Transactional
-    public void changeIsReviewed(UUID userUuid, String orderItemCode){
+    public void changeIsReviewed(UUID userUuid, String orderItemCode) {
 
         Customer customer = findCustomerByUserUuid(userUuid);
 
@@ -370,6 +350,90 @@ public class OrderApplicationService implements CreateOrderUseCase, GetOrderUseC
     }
 
 
+    // 조회
+    @Override
+    public Page<OrderResponseDto> getOrdersByAdmin(UUID userAdminUuid, String orderCode, String name, OrderStatus status, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+
+
+        //관리자 검증
+        User userAdmin = findUserByUserUuid(userAdminUuid);
+        userAdmin.validateAdminRole();
+
+        // 조건 매핑
+        OrderSearchCondition condition = OrderSearchCondition.builder()
+                .orderCode(orderCode)
+                .name(name)
+                .orderStatus(status)
+                .startDate(startDate)
+                .endDate(endDate)
+                .build();
+
+        // 주문 조회
+        Page<Order> orders = orderPersistencePort.searchOrders(condition, pageable);
+
+        if (orders.isEmpty()) {
+            return orders.map(order -> null);
+        }
+
+        //
+        List<UUID> orderUuids = orders.stream()
+                .map(Order::getOrderUuid)
+                .distinct()
+                .toList();
+
+
+        // 주문에서 고객 uuid 추출
+        List<UUID> customerUuidsByOrder = orders.stream()
+                .map(Order::getCustomerUuid)
+                .distinct()
+                .toList();
+
+        Map<UUID, Customer> customerMap = customerPersistencePort.findAllByCustomerUuidIn(customerUuidsByOrder)
+                .stream()
+                .collect(Collectors.toMap(
+                        Customer::getCustomerUuid,
+                        c -> c,
+                        (c, r) -> c
+                ));
+
+        List<UUID> userUuids = customerMap.values().stream()
+                .map(Customer::getUserUuid)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+
+        Map<UUID, User> userMap = userPersistencePort.findAllByUserUuidIn(userUuids)
+                .stream()
+                .collect(Collectors.toMap(
+                        User::getUserUuid,
+                        u -> u,
+                        (e, r) -> e
+                ));
+
+        Map<UUID, CustomerOrderItemSummary> orderItemSummaryMap = orderItemPersistencePort.orderItemStatistics(orderUuids)
+                .stream()
+                .collect(Collectors.toMap(
+                        CustomerOrderItemSummary::getOrderUuid,
+                        s -> s,
+                        (e, r) -> e
+                ));
+
+        return orders.map(
+                order -> {
+                    Customer customer = customerMap.get(order.getCustomerUuid());
+
+                    User user = (customer != null) ? userMap.get(customer.getUserUuid()) : null;
+
+                    long orderCount = Optional.ofNullable(orderItemSummaryMap.get(order.getOrderUuid()))
+                            .map(CustomerOrderItemSummary::getOrderItemCount) // 이전 질문의 메서드명 반영
+                            .orElse(0L);
+                    return orderMapper.toAdminOrderListResponse(order, user, customer, orderCount);
+                }
+        );
+    }
+
+
     @Override
     public List<OrderResponseDto> getPendingReviewOrders(UUID userUuid) {
 
@@ -377,39 +441,40 @@ public class OrderApplicationService implements CreateOrderUseCase, GetOrderUseC
 
         List<Order> orders = orderPersistencePort.findAllByCustomerUuidAndOrderStatusAndIsReviewed(customer.getCustomerUuid(), OrderStatus.DELIVERED, false);
 
+
         return orders.stream().map(orderMapper::toReviewResponse).toList();
     }
 
+
+    // 삭제 예정
+
+
+    /**
+     * 유저가 견적을 검토한 후 결제를 진행하는 프로세스
+     * --- 결제 서비스로 이동
+     *
+     * @param userUuid
+     * @param orderUuid
+     * @return 결제 완료된 주문 응답 DTO
+     */
+    @Override
+    @Transactional
+    public OrderResponseDto completedOrder(UUID userUuid, OrderRequestDto requestDto) {
+        return executeWithOptimisticLockRetry(() ->
+                processFirstOrderCompletion(userUuid, requestDto));
+    }
 
     @Transactional
     private OrderResponseDto processFirstOrderCompletion(UUID userUuid, OrderRequestDto requestDto) {
 
 //        log.info("Completing order for user uuid:{}", userUuid);
 //
-//        //userUuid로  구매자 조회
-////        Customer customer = findCustomerByUserUuid(userUuid);
-//
-//        //구매 대기중 상품 조회.. 전체결제가 아님 list로 받아서 결제
-////        List<OrderItem> orderItems = orderItemApplicationService.getOrderItemsByCodeAndStatus(requestDto.getOrderItemCodes(), OrderItemStatus.PENDING_APPROVAL);
-//
-//        //상품 상태 변경. -> db 변경
 //        updateOrderItemUseCase.updateOrderItemStatusByFirstComplete(orderItems, requestDto.getInspectedPhotoRequest());
 //
-//        //결제 요청 받은 상품의 가격의 합
-////        BigDecimal totalPrice = orderItems.stream()
-////                .map(OrderItem::calculateFinalPrice)
-////                .filter(Objects::nonNull)
-////                .reduce(BigDecimal.ZERO, BigDecimal::add);
-//
-////        if (totalPrice.compareTo(BigDecimal.ZERO) <= 0) {
-////            throw new OrderItemValidateException("결제 금액은 0원보다 커야 합니다.");
-////        }
 //
 //        //주문 생성  -> db 변경
 //        String orderCode = generateBusinessItemCode.generateBusinessCode(userUuid.toString(), BusinessCodeType.ORD);
 //        Order order = orderFactory.createOrder(customer.getCustomerUuid(), totalPrice, orderCode);
-//
-//
 //
 //        // 지갑 금액 차감  -> db 변경
 //        WalletResponseDto withdrawal = updateWalletUseCase.withdrawal(customer.getCustomerUuid(), totalPrice);
@@ -427,10 +492,9 @@ public class OrderApplicationService implements CreateOrderUseCase, GetOrderUseC
 //        log.info("Completed order for order uuid:{}", savedOrder.getOrderUuid());
 //
 //        return orderMapper.toResponse(savedOrder);
+//    }
 
         return null;
     }
-
-
 }
 

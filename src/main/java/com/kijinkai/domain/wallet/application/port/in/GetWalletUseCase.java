@@ -8,4 +8,5 @@ import java.util.UUID;
 public interface GetWalletUseCase {
     WalletBalanceResponseDto getWalletBalance(UUID userUuid);
     WalletResponseDto getCustomerWalletBalanceByAdmin(UUID userUuid, String walletUuid);
+
 }

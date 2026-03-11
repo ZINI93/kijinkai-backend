@@ -19,15 +19,25 @@ public interface GetOrderItemUseCase {
     // 구매자의 구매요청 대기상태의 리스트 조회
     Page<OrderItemResponseDto> getOrderItemByStatus(UUID userUuid, OrderItemStatus orderItemStatus, Pageable pageable);
 
-    Page<OrderItemResponseDto> getAdminOrderItemsByStatus(UUID userAdminUuid, OrderItemStatus status, String orderItemCode, LocalDate startDate, LocalDate endDate, Pageable pageable);
+    Page<OrderItemResponseDto> getSearchOrderItemsByAdmin(UUID userAdminUuid, String orderItemCode, String name, OrderItemStatus status, LocalDate startDate, LocalDate endDate, Pageable pageable);
 
     OrderItemResponseDto getOrderItemInfo(UUID userUuid, UUID orderItemUuid);
+
     OrderItemCountResponseDto orderItemDashboardCount(UUID userUuid);
 
     List<OrderItemResponseDto> getOrderItemByDeliveryUuid(UUID userUuid, UUID deliveryUuid);
+
+    List<OrderItem> getOrderItemByOrderItemUuids(List<UUID> orderItems);
+
     List<OrderItem> getOrderItemsByCustomerAndOrderItemsStatus(UUID userUuid, List<OrderItemStatus> orderItemStatuses);
+
+    List<OrderItemResponseDto> getDetailsOrderItems(UUID userAdminUuid, UUID orderUuid);
+
     int countOrderItemsByStatus(UUID userUuid, OrderItemStatus orderItemStatus);
+
     int countOrderItemByStatusIn(UUID userUuid, List<OrderItemStatus> orderItemStatus);
 
     List<OrderItem> getOrderItemsByCodeAndStatus(List<String> orderItemCode, OrderItemStatus status);
+
+    OrderItemResponseDto getRejectReason(UUID userAdminUuid, UUID orderItemUuid);
 }

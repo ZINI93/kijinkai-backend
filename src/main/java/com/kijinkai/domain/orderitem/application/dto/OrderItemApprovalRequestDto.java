@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,4 +14,7 @@ import java.util.UUID;
 public class OrderItemApprovalRequestDto {
 
     List<String> orderItemCodes;
+
+    int quantity;
+    BigDecimal price;
 }

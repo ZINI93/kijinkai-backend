@@ -1,15 +1,19 @@
 package com.kijinkai.domain.customer.application.dto;
 
 import com.kijinkai.domain.customer.domain.model.CustomerTier;
+import com.kijinkai.domain.user.domain.model.UserStatus;
 import com.querydsl.core.annotations.QueryProjection;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
-
 @Getter
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Schema(description = "구매자 정보 응답")
 public class CustomerResponseDto {
 
@@ -32,16 +36,13 @@ public class CustomerResponseDto {
     allowableValues = {"BRONZE", "SILVER", "GOLD"})
     private CustomerTier customerTier;
 
+    private LocalDate createAt;
+    private UserStatus userStatus;
+    private String email;
+    private String fullName;
+    private Long totalOrderCount;
+    private BigDecimal totalOrderAmount;
 
-    @Builder
-    public CustomerResponseDto(UUID customerUuid, String firstName, String lastName, String phoneNumber, CustomerTier customerTier, UUID userUuid) {
-        this.customerUuid = customerUuid;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.phoneNumber = phoneNumber;
-        this.customerTier = customerTier;
-        this.userUuid = userUuid;
-    }
 
     @QueryProjection
     public CustomerResponseDto(String firstName, String lastName, String phoneNumber, CustomerTier customerTier) {

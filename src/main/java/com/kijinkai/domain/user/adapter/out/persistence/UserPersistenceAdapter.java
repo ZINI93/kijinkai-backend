@@ -41,6 +41,12 @@ public class UserPersistenceAdapter implements UserPersistencePort {
     }
 
     @Override
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .map(userPersistenceMapper::toUser);
+    }
+
+    @Override
     public Optional<User> findByEmailAndIsSocial(String email, Boolean isSocial) {
         return userRepository.findByEmailAndIsSocial(email, isSocial)
                 .map(userPersistenceMapper::toUser);

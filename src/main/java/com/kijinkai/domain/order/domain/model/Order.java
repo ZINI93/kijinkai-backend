@@ -9,6 +9,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Getter
@@ -23,13 +24,17 @@ public class Order {
     private BigDecimal totalPriceOriginal;   // 엔화의 상품전체가격
     private BigDecimal totalPriceConverted;   // 해당 통화의 전체가격  // 현재 필요 없으나, 일단 필드 자체만 유지
     private BigDecimal finalPriceOriginal;   // 엔화의 배송비 포함된 전체 금액
+
+
     private Currency convertedCurrency;
     private OrderStatus orderStatus;
     private String orderCode;
     private String memo;
     private String rejectedReason;
-    private PaymentType paymentType;  // 필요없을거 같음
-    private boolean isReviewed;
+    private boolean reviewed;
+
+    private LocalDate createdAt;
+    private LocalDate updatedAt;
 
 
     public Order(UUID customerUuid, String memo) {
@@ -42,7 +47,7 @@ public class Order {
             throw new OrderValidationException("배송이 끝나지 않는 주문코드는 리뷰를 작성할 수 없습니다.");
         }
 
-        this.isReviewed = true;
+        this.reviewed = true;
     }
 
 

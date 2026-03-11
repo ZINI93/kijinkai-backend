@@ -7,12 +7,13 @@ import com.kijinkai.domain.delivery.domain.model.DeliveryType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Getter
-@Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
 @Table(name = "deliveries")
 @Entity
 public class DeliveryJpaEntity extends BaseEntity {
@@ -30,6 +31,9 @@ public class DeliveryJpaEntity extends BaseEntity {
 
     @Column(name = "customer_uuid", nullable = false)
     private UUID customerUuid;
+
+    @Column(name = "total_shipment_fee")
+    private BigDecimal totalShipmentFee;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "delivery_status", nullable = false)
@@ -55,6 +59,10 @@ public class DeliveryJpaEntity extends BaseEntity {
     private String pccc;
 
     // ------------------------------------  관리자 작성
+
+    @Column(name = "cancel_reason", length = 500) // 택배사 이름
+    private String cancelReason;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "delivery_type", nullable = false, length = 50) // 택배사 이름
     private DeliveryType deliveryType;

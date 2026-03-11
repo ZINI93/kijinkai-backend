@@ -1,13 +1,16 @@
-package com.kijinkai.domain.delivery.application.dto;
+package com.kijinkai.domain.delivery.application.dto.response;
 
 import com.kijinkai.domain.delivery.domain.model.DeliveryStatus;
 import com.kijinkai.domain.delivery.domain.model.DeliveryType;
+import com.kijinkai.domain.orderitem.application.dto.OrderItemResponseDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.data.domain.Page;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -71,6 +74,13 @@ public class DeliveryResponseDto {
 
     @Schema(description = "배송 취소/실패 사유", example = "고객이 배송취소 요청")
     private String cancelReason;
+
+    private LocalDate createdAt;
+    private LocalDate updatedAt;
+    private String name;
+    private String phoneNumber;
+    private Page<OrderItemResponseDto> requestOrderItems;
+    private String pcc;
 
 
 }

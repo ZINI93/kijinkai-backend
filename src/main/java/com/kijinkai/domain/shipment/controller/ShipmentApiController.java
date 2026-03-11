@@ -2,8 +2,8 @@ package com.kijinkai.domain.shipment.controller;
 
 
 import com.kijinkai.domain.common.BasicResponseDto;
-import com.kijinkai.domain.shipment.dto.ShipmentBoxItemResponseDto;
-import com.kijinkai.domain.shipment.dto.ShipmentResponseDto;
+import com.kijinkai.domain.shipment.dto.shipmentBoxItem.ShipmentBoxItemResponseDto;
+import com.kijinkai.domain.shipment.dto.shipment.response.ShipmentResponseDto;
 import com.kijinkai.domain.shipment.entity.ShipmentStatus;
 import com.kijinkai.domain.shipment.service.ShipmentService;
 import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
@@ -21,7 +21,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -85,7 +84,7 @@ public class ShipmentApiController {
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)Pageable pageable
             ){
 
-        Page<ShipmentResponseDto> shipmentsByPending = shipmentService.getShipmentsByStatus(customUserDetails.getUserUuid(), ShipmentStatus.PREPARING, pageable);
+        Page<ShipmentResponseDto> shipmentsByPending = shipmentService.getShipmentsByStatus(customUserDetails.getUserUuid(), ShipmentStatus.PAID, pageable);
 
 
         return ResponseEntity.ok(BasicResponseDto.success("Successfully retrieved shipments", shipmentsByPending));

@@ -22,14 +22,14 @@ public class OrderPayment {
     private String orderPaymentCode;
 
     private UUID customerUuid;
+    private UUID deliveryUuid;
     private UUID walletUuid;
     private UUID orderUuid;
+    private UUID userCouponUuid;
 
     private BigDecimal paymentAmount;
     private BigDecimal discountAmount;
     private BigDecimal finalPaymentAmount;
-
-
 
     private PaymentOrder paymentOrder;
     private OrderPaymentStatus orderPaymentStatus;

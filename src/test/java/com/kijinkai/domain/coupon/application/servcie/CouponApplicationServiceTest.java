@@ -82,7 +82,7 @@ class CouponApplicationServiceTest {
         CouponResponseDto expectedResponse = CouponResponseDto.builder()
                 .couponUuid(UUID.randomUUID())
                 .couponCode(couponCode)
-                .isActive(true)
+                .active(true)
                 .build();
         when(userPersistencePort.findByUserUuid(adminUuid)).thenReturn(Optional.of(adminUser));
         when(couponPersistencePort.existsByCouponCode(anyString())).thenReturn(false);

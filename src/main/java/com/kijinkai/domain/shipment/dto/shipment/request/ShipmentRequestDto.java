@@ -1,10 +1,11 @@
-package com.kijinkai.domain.shipment.dto;
+package com.kijinkai.domain.shipment.dto.shipment.request;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @NoArgsConstructor
@@ -12,7 +13,6 @@ public class ShipmentRequestDto {
 
     private List<String> orderItemCodes;
     private List<BoxInfo> boxes;
-
 
     @Getter
     @NoArgsConstructor
@@ -30,6 +30,7 @@ public class ShipmentRequestDto {
 
     private String orderItemCode;
     private int quantity;
+    private UUID orderItemUuid;
 
     }
 

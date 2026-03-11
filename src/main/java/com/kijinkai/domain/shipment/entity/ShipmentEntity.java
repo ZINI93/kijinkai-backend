@@ -1,7 +1,8 @@
 package com.kijinkai.domain.shipment.entity;
 
 import com.kijinkai.domain.common.BaseEntity;
-import com.kijinkai.domain.shipment.dto.StartShipmentRequestDto;
+import com.kijinkai.domain.shipment.dto.shipment.request.ShipmentUpdateDto;
+import com.kijinkai.domain.shipment.dto.shipmentBoxItem.StartShipmentRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Comment;
@@ -37,7 +38,7 @@ public class ShipmentEntity extends BaseEntity {
     private UUID deliveryUuid;
 
     @Comment("결제 Uuid")
-    @Column(name = "order_payment_uuid", nullable = false, updatable = false)
+    @Column(name = "order_payment_uuid", updatable = false)
     private UUID orderPaymentUuid;
 
     @Comment("박스 외부코드")
@@ -74,18 +75,50 @@ public class ShipmentEntity extends BaseEntity {
     @Column(name = "delivered_at")
     private LocalDateTime deliveredAt;
 
+
+    //업데이트
+    public void updatePaid(){
+        if (this.shipmentStatus != ShipmentStatus.PAYMENT_PENDING){
+            throw new IllegalArgumentException("결제 대기중인 박스만 결제가 가능합니다.");
+        }
+        this.shipmentStatus = ShipmentStatus.PAID;
+    }
+
+    public void updatePackedShipment(ShipmentUpdateDto updateDto){
+        if (updateDto.getTotalWeight() != null && updateDto.getTotalWeight() < 0) throw new IllegalArgumentException("무게 오류");
+        if (updateDto.getShipmentFee() != null && updateDto.getShipmentFee().compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException("금액 오류");
+
+        this.totalWeight = (updateDto.getTotalWeight() != null) ? updateDto.getTotalWeight() : this.totalWeight;
+        this.shippingFee = (updateDto.getShipmentFee() != null) ? updateDto.getShipmentFee() : this.shippingFee;
+    }
+
+
     //추가
+    public void addTrackingNoAndChangeShipped(String trackingNo){
+        if (this.shipmentStatus != ShipmentStatus.PAID){
+            throw new IllegalArgumentException("결제된 박스만 배송이 가능합니다.");
+        }
+
+        if (trackingNo == null || trackingNo.trim().isEmpty()){
+            throw new IllegalArgumentException("운송장 번호는 필수입니다.");
+        }
+
+        this.shipmentStatus = ShipmentStatus.SHIPPED;
+        this.trackingNo = trackingNo;
+    }
+
+
     public void completePayment(UUID orderPaymentUuid) {
         if (shipmentStatus != ShipmentStatus.PAYMENT_PENDING) {
             throw new IllegalArgumentException("결제 대기상태에서만 가능합니다.");
         }
         this.orderPaymentUuid = orderPaymentUuid;
-        this.shipmentStatus = ShipmentStatus.PREPARING;
+        this.shipmentStatus = ShipmentStatus.PAID;
     }
 
 
-    public void startShipment(StartShipmentRequestDto requestDto){
-        if (shipmentStatus != ShipmentStatus.PREPARING){
+    public void startShipment(StartShipmentRequestDto requestDto) {
+        if (shipmentStatus != ShipmentStatus.PAID) {
             throw new IllegalArgumentException("결제 완료된 상품만 발송이 가능합니다.");
         }
         this.shipmentStatus = ShipmentStatus.SHIPPED;
@@ -93,12 +126,12 @@ public class ShipmentEntity extends BaseEntity {
     }
 
     //상태변경
-    public void delivered(){
-        if (shipmentStatus != ShipmentStatus.SHIPPED){
+    public void delivered() {
+        if (shipmentStatus != ShipmentStatus.SHIPPED) {
             throw new IllegalArgumentException("배송중인 상품만 배송완료를 할수 있습니다.");
         }
 
-        this.shipmentStatus =ShipmentStatus.DELIVERED;
+        this.shipmentStatus = ShipmentStatus.DELIVERED;
     }
 
 }

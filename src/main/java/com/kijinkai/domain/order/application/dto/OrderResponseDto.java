@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -28,5 +30,12 @@ public class OrderResponseDto {
     private String rejectedReason;
     private PaymentStatus paymentStatus;
 
+
+    private String name;
+    private Long orderItemCount;
+    private List<String> orderItemCodes;
+    private String email;
+    private LocalDate createdAt;
+    private LocalDate updatedAt;
 
 }

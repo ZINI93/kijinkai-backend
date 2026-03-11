@@ -1,10 +1,8 @@
 package com.kijinkai.domain.customer.application.service;
 
 
-import com.kijinkai.domain.address.application.port.out.AddressPersistencePort;
-import com.kijinkai.domain.address.domain.factory.AddressFactory;
+import com.kijinkai.domain.customer.adapter.out.persistence.repository.CustomerSearchCondition;
 import com.kijinkai.domain.customer.application.dto.CustomerResponseDto;
-import com.kijinkai.domain.customer.application.dto.CustomerUpdateDto;
 import com.kijinkai.domain.customer.application.mapper.CustomerMapper;
 import com.kijinkai.domain.customer.application.port.in.CreateCustomerUseCase;
 import com.kijinkai.domain.customer.application.port.in.DeleteCustomerUseCase;
@@ -16,11 +14,13 @@ import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.domain.factory.CustomerFactory;
 import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.customer.domain.model.CustomerTier;
+import com.kijinkai.domain.order.adapter.out.persistence.entity.OrderStatus;
+import com.kijinkai.domain.order.adapter.out.persistence.repository.CustomerOrderSummary;
+import com.kijinkai.domain.order.application.port.out.OrderPersistencePort;
 import com.kijinkai.domain.payment.domain.enums.BankType;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
 import com.kijinkai.domain.user.domain.model.User;
-import com.kijinkai.domain.wallet.application.service.WalletApplicationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -28,8 +28,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -40,18 +43,15 @@ public class CustomerApplicationService implements CreateCustomerUseCase, GetCus
 
     private final CustomerPersistencePort customerPersistencePort;
     private final UserPersistencePort userPersistencePort;
+    private final OrderPersistencePort orderPersistencePort;
 
     private final CustomerFactory customerFactory;
     private final CustomerMapper customerMapper;
     private final CustomerApplicationValidator customerApplicationValidator;
 
-    // 외부
-    private final AddressPersistencePort addressPersistencePort;
-    private final AddressFactory addressFactory;
-    private final WalletApplicationService walletApplicationService;
-
     /**
      * 고객 정보 생성
+     *
      * @param userUuid
      * @param firstName
      * @param lastName
@@ -90,13 +90,56 @@ public class CustomerApplicationService implements CreateCustomerUseCase, GetCus
     }
 
     @Override
-    public Page<CustomerResponseDto> getCustomers(UUID userUuid, String firstName, String lastName, String phoneNumber, CustomerTier customerTier, Pageable pageable) {
-        User user = findUserByUserUuid(userUuid);
-        user.validateAdminRole();
+    public Page<CustomerResponseDto> getCustomers(UUID userAdminUuid, String email, String name, String phoneNumber, CustomerTier customerTier, Pageable pageable) {
+        //관리자 검증
+        User userAdmin = findUserByUserUuid(userAdminUuid);
+        userAdmin.validateAdminRole();
 
-        Page<Customer> customers = customerPersistencePort.findAllByCustomers(firstName, lastName, phoneNumber, customerTier, pageable);
+        // 검색 조건 빌드
+        CustomerSearchCondition condition = CustomerSearchCondition.builder()
+                .email(email)
+                .name(name)
+                .phoneNumber(phoneNumber)
+                .customerTier(customerTier)
+                .build();
 
-        return customers.map(customerMapper::toResponse);
+
+        // 고객 데이터 페이지 조회
+        Page<Customer> customers = customerPersistencePort.searchCustomers(condition, pageable);
+
+        // 연관 ID 추출
+        List<UUID> customerUuids = customers.map(Customer::getCustomerUuid).toList();
+        List<UUID> userUuidsByCustomer = customers.map(Customer::getUserUuid).toList();
+
+
+        // 유저 Map 조회
+        Map<UUID, User> userMap = userPersistencePort.findAllByUserUuidIn(userUuidsByCustomer)
+                .stream()
+                .collect(Collectors.toMap(
+                        User::getUserUuid,
+                        user -> user,
+                        (existing, replacement) -> existing
+                ));
+
+        // 주문 통계 map 조회
+        Map<UUID, CustomerOrderSummary> orderSummaryMap = orderPersistencePort.findOrderStatisticsByCustomerUuids(customerUuids, OrderStatus.DELIVERED)
+                .stream()
+                .collect(Collectors.toMap(
+                        CustomerOrderSummary::getCustomerUuid,
+                        summary -> summary,
+                        (existing, replacement) -> existing
+                ));
+
+
+        // totalAmount
+        return customers.map(customer -> {
+            User user = userMap.get(customer.getUserUuid());
+            CustomerOrderSummary summary = orderSummaryMap.get(customer.getCustomerUuid());
+            Long orderCount = (summary != null) ? summary.getOrderCount() : 0L;
+            BigDecimal orderTotalAmount = (summary != null) ? summary.getTotalAmount() : BigDecimal.ZERO;
+
+            return customerMapper.toUserListResponse(customer, user, orderCount, orderTotalAmount);
+        });
     }
 
     @Override
@@ -105,7 +148,7 @@ public class CustomerApplicationService implements CreateCustomerUseCase, GetCus
         Customer customer = customerPersistencePort.findByUserUuid(userUuid)
                 .orElseThrow(() -> new CustomerNotFoundException(String.format("Customer not found for userUuid: %s", userUuid)));
 
-        customer.updateCustomer(firstName,lastName,phoneNumber,pcc,bankType,accountHolder,accountNumber);
+        customer.updateCustomer(firstName, lastName, phoneNumber, pcc, bankType, accountHolder, accountNumber);
 
         Customer savedCustomer = customerPersistencePort.saveCustomer(customer);
 
@@ -116,7 +159,7 @@ public class CustomerApplicationService implements CreateCustomerUseCase, GetCus
     // 업데이트
     @Override
     @Transactional
-    public void updatePcc(Customer customer, String pcc){
+    public void updatePcc(Customer customer, String pcc) {
 
         customer.updatePcc(pcc);
 

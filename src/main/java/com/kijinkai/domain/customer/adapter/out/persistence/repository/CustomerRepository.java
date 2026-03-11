@@ -4,6 +4,7 @@ import com.kijinkai.domain.customer.adapter.out.persistence.entity.CustomerJpaEn
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,4 +15,6 @@ public interface CustomerRepository extends JpaRepository<CustomerJpaEntity, Lon
     Optional<CustomerJpaEntity> findByUserUuidAndCustomerUuid(UUID userUuid, UUID customerUuid);
     Optional<CustomerJpaEntity> findByUserUuid(UUID userUuid);
     Optional<CustomerJpaEntity> findByCustomerUuid(UUID customerUuid);
+
+    List<CustomerJpaEntity> findAllByCustomerUuidIn(List<UUID> customerUuids);
 }

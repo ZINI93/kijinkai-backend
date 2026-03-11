@@ -21,6 +21,7 @@ public interface UserPersistencePort{
 
     //조회
     Optional<User> findByUserUuid(UUID uuid);
+    Optional<User> findByEmail(String email);
     Optional<User> findByEmailAndIsSocial(String email, Boolean isSocial);
     Optional<User> findByEmailAndUserStatusAndIsSocial(String email, UserStatus userStatus, Boolean isSocial);
     Optional<User> findByEmailAndUserStatus(String email, UserStatus userStatus) ;

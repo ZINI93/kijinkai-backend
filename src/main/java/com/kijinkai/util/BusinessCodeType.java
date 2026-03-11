@@ -7,6 +7,7 @@ public enum BusinessCodeType {
     BOX("BOX", "배송하는 박스 식별번호"),
     ORP("OP", "주문 결제 식별번호"),
     DEP("DEP", "입금 식별번호"),
+    REF("REF", "환불 식별번호"),
     WIT("WIT", "출금 식별번호");
 
     private final String prefix;

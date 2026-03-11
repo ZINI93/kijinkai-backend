@@ -3,6 +3,7 @@ package com.kijinkai.domain.payment.domain.factory;
 import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.payment.domain.enums.BankType;
+import com.kijinkai.domain.payment.domain.enums.DepositMethod;
 import com.kijinkai.domain.payment.domain.enums.DepositStatus;
 import com.kijinkai.domain.payment.domain.model.DepositRequest;
 import com.kijinkai.domain.wallet.domain.model.Wallet;
@@ -17,7 +18,7 @@ public class DepositRequestFactory {
 
     public DepositRequest createDepositRequest(
             Customer customer, Wallet wallet, BigDecimal originalAmount, String depositorName, BankType bankType,
-            String depositCode
+            String depositCode, DepositMethod depositMethod
     ) {
         return DepositRequest.builder()
                 .requestUuid(UUID.randomUUID())
@@ -28,6 +29,7 @@ public class DepositRequestFactory {
                 .currencyOriginal(Currency.KRW)
                 .depositorName(depositorName)
                 .bankType(bankType)
+                .depositMethod(depositMethod)
                 .status(DepositStatus.PENDING_ADMIN_APPROVAL)
                 .expiresAt(LocalDateTime.now().plusDays(1))
                 .build();

@@ -35,6 +35,9 @@ public class RefundRequestJpaEntity extends BaseEntity {
     @Column(name = "order_item_uuid", nullable = false, updatable = false)
     private UUID orderItemUuid;
 
+    @Column(name = "refund_code", nullable = false, updatable = false)
+    private String refundCode;
+
     // 환불 금액
     @Column(name = "refund_amount", nullable = false, precision = 19, scale = 4)
     private BigDecimal refundAmount;

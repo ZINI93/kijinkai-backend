@@ -10,7 +10,9 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public interface CreateOrderPaymentUseCase {
-    OrderPaymentResponseDto createSecondPayment(UUID userUuid, OrderPaymentRequestDto requestDto);
     OrderPaymentResponseDto paymentDeliverFee(UUID userUuid, OrderPaymentDeliveryRequestDto requestDto);
+
     OrderPayment saveOrderItem(Customer customer, BigDecimal exchangedAmount, BigDecimal discountAmount, BigDecimal finalPaymentAmount, UUID userCouponUuid);
+
+    OrderPayment createDeliveryPayment(String userUuid, BigDecimal deliveryFee, UUID deliveryUuid, UUID customerUuid);
 }

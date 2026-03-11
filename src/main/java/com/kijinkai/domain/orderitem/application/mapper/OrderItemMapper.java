@@ -1,10 +1,15 @@
 package com.kijinkai.domain.orderitem.application.mapper;
 
 
+import com.kijinkai.domain.customer.domain.model.Customer;
+import com.kijinkai.domain.delivery.domain.model.Delivery;
+import com.kijinkai.domain.order.domain.model.Order;
 import com.kijinkai.domain.orderitem.application.dto.OrderItemCountResponseDto;
+import com.kijinkai.domain.orderitem.application.dto.OrderItemRequestDto;
 import com.kijinkai.domain.orderitem.application.dto.OrderItemResponseDto;
 
 import com.kijinkai.domain.orderitem.domain.model.OrderItem;
+import com.kijinkai.domain.user.domain.model.User;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -13,6 +18,15 @@ import java.util.stream.Collectors;
 
 @Component
 public class OrderItemMapper {
+
+
+    public OrderItemResponseDto toRejectResponse(OrderItem orderItem) {
+
+        return OrderItemResponseDto.builder()
+                .orderItemUuid(orderItem.getOrderItemUuid())
+                .rejectReason(orderItem.getRejectReason())
+                .build();
+    }
 
     public OrderItemResponseDto toResponseDto(OrderItem orderItem) {
 
@@ -24,7 +38,14 @@ public class OrderItemMapper {
                 .quantity(orderItem.getQuantity())
                 .memo(orderItem.getMemo())
                 .orderItemStatus(orderItem.getOrderItemStatus())
-                .createdAt(orderItem.getCreatedAt())
+                .createdAt(orderItem.getCreatedAt().toLocalDate())
+                .build();
+    }
+
+    public OrderItemResponseDto toOrderItemUuidResponseDto(OrderItem orderItem) {
+
+        return OrderItemResponseDto.builder()
+                .orderItemUuid(orderItem.getOrderItemUuid())
                 .build();
     }
 
@@ -32,42 +53,55 @@ public class OrderItemMapper {
     public OrderItemResponseDto toProductDetailDto(OrderItem orderItem) {
 
         return OrderItemResponseDto.builder()
+                .orderItemUuid(orderItem.getOrderItemUuid())
                 .orderItemCode(orderItem.getOrderItemCode())
                 .productLink(orderItem.getProductLink())
                 .priceOriginal(orderItem.getPriceOriginal())
                 .quantity(orderItem.getQuantity())
                 .memo(orderItem.getMemo())
-                .createdAt(orderItem.getCreatedAt())
+                .createdAt(orderItem.getCreatedAt().toLocalDate())
                 .rejectReason(orderItem.getRejectReason())
                 .build();
     }
-    public OrderItemResponseDto toApprovalDetailDto(OrderItem orderItem, BigDecimal depositBalance) {
+
+    public OrderItemResponseDto toDetailOrderItemDto(OrderItem orderItem) {
 
         return OrderItemResponseDto.builder()
                 .orderItemCode(orderItem.getOrderItemCode())
                 .productLink(orderItem.getProductLink())
                 .priceOriginal(orderItem.getPriceOriginal())
                 .quantity(orderItem.getQuantity())
-                .memo(orderItem.getMemo())
-                .depositBalance(depositBalance)
-                .createdAt(orderItem.getCreatedAt())
                 .build();
     }
 
 
-    public List<OrderItemResponseDto> toResponseDtoList(List<OrderItem> orderItems) {
+    public OrderItemResponseDto toRequestDeliveryResponse(OrderItem orderItem) {
+        return OrderItemResponseDto.builder()
+                .orderItemUuid(orderItem.getOrderItemUuid())
+                .orderItemCode(orderItem.getOrderItemCode())
+                .productLink(orderItem.getProductLink())
+                .quantity(orderItem.getQuantity())
+                .memo(orderItem.getMemo())
+                .build();
+    }
 
-        return orderItems.stream().map(orderItem ->
-                OrderItemResponseDto.builder()
-                        .orderItemUuid(orderItem.getOrderItemUuid())
-                        .customerUuid(orderItem.getCustomerUuid())
-                        .productLink(orderItem.getProductLink())
-                        .priceOriginal(orderItem.getPriceOriginal())
-                        .quantity(orderItem.getQuantity())
-                        .memo(orderItem.getMemo())
-                        .orderItemStatus(orderItem.getOrderItemStatus())
-                        .createdAt(orderItem.getCreatedAt())
-                        .build()).toList();
+    public OrderItemResponseDto teOrderItemListResponse(User user, Customer customer, OrderItem orderItem) {
+
+        return OrderItemResponseDto.builder()
+                .orderItemUuid(orderItem.getOrderItemUuid())
+                .email(user.getEmail())
+                .name(customer.getLastName() + customer.getFirstName())
+                .orderItemStatus(orderItem.getOrderItemStatus())
+                .orderItemCode(orderItem.getOrderItemCode())
+                .productLink(orderItem.getProductLink())
+                .priceOriginal(orderItem.getPriceOriginal())
+                .quantity(orderItem.getQuantity())
+                .rejectReason(orderItem.getRejectReason())
+                .createdAt(orderItem.getCreatedAt().toLocalDate())
+                .updatedAt(orderItem.getUpdatedAt().toLocalDate())
+                .memo(orderItem.getMemo())
+                .inspectionStatus(orderItem.getInspectionStatus())
+                .build();
     }
 
 
@@ -82,6 +116,8 @@ public class OrderItemMapper {
                 .build();
 
     }
+
+
 
 
 }

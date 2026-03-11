@@ -1,4 +1,4 @@
-package com.kijinkai.domain.payment.adapter.in.web;
+package com.kijinkai.domain.payment.adapter.in.web.deposit;
 
 import com.kijinkai.domain.common.BasicResponseDto;
 import com.kijinkai.domain.payment.application.dto.request.DepositRequestDto;
@@ -7,7 +7,6 @@ import com.kijinkai.domain.payment.application.port.in.deposit.CreateDepositUseC
 import com.kijinkai.domain.payment.application.port.in.deposit.DeleteDepositUseCase;
 import com.kijinkai.domain.payment.application.port.in.deposit.GetDepositUseCase;
 import com.kijinkai.domain.payment.application.port.in.deposit.UpdateDepositUseCase;
-import com.kijinkai.domain.payment.domain.enums.DepositStatus;
 import com.kijinkai.domain.user.adapter.in.web.securiry.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

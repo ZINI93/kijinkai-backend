@@ -4,6 +4,7 @@ package com.kijinkai.domain.orderitem.domain.factory;
 import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.order.adapter.out.persistence.entity.OrderJpaEntity;
 import com.kijinkai.domain.order.domain.model.Order;
+import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.InspectionStatus;
 import com.kijinkai.domain.orderitem.application.dto.OrderItemRequestDto;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.orderitem.adapter.out.persistence.entity.OrderItemStatus;
@@ -26,7 +27,7 @@ public class OrderItemFactory {
                 .quantity(requestDto.getQuantity())
                 .priceOriginal(requestDto.getPriceOriginal())
                 .currencyOriginal(Currency.JPY)
-                .inspectionRequested(false)
+                .inspectionStatus(InspectionStatus.READY)
                 .orderItemStatus(OrderItemStatus.PENDING)
                 .memo(requestDto.getMemo())
                 .build();

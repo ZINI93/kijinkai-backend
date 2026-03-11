@@ -16,6 +16,7 @@ import com.kijinkai.domain.coupon.application.util.CouponCodeGenerator;
 import com.kijinkai.domain.coupon.domain.exception.*;
 import com.kijinkai.domain.coupon.domain.factory.CouponFactory;
 import com.kijinkai.domain.coupon.domain.modal.Coupon;
+import com.kijinkai.domain.coupon.domain.modal.CouponIssuedType;
 import com.kijinkai.domain.coupon.domain.modal.DiscountType;
 import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
 import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
@@ -210,8 +211,15 @@ public class CouponApplicationService implements CreateCouponUseCase, GetCouponU
                 lock.unlock();
             }
         }
+    }
 
 
+    /**
+     * 회원가입 쿠폰키트 배부
+     */
+    @Override
+    public void issuanceBySignUpCoupon(UUID userUuid){
+        issuanceTransactionManager.processIssuanceByCouponType(userUuid, CouponIssuedType.SIGNUP);
     }
 
 

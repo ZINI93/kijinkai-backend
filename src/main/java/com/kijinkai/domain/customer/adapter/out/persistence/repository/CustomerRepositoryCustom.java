@@ -12,4 +12,7 @@ import java.util.UUID;
 public interface CustomerRepositoryCustom {
 
     Page<CustomerJpaEntity> findAllByCustomers(String firstName, String lastName, String phoneNumber, CustomerTier customerTier, Pageable pageable);
+
+
+    Page<CustomerJpaEntity> searchCustomers(CustomerSearchCondition condition, Pageable pageable);
 }

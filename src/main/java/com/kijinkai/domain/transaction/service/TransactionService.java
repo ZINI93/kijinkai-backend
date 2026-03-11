@@ -2,10 +2,14 @@ package com.kijinkai.domain.transaction.service;
 
 import com.kijinkai.domain.order.adapter.out.persistence.entity.OrderJpaEntity;
 import com.kijinkai.domain.order.domain.model.Order;
+import com.kijinkai.domain.transaction.controller.TransactionSearchConditionDto;
+import com.kijinkai.domain.transaction.dto.TransactionAdminSearchResponseDto;
+import com.kijinkai.domain.transaction.dto.TransactionAdminSummaryDto;
 import com.kijinkai.domain.transaction.dto.TransactionResponseDto;
 import com.kijinkai.domain.transaction.entity.Transaction;
 import com.kijinkai.domain.transaction.entity.TransactionStatus;
 import com.kijinkai.domain.transaction.entity.TransactionType;
+import com.kijinkai.domain.user.domain.model.User;
 import com.kijinkai.domain.wallet.adapter.out.persistence.entity.WalletJpaEntity;
 import com.kijinkai.domain.wallet.domain.model.Wallet;
 import org.springframework.data.domain.Page;
@@ -37,4 +41,11 @@ public interface TransactionService {
     void failedPayment(UUID customerUuid, String paymentCode);
 
     Page<TransactionResponseDto> getTransactionHistory(UUID userUuid, TransactionType type, LocalDate startDate, LocalDate endDate, Pageable pageable);
+
+    Page<TransactionAdminSearchResponseDto> getSearchTransactionByAdmin(UUID userAdminUuid, TransactionSearchConditionDto conditionDto, Pageable pageable);
+
+    TransactionAdminSummaryDto summary(UUID userAdminUuid);
+
+
+
 }

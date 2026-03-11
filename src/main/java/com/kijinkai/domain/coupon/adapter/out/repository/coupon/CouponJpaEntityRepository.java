@@ -2,6 +2,7 @@ package com.kijinkai.domain.coupon.adapter.out.repository.coupon;
 
 import com.kijinkai.domain.coupon.adapter.out.entity.CouponJpaEntity;
 import com.kijinkai.domain.coupon.domain.modal.Coupon;
+import com.kijinkai.domain.coupon.domain.modal.CouponIssuedType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -16,6 +17,7 @@ public interface CouponJpaEntityRepository extends JpaRepository<CouponJpaEntity
     Optional<CouponJpaEntity> findByCouponUuid(UUID couponUuid);
     Optional<CouponJpaEntity> findByCampaignUuid(UUID campaignUuid);
     List<CouponJpaEntity> findAllByCouponUuidIn(List<UUID> couponUuids);
+    List<CouponJpaEntity> findAllByCouponIssuedTypeAndActive(CouponIssuedType type, boolean isActive);
 
 
     // 검증.

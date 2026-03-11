@@ -2,6 +2,8 @@ package com.kijinkai.domain.common.service;
 
 
 import com.kijinkai.domain.common.dto.MyPageResponseDto;
+import com.kijinkai.domain.delivery.application.in.GetDeliveryUseCase;
+import com.kijinkai.domain.delivery.domain.model.DeliveryStatus;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.exchange.dto.ExchangeRateResponseDto;
 import com.kijinkai.domain.exchange.service.ExchangeRateService;
@@ -34,6 +36,7 @@ public class MyPageService {
     private final GetWalletUseCase getWalletUseCase;
     private final GetOrderItemUseCase getOrderItemUseCase;
     private final ShipmentService shipmentService;
+    private final GetDeliveryUseCase getDeliveryUseCase;
 
     private final ExchangeRateService exchangeRateService;
 
@@ -85,11 +88,13 @@ public class MyPageService {
         //배송통합진행
         int orderItemByPending = getOrderItemUseCase.countOrderItemsByStatus(userUuid, OrderItemStatus.PRODUCT_CONSOLIDATING);
 
-        //2차결제 요청(국제 배송비)
-        int deliveryPaymentRequestedShipments = shipmentService.countShipmentByStatus(userUuid, ShipmentStatus.PAYMENT_PENDING);
+        //2차결제 요청(국제 배송비). *
+//        int deliveryPaymentRequestedShipments = shipmentService.countShipmentByStatus(userUuid, ShipmentStatus.PAYMENT_PENDING);
+        int deliveryPaymentRequested = getDeliveryUseCase.countDeliveryByStatus(userUuid, DeliveryStatus.REQUEST_PAYMENT);
+
 
         //2차결제 완료(국제 배송비)
-        int deliveryPaymentCompletedShipments = shipmentService.countShipmentByStatus(userUuid, ShipmentStatus.PREPARING);
+        int deliveryPaymentCompletedShipments = shipmentService.countShipmentByStatus(userUuid, ShipmentStatus.PAID);
 
         //국제 배송중
         int internationalShippingOrders = shipmentService.countShipmentByStatus(userUuid, ShipmentStatus.SHIPPED);
@@ -115,7 +120,7 @@ public class MyPageService {
                 .firstPaymentCompletedOrders(firstPaymentCompletedOrders)
                 .localDeliveryCompletedOrders(localDeliveryCompletedOrders)
                 .combinedProcessingOrders(orderItemByPending)
-                .secondPaymentRequestedOrders(deliveryPaymentRequestedShipments)
+                .secondPaymentRequestedOrders(deliveryPaymentRequested)
                 .secondPaymentCompletedOrders(deliveryPaymentCompletedShipments)
                 .internationalShippingOrders(internationalShippingOrders)
                 .deliveredOrders(deliveredOrders)

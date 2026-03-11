@@ -19,7 +19,7 @@ public class UserFactory {
                 .nickname(nickname)
                 .userRole(UserRole.USER)
                 .userStatus(UserStatus.ACTIVE)
-                .isSocial(false)
+                .social(false)
                 .build();
     }
 
@@ -33,7 +33,7 @@ public class UserFactory {
                 .userRole(UserRole.USER)
                 .userStatus(UserStatus.ACTIVE)
                 .socialProviderType(socialProviderType)
-                .isSocial(true)
+                .social(true)
                 .build();
     }
 

@@ -2,6 +2,7 @@ package com.kijinkai.domain.payment.application.dto.request;
 
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.payment.domain.enums.BankType;
+import com.kijinkai.domain.payment.domain.enums.DepositMethod;
 import lombok.Builder;
 import lombok.Value;
 
@@ -15,6 +16,7 @@ public class DepositRequestDto {
     BigDecimal amountOriginal;
     BankType bankType;
     Currency originalCurrency;
+    DepositMethod depositMethod;
 
     //승인 단계
     String memo;

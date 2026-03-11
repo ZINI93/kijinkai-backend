@@ -17,10 +17,16 @@ public interface ShipmentEntityRepository extends JpaRepository<ShipmentEntity, 
     Page<ShipmentEntity> findAllByCustomerUuidAndShipmentStatus(UUID customerUuid, ShipmentStatus shipmentStatus, Pageable pageable);
 
     List<ShipmentEntity> findAllByCustomerUuidAndShipmentStatusAndBoxCodeIn(UUID customerUuid, ShipmentStatus shipmentStatus, List<String> boxCode);
+    List<ShipmentEntity> findAllByDeliveryUuid(UUID deliveryUuid);
+    List<ShipmentEntity> findAllByShipmentIdIn(List<Long> shipmentId);
+    Page<ShipmentEntity> findAllByDeliveryUuid(UUID deliveryUuid, Pageable pageable);
 
     Optional<ShipmentEntity> findByBoxCodeAndShipmentStatus(String boxCode, ShipmentStatus status);
     Optional<ShipmentEntity> findByCustomerUuidAndBoxCodeAndShipmentStatus(UUID customerUuid, String boxCode, ShipmentStatus status);
+    Optional<ShipmentEntity> findByShipmentUuid(UUID shipmentUuid);
 
     @Query("SELECT COUNT(sm) FROM ShipmentEntity sm WHERE sm.customerUuid = :customerUuid AND sm.shipmentStatus = :shipmentStatus")
     int findShipmentCountByStatus(@Param("customerUuid") UUID customerUuid, @Param("shipmentStatus") ShipmentStatus shipmentStatus);
+
+
 }

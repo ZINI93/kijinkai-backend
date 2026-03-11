@@ -7,6 +7,10 @@ import com.kijinkai.domain.customer.domain.model.Customer;
 import com.kijinkai.domain.exchange.doamin.Currency;
 import com.kijinkai.domain.exchange.dto.ExchangeRateResponseDto;
 import com.kijinkai.domain.exchange.service.ExchangeRateService;
+import com.kijinkai.domain.payment.adapter.in.web.deposit.DepositSearchConditionDto;
+import com.kijinkai.domain.payment.adapter.out.persistence.repository.deposit.DepositSearchCondition;
+import com.kijinkai.domain.payment.application.dto.DepositAdminSearchDto;
+import com.kijinkai.domain.payment.application.dto.DepositAdminSummaryDto;
 import com.kijinkai.domain.payment.application.dto.request.DepositRequestDto;
 import com.kijinkai.domain.payment.application.dto.response.DepositRequestResponseDto;
 import com.kijinkai.domain.payment.application.handler.DepositFailedEvent;
@@ -49,8 +53,10 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -108,7 +114,8 @@ public class DepositRequestApplicationService implements CreateDepositUseCase, G
                 requestDto.getAmountOriginal(),
                 requestDto.getDepositorName(),
                 requestDto.getBankType(),
-                depositCode
+                depositCode,
+                requestDto.getDepositMethod()
         );
 
         // 검증
@@ -286,6 +293,42 @@ public class DepositRequestApplicationService implements CreateDepositUseCase, G
         List<DepositRequest> savedRefund = depositRequestPersistencePort.saveAllDeposit(expiredRequests);
 
         return savedRefund.stream().map(paymentMapper::depositInfoResponse).collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<DepositAdminSearchDto> searchDepositsByAdmin(UUID userAdminUuid, DepositSearchConditionDto conditionDto, Pageable pageable) {
+
+        // 관리자 조회 및 검증
+        User userAdmin = userPersistencePort.findByUserUuid(userAdminUuid)
+                .orElseThrow(() -> new UserNotFoundException("유저를 찾을 수 없습니다."));
+        userAdmin.validateAdminRole();
+
+        // 파라메터 매칭
+        DepositSearchCondition condition = DepositSearchCondition.builder()
+                .depositCode(conditionDto.depositCode())
+                .name(conditionDto.name())
+                .depositMethod(conditionDto.depositMethod())
+                .depositStatus(conditionDto.depositStatus())
+                .startDate(conditionDto.startDate())
+                .endDate(conditionDto.endDate())
+                .build();
+
+        // deposit 조회
+        return depositRequestPersistencePort.searchDeposit(condition, pageable);
+
+
+    }
+
+    @Override
+    public DepositAdminSummaryDto summaryByAdmin(UUID userAdminUuid, LocalDate date) {
+
+        // 관리자 조회 및 검증
+        User userAdmin = userPersistencePort.findByUserUuid(userAdminUuid)
+                .orElseThrow(() -> new UserNotFoundException("유저를 찾을 수 없습니다."));
+        userAdmin.validateAdminRole();
+
+        return depositRequestPersistencePort.summary(date);
+
     }
 
 

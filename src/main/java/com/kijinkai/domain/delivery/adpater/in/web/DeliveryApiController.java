@@ -3,8 +3,8 @@ package com.kijinkai.domain.delivery.adpater.in.web;
 
 import com.kijinkai.domain.common.BaseController;
 import com.kijinkai.domain.common.BasicResponseDto;
-import com.kijinkai.domain.delivery.application.dto.DeliveryRequestDto;
-import com.kijinkai.domain.delivery.application.dto.DeliveryResponseDto;
+import com.kijinkai.domain.delivery.application.dto.request.DeliveryRequestDto;
+import com.kijinkai.domain.delivery.application.dto.response.DeliveryResponseDto;
 import com.kijinkai.domain.delivery.application.in.CreateDeliveryUseCase;
 import com.kijinkai.domain.delivery.application.in.DeleteDeliveryUseCase;
 import com.kijinkai.domain.delivery.application.in.GetDeliveryUseCase;

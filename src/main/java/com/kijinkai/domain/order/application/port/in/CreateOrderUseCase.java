@@ -11,5 +11,5 @@ import java.util.UUID;
 
 public interface CreateOrderUseCase {
     OrderResponseDto createOrder(UUID userUuid, OrderRequestDto requestDto);
-    OrderResponseDto createAndSaveOrder(UUID customerUuid, List<OrderItem> orderItems, Map<String,Boolean> inspectedPhotoRequest, String orderCode, BigDecimal totalPrice);
+    OrderResponseDto createAndSaveOrder(UUID customerUuid, List<OrderItem> orderItems, List<UUID> requestPhotoItemUuids, String orderCode, BigDecimal totalPrice);
 }

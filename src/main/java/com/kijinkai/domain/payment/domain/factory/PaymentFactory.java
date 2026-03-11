@@ -8,6 +8,7 @@ import com.kijinkai.domain.payment.adapter.out.persistence.entity.DepositRequest
 import com.kijinkai.domain.payment.adapter.out.persistence.entity.OrderPaymentJpaEntity;
 import com.kijinkai.domain.payment.adapter.out.persistence.entity.RefundRequestJpaEntity;
 import com.kijinkai.domain.payment.adapter.out.persistence.entity.WithdrawRequestJpaEntity;
+import com.kijinkai.domain.payment.application.dto.request.RefundRequestDto;
 import com.kijinkai.domain.payment.domain.enums.*;
 import com.kijinkai.domain.payment.domain.model.DepositRequest;
 import com.kijinkai.domain.payment.domain.model.OrderPayment;
@@ -23,20 +24,20 @@ import java.util.UUID;
 @Component
 public class PaymentFactory {
 
-    public DepositRequest createDepositRequest(
-            Customer customer, Wallet wallet, BigDecimal originalAmount, Currency originalCurrency,
-            BigDecimal convertAmount, BigDecimal exchangeRate, String depositorName, BankType bankType
-    ) {
-
-        return DepositRequest.builder()
-                .customerUuid(customer.getCustomerUuid())
-                .walletUuid(wallet.getWalletUuid())
-                .amountOriginal(originalAmount)
-                .currencyOriginal(originalCurrency)
-                .depositorName(depositorName)
-                .bankType(bankType)
-                .build();
-    }
+//    public DepositRequest createDepositRequest(
+//            Customer customer, Wallet wallet, BigDecimal originalAmount, Currency originalCurrency,
+//            BigDecimal convertAmount, BigDecimal exchangeRate, String depositorName, BankType bankType
+//    ) {
+//
+//        return DepositRequest.builder()
+//                .customerUuid(customer.getCustomerUuid())
+//                .walletUuid(wallet.getWalletUuid())
+//                .amountOriginal(originalAmount)
+//                .currencyOriginal(originalCurrency)
+//                .depositorName(depositorName)
+//                .bankType(bankType)
+//                .build();
+//    }
 
     public WithdrawRequest createWithdrawRequest(
             Customer customer, Wallet wallet, BigDecimal requestAmount, Currency tagetCurrency
@@ -59,18 +60,20 @@ public class PaymentFactory {
     }
 
 
-    public RefundRequest createRefundPayment(
-            Customer customer, Wallet wallet, OrderItem orderItem
-            , BigDecimal refundAmount, UUID adminUuid, String refundReason, RefundType refundType) {
+    public RefundRequest createRefundPayment(UUID userAdminUuid, BigDecimal refundAmount, String refundCode, Customer customer, Wallet wallet, OrderItem orderItem, RefundRequestDto requestDto) {
 
         return RefundRequest.builder()
+                .refundUuid(UUID.randomUUID())
+                .refundCode(refundCode)
                 .customerUuid(customer.getCustomerUuid())
                 .walletUuid(wallet.getWalletUuid())
                 .orderItemUuid(orderItem.getOrderItemUuid())
                 .refundAmount(refundAmount)
-                .refundReason(refundReason)
-                .refundType(refundType)
-                .processedByAdmin(adminUuid)
+                .refundReason(requestDto.getRefundReason())
+                .refundType(requestDto.getRefundType())
+                .adminMemo(requestDto.getAdminMemo())
+                .processedByAdmin(userAdminUuid)
+                .status(RefundStatus.COMPLETED)
                 .build();
     }
 
@@ -90,6 +93,10 @@ public class PaymentFactory {
                 .paymentOrder(PaymentOrder.FIRST)
                 .build();
     }
+
+    /*
+    삭제예정
+     */
     public OrderPayment createOrderSecondPayment(
             UUID customerUuid, BigDecimal paymentAmount, String orderPaymentCode, UUID walletUuid) {
         return OrderPayment.builder()
@@ -101,6 +108,24 @@ public class PaymentFactory {
                 .paymentOrder(PaymentOrder.SECOND)
                 .orderPaymentStatus(OrderPaymentStatus.COMPLETED)
                 .paymentAmount(paymentAmount)
+                .build();
+    }
+
+
+    public OrderPayment createDeliveryPayment(String orderPaymentCode, BigDecimal amount, UUID deliveryUuid,UUID customerUuid, UUID walletUuid){
+
+        return OrderPayment.builder()
+                .paymentUuid(UUID.randomUUID())
+                .customerUuid(customerUuid)
+                .walletUuid(walletUuid)
+                .orderPaymentCode(orderPaymentCode)
+                .deliveryUuid(deliveryUuid)
+                .paymentType(PaymentType.SHIPPING_PAYMENT)
+                .paymentOrder(PaymentOrder.SECOND)
+                .orderPaymentStatus(OrderPaymentStatus.PENDING)
+                .discountAmount(BigDecimal.ZERO)
+                .paymentAmount(amount)
+                .finalPaymentAmount(amount) // 배송비는 쿠폰적용 불가 이므로 최종가격이 같음
                 .build();
     }
 

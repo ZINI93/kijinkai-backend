@@ -6,6 +6,7 @@ import com.kijinkai.domain.coupon.adapter.out.repository.coupon.CouponJpaEntityR
 import com.kijinkai.domain.coupon.adapter.out.repository.coupon.CouponSearchCondition;
 import com.kijinkai.domain.coupon.application.port.out.CouponPersistencePort;
 import com.kijinkai.domain.coupon.domain.modal.Coupon;
+import com.kijinkai.domain.coupon.domain.modal.CouponIssuedType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +29,14 @@ public class CouponPersistenceAdapter implements CouponPersistencePort {
         CouponJpaEntity couponJapEntity = couponPersistenceMapper.toCouponJapEntity(coupon);
         couponJapEntity = couponJpaEntityRepository.save(couponJapEntity);
         return couponPersistenceMapper.toCoupon(couponJapEntity);
+    }
+
+    @Override
+    public List<Coupon> saveCoupons(List<Coupon> coupons) {
+        List<CouponJpaEntity> couponJpaEntityList = couponPersistenceMapper.toCouponJpaEntityList(coupons);
+        couponJpaEntityList = couponJpaEntityRepository.saveAll(couponJpaEntityList);
+        return couponPersistenceMapper.toCouponList(couponJpaEntityList);
+
     }
 
     @Override
@@ -59,6 +68,12 @@ public class CouponPersistenceAdapter implements CouponPersistencePort {
     public List<Coupon> findAllByCouponUuids(List<UUID> couponUuids) {
         return couponJpaEntityRepository.findAllByCouponUuidIn(couponUuids)
                 .stream().map(couponPersistenceMapper::toCoupon).toList();
+    }
+
+    @Override
+    public List<Coupon> findAllByCouponIssuedTypeAndActive(CouponIssuedType type, boolean isActive) {
+        List<CouponJpaEntity> couponJpaEntities = couponJpaEntityRepository.findAllByCouponIssuedTypeAndActive(type, isActive);
+        return couponPersistenceMapper.toCouponList(couponJpaEntities);
     }
 
     @Override

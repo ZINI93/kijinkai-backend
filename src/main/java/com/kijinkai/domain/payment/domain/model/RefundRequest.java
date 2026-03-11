@@ -24,6 +24,8 @@ public class RefundRequest {
 
     private UUID orderItemUuid;
 
+    private String refundCode;
+
     private BigDecimal refundAmount;
 
     private String refundReason;

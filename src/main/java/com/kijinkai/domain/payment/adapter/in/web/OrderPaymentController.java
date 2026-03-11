@@ -51,34 +51,6 @@ public class OrderPaymentController {
     private final UpdateOrderPaymentUseCase updateOrderPaymentUseCase;
     private final DeleteOrderPaymentUseCase deleteOrderPaymentUseCase;
 
-    @Operation(
-            summary = "상품에 대한 결제",
-            description = "유저 - 상품에 대한 결제",
-            tags = {"결제관리"}
-    )
-    @PostMapping("/first-payment")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "상품 결제 생성 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
-            @ApiResponse(responseCode = "404", description = "상품 주문 결제 찾을 수 없음"),
-            @ApiResponse(responseCode = "500", description = "서버오류")
-    })
-    public ResponseEntity<BasicResponseDto<OrderPaymentResponseDto>> completeFirstPayment(
-            Authentication authentication,
-            @Valid @RequestBody OrderPaymentRequestDto orderPaymentRequestDto
-    ) {
-
-        UUID userUuid = getUserUuid(authentication);
-        log.info("Order payment first request create - User: {}", userUuid);
-
-        try {
-            OrderPaymentResponseDto response = updateOrderPaymentUseCase.completeFirstPayment(userUuid, orderPaymentRequestDto);
-            return createSuccessResponse(ORDER_PAYMENT_COMPLETE_SUCCESS, response);
-        } catch (Exception e) {
-            log.error("Failed to process first order payment request - admin:{}", userUuid, e);
-            throw e;
-        }
-    }
 
 
     @Operation(

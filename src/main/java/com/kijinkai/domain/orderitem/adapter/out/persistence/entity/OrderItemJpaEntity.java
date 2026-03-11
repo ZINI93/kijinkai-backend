@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -38,7 +39,7 @@ public class OrderItemJpaEntity extends BaseEntity {
     @Column(name = "order_item_code", nullable = false, updatable = false)
     private String orderItemCode;
 
-    @JoinColumn(name = "order_id", updatable = false)
+    @JoinColumn(name = "order_uuid", updatable = false)
     private UUID orderUuid;
 
     @Column(name = "product_payment_uuid")
@@ -63,8 +64,15 @@ public class OrderItemJpaEntity extends BaseEntity {
     @Column(name = "memo",columnDefinition = "TEXT")
     private String memo;
 
-    @Column(name = "inspection_requested", nullable = false)
-    private Boolean inspectionRequested;
+//    @Column(name = "inspection_requested", nullable = false)
+//    private Boolean inspectionRequested;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "inspection_status", nullable = false)
+    private InspectionStatus inspectionStatus;
+
+    @Column(name = "inspected_at")
+    private LocalDateTime inspectedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "order_item_status", nullable = false, length = 20)
@@ -74,7 +82,18 @@ public class OrderItemJpaEntity extends BaseEntity {
     @Column(name = "reject_reason")
     private String rejectReason;
 
+    // 구매 가격 스냅샷
+    @Column(name = "applied_rate")
+    private BigDecimal appliedRate;
 
+    @Column(name = "discount_amount")
+    private BigDecimal discountAmount;
+
+    @Column(name = "paid_amount" )
+    private BigDecimal paidAmount;
+
+    @Column(name = "local_arrived_at")
+    private LocalDateTime localArrivedAt;
 
 }
 

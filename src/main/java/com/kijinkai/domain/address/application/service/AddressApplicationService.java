@@ -17,6 +17,9 @@ import com.kijinkai.domain.customer.application.port.in.UpdateCustomerUseCase;
 import com.kijinkai.domain.customer.application.port.out.persistence.CustomerPersistencePort;
 import com.kijinkai.domain.customer.domain.exception.CustomerNotFoundException;
 import com.kijinkai.domain.customer.domain.model.Customer;
+import com.kijinkai.domain.user.application.port.out.persistence.UserPersistencePort;
+import com.kijinkai.domain.user.domain.exception.UserNotFoundException;
+import com.kijinkai.domain.user.domain.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,6 +38,7 @@ public class AddressApplicationService implements CreateAddressUseCase, GetAddre
     private final CustomerPersistencePort customerPersistencePort;
     private final UpdateCustomerUseCase updateCustomerUseCase;
 
+    private final UserPersistencePort userPersistencePort;
     private final AddressFactory addressFactory;
     private final AddressMapper addressMapper;
 
@@ -130,5 +134,23 @@ public class AddressApplicationService implements CreateAddressUseCase, GetAddre
     private Address findAddressByCustomerUuid(UUID customerUuid) {
         return addressPersistencePort.findByCustomerUuid(customerUuid)
                 .orElseThrow(() -> new AddressNotFoundException(String.format("Address not found for customerUuid: %s", customerUuid)));
+    }
+
+
+    @Override
+    public AddressResponseDto getAddressByAdmin(UUID userAdminUuid, UUID customerUuid){
+
+        //관리자 검증
+        User userAdmin = userPersistencePort.findByUserUuid(userAdminUuid)
+                .orElseThrow(() -> new UserNotFoundException("유저를 찾을 수 없습니다."));
+        userAdmin.validateAdminRole();
+
+        Customer customer = findCustomerByUserUuid(userAdminUuid);
+
+        // 조회
+        Address address = findAddressByCustomerUuid(customerUuid);
+
+
+        return addressMapper.toResponse(address, customer);
     }
 }
